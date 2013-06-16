@@ -39,28 +39,50 @@
         <!-- The main chart view or "index" view -->
         <script type="text/x-handlebars" data-template-name="index">
             <ul>
-                {{#each item in model}}
-                <li><strong>{{item.variableName}}</strong>: {{item.variableValue}}</li>
+                {{#each model}}
+                <li><strong>{{variableName}}</strong>: {{variableValue}}</li>
                 {{/each}}
             </ul>
         </script>
 
-        <div id="variable_pane">
-            <h1>Variables</h1>
-            <a class="close_button" href="javascript: $.pageslide.close()">X</a>
-        </div>
+        <script type="text/x-handlebars" data-template-name="variables">
+            <div id="variable_pane">
+                <h1>Variables</h1>
+                <a class="close_button" href="javascript: $.pageslide.close()">X</a>
+                <table class="pure-table">
+                    <tr>
+                        <th>Selected</th>
+                        <th>Variable</th>
+                    </tr>
 
-        <div id="settings_pane">
-            <h1>Settings</h1>
-            <a class="close_button" href="javascript: $.pageslide.close()">X</a>
-        </div>
+                    <tr>
+                        <td>x</td>
+                        <td>Accelerator</td>
+                    </tr>
+
+                    <tr>
+                        <td>x</td>
+                        <td>Brake</td>
+                    </tr>
+                </table>
+            </div>
+        </script>
+
+        <script type="text/x-handlebars" data-template-name="settings">
+            <div id="settings_pane">
+                <h1>Settings</h1>
+                <a class="close_button" href="javascript: $.pageslide.close()">X</a>
+            </div>
+        </script>
 
         <!-- Add javascript -->
         <script type="text/javascript" src="static/js/jquery.min.js"></script>
         <script type="text/javascript" src="static/js/jquery.pageslide.min.js"></script>
         <script type="text/javascript" src="static/js/handlebars.js"></script>
         <script type="text/javascript" src="static/js/ember.min.js"></script>
+        <script type="text/javascript" src="static/js/ember.data.min.js"></script>
         <script type="text/javascript" src="static/js/d3.v3.min.js"></script>
+        <script type="text/javascript" src="static/js/moment.min.js"></script>
         <script type="text/javascript" src="static/js/blitz_gui_app.js"></script>
 
         <!-- UI scripts for jQuery -->
