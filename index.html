@@ -19,12 +19,12 @@
             <!-- Show the controller menu -->
             <div id="top_control_container">
                 <div id="top_controls" class="pure-menu-horizontal">
-                    <li><a title="Start Logging" href="#"><i class="icon-play button-inactive"></i></a></li>
-                    <li><a title="Stop Logging" href="#"><i class="icon-stop button-inactive"></i></a></li>
-                    <li><a title="Connect" class="right-spacer" href="#"><i class="icon-signal"></i></a></li>
+                    <a title="Start Logging" href="#"><i class="icon-play button-inactive"></i></a>
+                    <a title="Stop Logging" href="#"><i class="icon-stop button-inactive"></i></a>
+                    <a title="Connect" class="right-spacer" href="#"><i class="icon-signal"></i></a>
 
-                    <li><a title="Warnings" href="#"><i class="icon-question button-inactive"></i></a></li>
-                    <li><a title="Alerts" href="#"><i class="icon-exclamation button-inactive"></i></a></li>
+                    <a title="Warnings" class="right-spacer-small" href="#"><i class="icon-question button-inactive"></i></a>
+                    <a title="Alerts" href="#"><i class="icon-exclamation button-inactive"></i></a>
                 </div>
             </div>
 
@@ -32,23 +32,11 @@
             <div id="variables_slide_out_handle"><a id="variable_link" title="Variables" href="#variable_pane"><i class="icon-list"></i></a></div>
             <div id="settings_slide_out_handle"><a id="settings_link" title="Settings" href="#settings_pane"><i class="icon-cog"></i></a></div>
 
-            <!-- Display the body -->
-            {{outlet}}
-        </script>
 
-        <!-- The main chart view or "index" view -->
-        <script type="text/x-handlebars" data-template-name="index">
-            <ul>
-                {{#each model}}
-                <li><strong>{{variableName}}</strong>: {{variableValue}}</li>
-                {{/each}}
-            </ul>
-        </script>
-
-        <script type="text/x-handlebars" data-template-name="variables">
+            <!-- The variables pane -->
             <div id="variable_pane">
                 <h1>Variables</h1>
-                <a class="close_button" href="javascript: $.pageslide.close()">X</a>
+                <a class="close_button" href="javascript: $.pageslide.close()">x</a>
                 <table class="pure-table">
                     <tr>
                         <th>Selected</th>
@@ -56,24 +44,39 @@
                     </tr>
 
                     <tr>
-                        <td>x</td>
+                        <td>{{#linkTo 'variable' 'acceleration'}}Show{{/linkTo}}</td>
                         <td>Accelerator</td>
                     </tr>
 
                     <tr>
-                        <td>x</td>
+                        <td>{{#linkTo 'variable' 'brake'}}Show{{/linkTo}}</td>
                         <td>Brake</td>
                     </tr>
                 </table>
             </div>
-        </script>
 
-        <script type="text/x-handlebars" data-template-name="settings">
+            <!-- The settings pane -->
             <div id="settings_pane">
                 <h1>Settings</h1>
-                <a class="close_button" href="javascript: $.pageslide.close()">X</a>
+                <a class="close_button" href="javascript: $.pageslide.close()">x</a>
             </div>
+
+            <!-- Display the body -->
+            {{outlet}}
         </script>
+
+
+        <!-- The main chart view or "index" view -->
+        <script type="text/x-handlebars" data-template-name="live">
+            {{outlet}}
+        </script>
+
+
+        <!-- The chart view -->
+        <script type="text/x-handlebars" data-template-name="variable">
+            <h1>{{variableName}}</h1>
+        </script>
+
 
         <!-- Add javascript -->
         <script type="text/javascript" src="static/js/jquery.min.js"></script>

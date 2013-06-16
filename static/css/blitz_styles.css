@@ -1,3 +1,5 @@
+html, body, p { color: #232323; }
+
 #top_control_container {
     width: 100%;
     position: fixed;
@@ -11,7 +13,7 @@
 
 #top_controls {
     padding: 3px;
-    background-color: rgb(74, 74, 74);
+    background-color: #202020;
     color: white;
     width: 300px;
     margin: 0 auto;
@@ -27,6 +29,10 @@
 
 .right-spacer {
     margin-right: 150px;
+}
+
+.right-spacer-small {
+    margin-right: 10px;
 }
 
 .play-button {
@@ -51,7 +57,7 @@
     top: 50px;
     margin: 0 auto;
     width: 35px;
-    background-color: rgb(74, 74, 74);
+    background-color: #202020;
     color: white;
     padding: 10px 5px;
     border-top-left-radius: 5px;
@@ -65,6 +71,10 @@
 
 #variables_slide_out_handle a:hover, #settings_slide_out_handle a:hover {
     color: white;
+}
+
+#variables_slide_out_handle i, #settings_slide_out_handle i {
+    padding-left: 10px;
 }
 
 #settings_slide_out_handle {

@@ -22,9 +22,25 @@ App.Config = DS.Model.extend({
     sampleRate: DS.attr('int')
 });
 
-App.IndexRoute = Ember.Route.extend({
+
+/* Set up the routes */
+App.Router.map(function () {
+    this.resource('live', function () {
+        this.resource('variable', { path: ':variableName' });
+    });
+});
+
+// live route shows main data page
+App.LiveRoute = Ember.Route.extend({
     model: function () {
         return App.DataLine.find();
+    }
+});
+
+// when opening the page go directly to the live route
+App.IndexRoute = Ember.Route.extend({
+    redirect: function () {
+        this.transitionTo('live');
     }
 });
 
