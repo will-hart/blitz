@@ -44,3 +44,24 @@
 .button-inactive {
     color: #565d64;
 }
+
+#variables_slide_out_handle, #settings_slide_out_handle {
+    position: fixed;
+    right: 0;
+    top: 50px;
+    margin: 0 auto;
+    width: 35px;
+    background-color: rgb(74, 74, 74);
+    color: white;
+    padding: 10px 5px;
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+}
+
+#variables_slide_out_handle a, #settings_slide_out_handle a {
+    color: white;
+}
+
+#settings_slide_out_handle {
+    top: 95px;
+}
