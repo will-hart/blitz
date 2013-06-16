@@ -1,0 +1,46 @@
+#top_control_container {
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    border: 0;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+
+#top_controls {
+    padding: 3px;
+    background-color: rgb(74, 74, 74);
+    color: white;
+    width: 300px;
+    margin: 0 auto;
+    text-align: center;
+    border-bottom-left-radius: 7px;
+    border-bottom-right-radius: 7px;
+}
+
+#top_controls a {
+    text-decoration: none;
+    color: white;
+}
+
+.right-spacer {
+    margin-right: 150px;
+}
+
+.play-button {
+    color: #4fff51;
+}
+
+.stop-button, .alert-button {
+    color: #b9100e;
+}
+
+.warning-button {
+    color: #ffb42a;
+}
+
+.button-inactive {
+    color: #565d64;
+}

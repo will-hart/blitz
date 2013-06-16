@@ -8,12 +8,27 @@
           <link rel="stylesheet" media="screen" href="static/css/pure-min.css"/>
           <link rel="stylesheet" media="screen" href="static/css/jquery.pageslide.css" />
           <link rel="stylesheet" media="screen" href="static/css/blitz_styles.css" />
+          <link rel="stylesheet" media="screen" href="static/css/font-awesome.min.css" />
       </head>
 
     <body>
 
         <!-- The main view - this is just an outlet -->
         <script type="text/x-handlebars">
+
+            <!-- Show the controller menu -->
+            <div id="top_control_container">
+                <div id="top_controls" class="pure-menu-horizontal">
+                    <li><a title="Start Logging" href="#"><i class="icon-play button-inactive"></i></a></li>
+                    <li><a title="Stop Logging" href="#"><i class="icon-stop button-inactive"></i></a></li>
+                    <li><a title="Connect" class="right-spacer" href="#"><i class="icon-signal"></i></a></li>
+
+                    <li><a title="Warnings" href="#"><i class="icon-question button-inactive"></i></a></li>
+                    <li><a title="Alerts" href="#"><i class="icon-exclamation button-inactive"></i></a></li>
+                </div>
+            </div>
+
+            <!-- Display the body -->
             {{outlet}}
         </script>
 
