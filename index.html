@@ -29,8 +29,8 @@
             </div>
 
             <!-- Show the slide out buttons for variables and settings -->
-            <div id="variables_slide_out_handle"><a title="Variables" href="#"><i class="icon-list"></i></a></div>
-            <div id="settings_slide_out_handle"><a title="Settings" href="#"><i class="icon-cog"></i></a></div>
+            <div id="variables_slide_out_handle"><a id="variable_link" title="Variables" href="#variable_pane"><i class="icon-list"></i></a></div>
+            <div id="settings_slide_out_handle"><a id="settings_link" title="Settings" href="#settings_pane"><i class="icon-cog"></i></a></div>
 
             <!-- Display the body -->
             {{outlet}}
@@ -45,6 +45,16 @@
             </ul>
         </script>
 
+        <div id="variable_pane">
+            <h1>Variables</h1>
+            <a class="close_button" href="javascript: $.pageslide.close()">X</a>
+        </div>
+
+        <div id="settings_pane">
+            <h1>Settings</h1>
+            <a class="close_button" href="javascript: $.pageslide.close()">X</a>
+        </div>
+
         <!-- Add javascript -->
         <script type="text/javascript" src="static/js/jquery.min.js"></script>
         <script type="text/javascript" src="static/js/jquery.pageslide.min.js"></script>
@@ -53,5 +63,16 @@
         <script type="text/javascript" src="static/js/d3.v3.min.js"></script>
         <script type="text/javascript" src="static/js/blitz_gui_app.js"></script>
 
+        <!-- UI scripts for jQuery -->
+        <script>
+            $(document).ready( function () {
+               $("#variable_link").pageslide({
+                       direction: 'left'
+               });
+               $("#settings_link").pageslide({
+                       direction: 'left'
+               });
+            });
+        </script>
     </body>
 </html>

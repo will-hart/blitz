@@ -42,7 +42,7 @@
 }
 
 .button-inactive {
-    color: #565d64;
+    color: dimgrey;
 }
 
 #variables_slide_out_handle, #settings_slide_out_handle {
@@ -59,9 +59,27 @@
 }
 
 #variables_slide_out_handle a, #settings_slide_out_handle a {
+    color: darkgrey;
+    text-decoration: none;
+}
+
+#variables_slide_out_handle a:hover, #settings_slide_out_handle a:hover {
     color: white;
 }
 
 #settings_slide_out_handle {
     top: 95px;
+}
+
+#variable_pane, #settings_pane {
+    display: none;
+}
+
+.close_button {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    color: white;
+    font-weight: bold;
+    text-decoration: none;
 }
