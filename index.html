@@ -12,7 +12,19 @@
 
     <body>
 
-        <!-- Index view -->
+        <!-- The main view - this is just an outlet -->
+        <script type="text/x-handlebars">
+            {{outlet}}
+        </script>
+
+        <!-- The main chart view or "index" view -->
+        <script type="text/x-handlebars" data-template-name="index">
+            <ul>
+                {{#each item in model}}
+                <li><strong>{{item.variableName}}</strong>: {{item.variableValue}}</li>
+                {{/each}}
+            </ul>
+        </script>
 
         <!-- Add javascript -->
         <script type="text/javascript" src="static/js/jquery.min.js"></script>
