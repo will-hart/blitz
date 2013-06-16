@@ -68,7 +68,10 @@
 
         <!-- The main chart view or "index" view -->
         <script type="text/x-handlebars" data-template-name="live">
-            {{outlet}}
+            <!--{{outlet}}-->
+            <svg id="chart" preserveAspectRatio="xMidYMid">
+
+            </svg>
         </script>
 
 
@@ -91,12 +94,23 @@
         <!-- UI scripts for jQuery -->
         <script>
             $(document).ready( function () {
-               $("#variable_link").pageslide({
-                       direction: 'left'
-               });
-               $("#settings_link").pageslide({
-                       direction: 'left'
-               });
+                $("#variable_link").pageslide({
+                        direction: 'left'
+                });
+                $("#settings_link").pageslide({
+                        direction: 'left'
+                });
+
+                // load the initial chart
+                chart_builder();
+
+                // add a resize event for the chart
+                $(window).on("resize", function () {
+                    var cht = $("#chart");
+                    cht.attr("viewBox", "0, 0, " + innerWidth + ", " + innerHeight);
+                    cht.attr("width", innerWidth);
+                    cht.attr("height", innerHeight);
+                });
             });
         </script>
     </body>

@@ -1,4 +1,24 @@
-html, body, p { color: #232323; }
+html, body, p {
+    overflow: hidden;
+    color: #232323;
+}
+
+svg {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: -9999;
+}
+
+.x_axis path, .x_axis line, .y_axis path, .y_axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+    stroke-width: 2px;
+}
+
 
 #top_control_container {
     width: 100%;
