@@ -30,14 +30,37 @@ App.Config = DS.Model.extend({
 
 
 /*********************************************************
+ * CONTROLLERS
+*********************************************************/
+
+App.liveController = Ember.ArrayController.extend({
+    content: [],
+    displayed: [],
+
+    /* Toggles whether a variable is displayed or not */
+    updateDisplayed: function updateDisplayed(variableName) {
+        var disp = this.get('displayed');
+        var idx = disp.indexOf(variableName);
+
+        // check if the variable name is in the box
+        if (idx >= 0) {
+            disp.splice(idx);
+        } else {
+            disp.push(variableName);
+        }
+
+        console.log(disp);
+        this.set('displayed', disp);
+    }
+});
+
+/*********************************************************
  * ROUTES
 *********************************************************/
 
 /* Set up the routes */
 App.Router.map(function () {
-    this.resource('live', function () {
-        this.resource('variable', { path: 'view/:variableName' });
-    });
+    this.resource('live');
 });
 
 // live route shows main data page
