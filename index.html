@@ -37,22 +37,29 @@
             <div id="variable_pane">
                 <h2>Variables</h2>
                 <a class="close_button" href="javascript: $.pageslide.close()">x</a>
-                <table class="pure-table">
-                    <tr>
-                        <th>Selected</th>
-                        <th>Variable</th>
-                    </tr>
 
-                    <tr>
-                        <td>{{#linkTo 'variable' 'acceleration'}}Show{{/linkTo}}</td>
-                        <td>Accelerator</td>
-                    </tr>
-
-                    <tr>
-                        <td>{{#linkTo 'variable' 'brake'}}Show{{/linkTo}}</td>
-                        <td>Brake</td>
-                    </tr>
-                </table>
+                <ul class="variable_list">
+                    <li class="active">
+                        <button class="pure-button pure-button-variable-list-hide" {{action "updateDisplayed" "accelerate"}}>Hide</button>
+                        Accelerator
+                    </li>
+                    <li>
+                        <button class="pure-button" {{action "updateDisplayed" "brake"}}>Show</button>
+                        Brake
+                    </li>
+                    <li>
+                        <button class="pure-button" {{action "updateDisplayed" "brake"}}>Show</button>
+                        Power
+                    </li>
+                    <li class="active">
+                        <button class="pure-button pure-button-variable-list-hide" {{action "updateDisplayed" "velocity"}}>Hide</button>
+                        Steering Input
+                    </li>
+                    <li>
+                        <button class="pure-button" {{action "updateDisplayed" "brake"}}>Show</button>
+                        Brake
+                    </li>
+                </ul>
             </div>
 
             <!-- The settings pane -->

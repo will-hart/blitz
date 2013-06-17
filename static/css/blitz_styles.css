@@ -19,7 +19,6 @@ svg {
     stroke-width: 2px;
 }
 
-
 #top_control_container {
     width: 100%;
     position: fixed;
@@ -105,6 +104,19 @@ svg {
     display: none;
 }
 
+ul.variable_list {
+    list-style-type: none;
+    padding-left: 10px;
+}
+
+ul.variable_list li {
+    margin-bottom: 5px;
+}
+
+ul.variable_list li.active {
+    background: rgb(28, 184, 65);
+}
+
 .close_button {
     position: absolute;
     top: 4px;
@@ -112,4 +124,40 @@ svg {
     color: white;
     font-weight: bold;
     text-decoration: none;
+}
+
+.pure-button {
+    border-radius: 0;
+    padding: 5px 10px;
+    min-width: 60px;
+    margin-right: 5px;
+}
+
+.pure-button-success,
+.pure-button-error,
+.pure-button-warning,
+.pure-button-secondary {
+    color: white;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+}
+
+.pure-button-success {
+    background: rgb(28, 184, 65); /* this is a green */
+}
+
+.pure-button-variable-list-hide {
+    background: rgb(25, 138, 52); /* this is a darker green */
+    color: white;
+}
+
+.pure-button-error {
+    background: rgb(202, 60, 60); /* this is a maroon */
+}
+
+.pure-button-warning {
+    background: rgb(223, 117, 20); /* this is an orange */
+}
+
+.pure-button-secondary {
+    background: rgb(66, 184, 221); /* this is a light blue */
 }
