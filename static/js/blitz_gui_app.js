@@ -65,6 +65,15 @@ App.ApplicationView = Ember.View.extend({
     chart: {},
     line: {},
 
+    /* the colours to use on the (max 5) chart series */
+    colours: [
+        "#0078e7", // blue
+        "#198A34", // green
+        "#202020", // dark grey
+        "#CA3C3C", // red
+        "#DF7514" // yellow
+    ],
+
     /* Initialise and draw the chart  */
     didInsertElement: function didInsertElement() {
 
@@ -76,6 +85,7 @@ App.ApplicationView = Ember.View.extend({
             y = d3.scale.linear().range([height, 0]),
             xAxis = d3.svg.axis().scale(x).orient('bottom'),
             yAxis = d3.svg.axis().scale(y).orient('left'),
+            color = d3.scale.linear().domain([0, 1]).range([0, 4]),
 
             /* set up the line for drawing the series */
             line = d3.svg.line()
