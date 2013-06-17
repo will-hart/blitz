@@ -32,7 +32,6 @@
             <div id="variables_slide_out_handle"><a id="variable_link" title="Variables" href="#variable_pane"><i class="icon-list"></i></a></div>
             <div id="settings_slide_out_handle"><a id="settings_link" title="Settings" href="#settings_pane"><i class="icon-cog"></i></a></div>
 
-
             <!-- The variables pane -->
             <div id="variable_pane">
                 <h2>Variables</h2>
@@ -60,6 +59,15 @@
                         Brake
                     </li>
                 </ul>
+
+                <hr>
+
+                <h2>Connected Boards</h2>
+                <ul>
+                    <li>BlitzBasic</li>
+                    <li>BlitzMoto</li>
+                </ul>
+
             </div>
 
             <!-- The settings pane -->
@@ -70,23 +78,9 @@
 
             <!-- Display the body -->
             {{outlet}}
-        </script>
-
-
-        <!-- The main chart view or "index" view -->
-        <script type="text/x-handlebars" data-template-name="live">
-            <!--{{outlet}}-->
-            <svg id="chart" preserveAspectRatio="xMidYMid">
-
+            <svg id="chart" preserveAspectRatio="none">
             </svg>
         </script>
-
-
-        <!-- The chart view -->
-        <script type="text/x-handlebars" data-template-name="variable">
-            <h1>{{variableName}}</h1>
-        </script>
-
 
         <!-- Add javascript -->
         <script type="text/javascript" src="static/js/jquery.min.js"></script>
@@ -101,22 +95,22 @@
         <!-- UI scripts for jQuery -->
         <script>
             $(document).ready( function () {
+
+                // hook up the page slide buttons
                 $("#variable_link").pageslide({
                         direction: 'left'
                 });
+
                 $("#settings_link").pageslide({
                         direction: 'left'
                 });
 
-                // load the initial chart
-                chart_builder();
-
                 // add a resize event for the chart
-                $(window).on("resize", function () {
+                $(window).resize( function() {
                     var cht = $("#chart");
-                    cht.attr("viewBox", "0, 0, " + innerWidth + ", " + innerHeight);
-                    cht.attr("width", innerWidth);
-                    cht.attr("height", innerHeight);
+                    cht.attr("viewBox", "0, 0, " + $(window).width() + ", " + $(window).height());
+                    cht.attr("width", $(window).width());
+                    cht.attr("height", $(window).height());
                 });
             });
         </script>
