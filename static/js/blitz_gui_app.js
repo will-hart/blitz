@@ -1,5 +1,11 @@
-App = Ember.Application.create();
+App = Ember.Application.create({
+    LOG_TRANSITIONS: true
+});
 
+
+/*********************************************************
+ * MODELS
+*********************************************************/
 /* Set up the data store - fixtures for now */
 App.Store = DS.Store.extend({
     revision: 12,
@@ -23,10 +29,14 @@ App.Config = DS.Model.extend({
 });
 
 
+/*********************************************************
+ * ROUTES
+*********************************************************/
+
 /* Set up the routes */
 App.Router.map(function () {
     this.resource('live', function () {
-        this.resource('variable', { path: ':variableName' });
+        this.resource('variable', { path: 'view/:variableName' });
     });
 });
 
