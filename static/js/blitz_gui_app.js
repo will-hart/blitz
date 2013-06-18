@@ -117,11 +117,16 @@ App.IndexRoute = Ember.Route.extend({
             outlet: 'category',
             controller: this.controllerFor("category")
         });
-        this.render('settings', {
+        /*this.render('settings', {
             into: 'index',
             outlet: 'config',
             controller: this.controllerFor("config")
-        });
+        });*/
+    },
+    events: {
+        setSelected: function () {
+            console.log("CfgController");
+        }
     }
 });
 
@@ -130,16 +135,23 @@ App.IndexRoute = Ember.Route.extend({
  * CONTROLLERS
 *********************************************************/
 
-App.IndexController = Ember.ArrayController.extend();
-
-App.CategoryController = Ember.ArrayController.extend({
-    updateDisplay: function () {
-        // toggle the selected attribute
-        this.set('selected', !this.get('selected'));
+App.IndexController = Ember.ArrayController.extend({
+    setSelected: function () {
+        console.log("IdxController");
     }
 });
 
-App.ConfigController = Ember.ObjectController.extend();
+App.CategoryController = Ember.ArrayController.extend({
+    setSelected: function () {
+        console.log("CatController");
+    }
+});
+
+App.ConfigController = Ember.ObjectController.extend({
+    setSelected: function () {
+        console.log("CfgController");
+    }
+});
 
 
 /*********************************************************
@@ -226,7 +238,14 @@ App.CategoryView = Ember.View.extend({
     templateName: 'cache'
 });
 
-App.VariableLineView = Ember.View.extend({
+App.CategoryLineView = Ember.View.extend({
     tagName: 'li',
-    line: null
+    category: null,
+    classNameBindings: ['category.selected:active'],
+    select: function (e) {
+        console.log("triggered!");
+        this.get('category').toggleProperty('selected');
+    }
 });
+
+App.initialize();
