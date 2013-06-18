@@ -28,11 +28,8 @@ App.Reading = DS.Model.extend({
 /* The variable name model for tracking which variables are visible in the chart */
 App.Category = DS.Model.extend({
     variableName: DS.attr('string'),
-    visible: DS.attr('bool'),
-    readings: DS.hasMany('App.Reading'),
-    is_visible: function () {
-        return false;
-    }.property()
+    selected: DS.attr('bool'),
+    readings: DS.hasMany('App.Reading')
 });
 
 /* The settings model stores setting information */
@@ -59,7 +56,22 @@ App.Config.FIXTURES = [{
 App.Category.FIXTURES = [{
     id: 1,
     variableName: "Acceleration",
-    visible: false,
+    selected: false,
+    readings: []
+}, {
+    id: 2,
+    variableName: "Steering Input",
+    selected: true,
+    readings: []
+}, {
+    id: 3,
+    variableName: "Brake",
+    selected: false,
+    readings: []
+}, {
+    id: 4,
+    variableName: "Temperature",
+    selected: false,
     readings: []
 }];
 
@@ -122,7 +134,8 @@ App.IndexController = Ember.ArrayController.extend();
 
 App.CategoryController = Ember.ArrayController.extend({
     updateDisplay: function () {
-        alert("updating");
+        // toggle the selected attribute
+        this.set('selected', !this.get('selected'));
     }
 });
 
@@ -210,9 +223,10 @@ App.ConfigView = Ember.View.extend({
 });
 
 App.CategoryView = Ember.View.extend({
-    templateName: 'cache',
+    templateName: 'cache'
+});
 
-    updateDisplayed: function () {
-        alert("updating!");
-    }
+App.VariableLineView = Ember.View.extend({
+    tagName: 'li',
+    line: null
 });
