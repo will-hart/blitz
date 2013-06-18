@@ -15,10 +15,6 @@
 
         <!-- The main view - this is just an outlet -->
         <script type="text/x-handlebars" id="index">
-            {{outlet}}
-        </script>
-
-        <script type="text/x-handlebars" id="application">
 
             <!-- Show the controller menu -->
             <div id="top_control_container">
@@ -39,7 +35,7 @@
             <!-- The variables pane -->
             <div id="variable_pane">
                 <a class="close_button" href="javascript: $.pageslide.close()">x</a>
-                {{view App.CategoryView}}
+                {{outlet category}}
             </div>
 
             <!-- The settings pane -->
@@ -57,7 +53,6 @@
         <script type="text/x-handlebars" data-template-name="cache">
             <ul class="variable_list">
                 {{#each category in model}}
-                {{log category}}
                 <li {{bindAttr class="isActive:active"}}>
                     <button {{bindAttr class=":pure-button isVisible:pure-button-variable-list-hide"}} {{action updateDisplayed}}>
                         {{#if isVisible}}Hide{{else}}Show{{/if}}

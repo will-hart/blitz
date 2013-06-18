@@ -31,6 +31,7 @@ App.Category = DS.Model.extend({
     is_visible: function () {
         return false;
     }.property()
+
 });
 
 /* The settings model stores setting information */
@@ -41,26 +42,66 @@ App.Config = DS.Model.extend({
     sampleRate: DS.attr('number')
 });
 
+
+/*********************************************************
+ * FIXTURES
+*********************************************************/
+
+App.Config.FIXTURES = [{
+    id: 1,
+    loggerPort: 9000,
+    loggerIp: "192.168.1.20",
+    clientPort: 9090,
+    sampleRate: 100
+}];
+
+App.Category.FIXTURES = [{
+    id: 1,
+    variable_name: "Acceleration",
+    visible: false,
+    readings: []
+}];
+
+App.Reading.FIXTURES = [{
+    id: 1,
+    sessionId: 1,
+    category: 1,
+    timeLogged: new Date('"13/1/2014 12:59:05'),
+    value: "0.56"
+}, {
+    id: 2,
+    sessionId: 1,
+    category: 1,
+    timeLogged: new Date('"13/1/2014 12:59:06'),
+    value: "0.59"
+}, {
+    id: 3,
+    sessionId: 1,
+    category: 1,
+    timeLogged: new Date('"13/1/2014 12:59.07'),
+    value: "0.05"
+}];
+
+
 /*********************************************************
  * ROUTES
 *********************************************************/
 
 // when opening the page go directly to the live route
-App.ApplicationRoute = Ember.Route.extend({
+App.IndexRoute = Ember.Route.extend({
     model: function () {
         return App.Reading.find();
     },
     setupController: function (controller, model) {
         controller.set('content', model);
-    }
-});
-
-App.CategoryRoute = Ember.Route.extend({
-    model: function () {
-        return App.Category.find();
     },
-    setupController: function(controller, model) {
-        controller.set('model', model);
+    renderTemplate: function () {
+        this.render();
+        this.render('cache', {
+            into: 'index',
+            outlet: 'category',
+            controller: this.controllerFor("category")
+        });
     }
 });
 
@@ -69,15 +110,9 @@ App.CategoryRoute = Ember.Route.extend({
  * CONTROLLERS
 *********************************************************/
 
-App.ApplicationController = Ember.ArrayController.extend({
-    content: [],
-    displayed: [],
-    needs: "category"
-});
+App.IndexController = Ember.ArrayController.extend();
 
-App.CategoryController = Ember.ArrayController.extend({
-    test: "This is a test"
-});
+App.CategoryController = Ember.ArrayController.extend();
 
 App.ConfigController = Ember.ObjectController.extend();
 
@@ -86,7 +121,7 @@ App.ConfigController = Ember.ObjectController.extend();
  * VIEWS
 *********************************************************/
 
-App.ApplicationView = Ember.View.extend({
+App.IndexView = Ember.View.extend({
 
     chart: {},
     line: {},
@@ -169,42 +204,3 @@ App.CategoryView = Ember.View.extend({
         alert("updating!");
     }
 });
-
-/*********************************************************
- * FIXTURES
-*********************************************************/
-
-App.Config.FIXTURES = [{
-    id: 1,
-    loggerPort: 9000,
-    loggerIp: "192.168.1.20",
-    clientPort: 9090,
-    sampleRate: 100
-}];
-
-App.Category.FIXTURES = [{
-    id: 1,
-    variable_name: "Acceleration",
-    visible: false,
-    readings: []
-}];
-
-App.Reading.FIXTURES = [{
-    id: 1,
-    sessionId: 1,
-    category: 1,
-    timeLogged: new Date('"13/1/2014 12:59:05'),
-    value: "0.56"
-}, {
-    id: 2,
-    sessionId: 1,
-    category: 1,
-    timeLogged: new Date('"13/1/2014 12:59:06'),
-    value: "0.59"
-}, {
-    id: 3,
-    sessionId: 1,
-    category: 1,
-    timeLogged: new Date('"13/1/2014 12:59.07'),
-    value: "0.05"
-}];
