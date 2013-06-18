@@ -20,7 +20,7 @@ App.Store = DS.Store.extend({
 /* The data line object stores rows of data. */
 App.Reading = DS.Model.extend({
     sessionId: DS.attr('string'),
-    //category: DS.belongsTo('App.Category'),
+    category: DS.belongsTo('App.Category'),
     timeLogged: DS.attr('date'),
     value: DS.attr('string')
 });
@@ -28,11 +28,11 @@ App.Reading = DS.Model.extend({
 /* The variable name model for tracking which variables are visible in the chart */
 App.Category = DS.Model.extend({
     variableName: DS.attr('string'),
-    visible: DS.attr('bool')//,
-    //readings: DS.hasMany('App.Reading'),
-    //is_visible: function () {
-    //    return false;
-    //}.property()
+    visible: DS.attr('bool'),
+    readings: DS.hasMany('App.Reading'),
+    is_visible: function () {
+        return false;
+    }.property()
 });
 
 /* The settings model stores setting information */
@@ -59,14 +59,14 @@ App.Config.FIXTURES = [{
 App.Category.FIXTURES = [{
     id: 1,
     variableName: "Acceleration",
-    visible: false//,
-    //readings: []
+    visible: false,
+    readings: []
 }];
 
 App.Reading.FIXTURES = [{
     id: 1,
     sessionId: 1,
-    //category: 1,
+    category: 1,
     timeLogged: new Date('"13/1/2014 12:59:05'),
     value: "0.56"
 }, {
@@ -120,7 +120,11 @@ App.IndexRoute = Ember.Route.extend({
 
 App.IndexController = Ember.ArrayController.extend();
 
-App.CategoryController = Ember.ArrayController.extend();
+App.CategoryController = Ember.ArrayController.extend({
+    updateDisplay: function () {
+        alert("updating");
+    }
+});
 
 App.ConfigController = Ember.ObjectController.extend();
 
