@@ -1,7 +1,9 @@
 var App = Ember.Application.create({
     LOG_TRANSITIONS: true,
     LOG_BINDINGS: true,
-    LOG_VIEW_LOOKUPS: true
+    LOG_VIEW_LOOKUPS: true,
+    LOG_STACKTRACE_ON_DEPRECATION: true,
+    LOG_VERSION: true
 });
 
 /*********************************************************
@@ -18,20 +20,19 @@ App.Store = DS.Store.extend({
 /* The data line object stores rows of data. */
 App.Reading = DS.Model.extend({
     sessionId: DS.attr('string'),
-    category: DS.belongsTo('App.Category'),
+    //category: DS.belongsTo('App.Category'),
     timeLogged: DS.attr('date'),
     value: DS.attr('string')
 });
 
 /* The variable name model for tracking which variables are visible in the chart */
 App.Category = DS.Model.extend({
-    variable_ame: DS.attr('string'),
-    visible: DS.attr('bool'),
-    readings: DS.hasMany('App.Reading'),
-    is_visible: function () {
-        return false;
-    }.property()
-
+    variableName: DS.attr('string'),
+    visible: DS.attr('bool')//,
+    //readings: DS.hasMany('App.Reading'),
+    //is_visible: function () {
+    //    return false;
+    //}.property()
 });
 
 /* The settings model stores setting information */
@@ -57,15 +58,15 @@ App.Config.FIXTURES = [{
 
 App.Category.FIXTURES = [{
     id: 1,
-    variable_name: "Acceleration",
-    visible: false,
-    readings: []
+    variableName: "Acceleration",
+    visible: false//,
+    //readings: []
 }];
 
 App.Reading.FIXTURES = [{
     id: 1,
     sessionId: 1,
-    category: 1,
+    //category: 1,
     timeLogged: new Date('"13/1/2014 12:59:05'),
     value: "0.56"
 }, {
@@ -94,6 +95,8 @@ App.IndexRoute = Ember.Route.extend({
     },
     setupController: function (controller, model) {
         controller.set('content', model);
+        this.controllerFor("category").set('model', App.Category.find());
+        this.controllerFor("config").set('model', App.Config.find());
     },
     renderTemplate: function () {
         this.render();
@@ -101,6 +104,11 @@ App.IndexRoute = Ember.Route.extend({
             into: 'index',
             outlet: 'category',
             controller: this.controllerFor("category")
+        });
+        this.render('settings', {
+            into: 'index',
+            outlet: 'config',
+            controller: this.controllerFor("config")
         });
     }
 });

@@ -41,7 +41,7 @@
             <!-- The settings pane -->
             <div id="settings_pane">
                 <a class="close_button" href="javascript: $.pageslide.close()">x</a>
-                {{view App.ConfigView}}
+                {{outlet config}}
             </div>
 
             <!-- Display the body -->
@@ -62,27 +62,6 @@
                 {{/each}}
             </ul>
 
-            <!--<h4>Static example</h4>
-            <ul class="variable_list">
-
-                <li>
-                    <button class="pure-button" {{action "updateDisplayed" "brake"}}>Show</button>
-                    Brake
-                </li>
-                <li>
-                    <button class="pure-button" {{action "updateDisplayed" "brake"}}>Show</button>
-                    Power
-                </li>
-                <li class="active">
-                    <button class="pure-button pure-button-variable-list-hide" {{action "updateDisplayed" "velocity"}}>Hide</button>
-                    Steering Input
-                </li>
-                <li>
-                    <button class="pure-button" {{action "updateDisplayed" "brake"}}>Show</button>
-                    Brake
-                </li>
-            </ul>-->
-
             <h4>Connected Boards</h4>
             <ul>
                 <li><small>BlitzBasic</small></li>
@@ -90,7 +69,7 @@
             </ul>
         </script>
 
-        <script type="text/x-handlebars" data-template-name="config">
+        <script type="text/x-handlebars" data-template-name="settings">
             <h2>Settings</h2>
         </script>
 
