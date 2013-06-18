@@ -1,7 +1,8 @@
-App = Ember.Application.create({
-    LOG_TRANSITIONS: true
+var App = Ember.Application.create({
+    LOG_TRANSITIONS: true,
+    LOG_BINDINGS: true,
+    LOG_VIEW_LOOKUPS: true
 });
-
 
 /*********************************************************
  * MODELS
@@ -9,29 +10,58 @@ App = Ember.Application.create({
 /* Set up the data store - fixtures for now */
 App.Store = DS.Store.extend({
     revision: 12,
-    adapter: 'DS.FixtureAdapter'
+    adapter: DS.FixtureAdapter.extend({
+        simulateRemoteResponse: false
+    })
 });
 
 /* The data line object stores rows of data. */
-App.DataLine = DS.Model.extend({
+App.Reading = DS.Model.extend({
     sessionId: DS.attr('string'),
+    category: DS.belongsTo('App.Category'),
     timeLogged: DS.attr('date'),
-    variableName: DS.attr('string'),
-    variableValue: DS.attr('string')
+    value: DS.attr('string')
 });
 
 /* The variable name model for tracking which variables are visible in the chart */
-App.LoggedVariables = DS.Model.extend({
-    variableName: DS.attr('string'),
-    visible: DS.attr('bool')
-})
+App.Category = DS.Model.extend({
+    variable_ame: DS.attr('string'),
+    visible: DS.attr('bool'),
+    readings: DS.hasMany('App.Reading'),
+    is_visible: function () {
+        return false;
+    }.property()
+});
 
 /* The settings model stores setting information */
 App.Config = DS.Model.extend({
-    loggerPort: DS.attr('int'),
+    loggerPort: DS.attr('number'),
     loggerIp: DS.attr('string'),
-    clientPort: DS.attr('int'),
-    sampleRate: DS.attr('int')
+    clientPort: DS.attr('number'),
+    sampleRate: DS.attr('number')
+});
+
+/*********************************************************
+ * ROUTES
+*********************************************************/
+
+// when opening the page go directly to the live route
+App.ApplicationRoute = Ember.Route.extend({
+    model: function () {
+        return App.Reading.find();
+    },
+    setupController: function (controller, model) {
+        controller.set('content', model);
+    }
+});
+
+App.CategoryRoute = Ember.Route.extend({
+    model: function () {
+        return App.Category.find();
+    },
+    setupController: function(controller, model) {
+        controller.set('model', model);
+    }
 });
 
 
@@ -40,25 +70,21 @@ App.Config = DS.Model.extend({
 *********************************************************/
 
 App.ApplicationController = Ember.ArrayController.extend({
-
     content: [],
     displayed: [],
-
-    /* Toggles whether a variable is displayed or not */
-    updateDisplayed: function updateDisplayed(variableName) {
-        var disp = this.get('displayed'),
-            idx = disp.indexOf(variableName);
-
-        // check if the variable name is in the box
-        if (idx >= 0) {
-            disp.splice(idx);
-        } else {
-            disp.push(variableName);
-        }
-
-        this.set('displayed', disp);
-    }
+    needs: "category"
 });
+
+App.CategoryController = Ember.ArrayController.extend({
+    test: "This is a test"
+});
+
+App.ConfigController = Ember.ObjectController.extend();
+
+
+/*********************************************************
+ * VIEWS
+*********************************************************/
 
 App.ApplicationView = Ember.View.extend({
 
@@ -132,21 +158,17 @@ App.ApplicationView = Ember.View.extend({
     }.observes('controllers.content.@each')
 });
 
-
-/*********************************************************
- * ROUTES
-*********************************************************/
-
-// when opening the page go directly to the live route
-App.IndexRoute = Ember.Route.extend({
-    model: function () {
-        return App.DataLine.find();
-    },
-    setupController: function (controller, index) {
-        controller.set('models', index.get('content'));
-    }
+App.ConfigView = Ember.View.extend({
+    templateName: 'config'
 });
 
+App.CategoryView = Ember.View.extend({
+    templateName: 'cache',
+
+    updateDisplayed: function () {
+        alert("updating!");
+    }
+});
 
 /*********************************************************
  * FIXTURES
@@ -160,23 +182,29 @@ App.Config.FIXTURES = [{
     sampleRate: 100
 }];
 
-App.DataLine.FIXTURES = [{
+App.Category.FIXTURES = [{
+    id: 1,
+    variable_name: "Acceleration",
+    visible: false,
+    readings: []
+}];
+
+App.Reading.FIXTURES = [{
     id: 1,
     sessionId: 1,
+    category: 1,
     timeLogged: new Date('"13/1/2014 12:59:05'),
-    variableName: "Accelerator",
-    variableValue: "0.56"
+    value: "0.56"
 }, {
     id: 2,
     sessionId: 1,
+    category: 1,
     timeLogged: new Date('"13/1/2014 12:59:06'),
-    variableName: "Accelerator",
-    variableValue: "0.59"
+    value: "0.59"
 }, {
     id: 3,
     sessionId: 1,
+    category: 1,
     timeLogged: new Date('"13/1/2014 12:59.07'),
-    variableName: "Accelerator",
-    variableValue: "0.05"
+    value: "0.05"
 }];
-

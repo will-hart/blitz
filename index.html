@@ -14,6 +14,10 @@
     <body>
 
         <!-- The main view - this is just an outlet -->
+        <script type="text/x-handlebars" id="index">
+            {{outlet}}
+        </script>
+
         <script type="text/x-handlebars" id="application">
 
             <!-- Show the controller menu -->
@@ -35,49 +39,64 @@
             <!-- The variables pane -->
             <div id="variable_pane">
                 <a class="close_button" href="javascript: $.pageslide.close()">x</a>
-
-                <ul class="variable_list">
-                    <li class="active">
-                        <button class="pure-button pure-button-variable-list-hide" {{action "updateDisplayed" "accelerate"}}>Hide</button>
-                        Accelerator
-                    </li>
-                    <li>
-                        <button class="pure-button" {{action "updateDisplayed" "brake"}}>Show</button>
-                        Brake
-                    </li>
-                    <li>
-                        <button class="pure-button" {{action "updateDisplayed" "brake"}}>Show</button>
-                        Power
-                    </li>
-                    <li class="active">
-                        <button class="pure-button pure-button-variable-list-hide" {{action "updateDisplayed" "velocity"}}>Hide</button>
-                        Steering Input
-                    </li>
-                    <li>
-                        <button class="pure-button" {{action "updateDisplayed" "brake"}}>Show</button>
-                        Brake
-                    </li>
-                </ul>
-
-
-                <h4>Connected Boards</h4>
-                <ul>
-                    <li><small>BlitzBasic</small></li>
-                    <li><small>BlitzMoto</small></li>
-                </ul>
-
+                {{view App.CategoryView}}
             </div>
 
             <!-- The settings pane -->
             <div id="settings_pane">
-                <h2>Settings</h2>
                 <a class="close_button" href="javascript: $.pageslide.close()">x</a>
+                {{view App.ConfigView}}
             </div>
 
             <!-- Display the body -->
             {{outlet}}
             <svg id="chart" preserveAspectRatio="none">
             </svg>
+        </script>
+
+        <script type="text/x-handlebars" data-template-name="cache">
+            <ul class="variable_list">
+                {{#each category in model}}
+                {{log category}}
+                <li {{bindAttr class="isActive:active"}}>
+                    <button {{bindAttr class=":pure-button isVisible:pure-button-variable-list-hide"}} {{action updateDisplayed}}>
+                        {{#if isVisible}}Hide{{else}}Show{{/if}}
+                    </button>
+                    {{category.variableName}}
+                </li>
+                {{/each}}
+            </ul>
+
+            <!--<h4>Static example</h4>
+            <ul class="variable_list">
+
+                <li>
+                    <button class="pure-button" {{action "updateDisplayed" "brake"}}>Show</button>
+                    Brake
+                </li>
+                <li>
+                    <button class="pure-button" {{action "updateDisplayed" "brake"}}>Show</button>
+                    Power
+                </li>
+                <li class="active">
+                    <button class="pure-button pure-button-variable-list-hide" {{action "updateDisplayed" "velocity"}}>Hide</button>
+                    Steering Input
+                </li>
+                <li>
+                    <button class="pure-button" {{action "updateDisplayed" "brake"}}>Show</button>
+                    Brake
+                </li>
+            </ul>-->
+
+            <h4>Connected Boards</h4>
+            <ul>
+                <li><small>BlitzBasic</small></li>
+                <li><small>BlitzMoto</small></li>
+            </ul>
+        </script>
+
+        <script type="text/x-handlebars" data-template-name="config">
+            <h2>Settings</h2>
         </script>
 
         <!-- Add javascript -->
