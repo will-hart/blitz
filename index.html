@@ -55,7 +55,7 @@
             {{#each category in model}}
                 <li {{bindAttr class="category.selected:active"}}>
                     <button {{bindAttr class=":pure-button category.selected:pure-button-variable-list-hide"}} {{action updateDisplay target="this"}}>
-                        {{#if selected}}Hide{{else}}Show{{/if}}
+                        {{#if category.selected}}Hide{{else}}Show{{/if}}
                     </button>
                     {{category.variableName}}
                 </li>
