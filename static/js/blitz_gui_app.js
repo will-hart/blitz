@@ -11,7 +11,7 @@ var App = Ember.Application.create({
 *********************************************************/
 /* Set up the data store - fixtures for now */
 App.Store = DS.Store.extend({
-    revision: 12,
+    revision: 13,
     adapter: DS.FixtureAdapter.extend({
         simulateRemoteResponse: false
     })
