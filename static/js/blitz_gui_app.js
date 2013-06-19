@@ -1,16 +1,38 @@
-var App = Ember.Application.create({
+var Blitz = Ember.Application.create({
     LOG_TRANSITIONS: true,
     LOG_BINDINGS: true,
     LOG_VIEW_LOOKUPS: true,
     LOG_STACKTRACE_ON_DEPRECATION: true,
-    LOG_VERSION: true
+    LOG_VERSION: true,
+
+    debugMode: true,
+
+    log: function (message, location, data) {
+
+        var ret;
+        if (this.debugMode) {
+            if (data != null) {
+                if (typeof data === 'object') {
+                    data = Ember.inspect(data);
+                }
+
+                console.log('DEBUG: ' + this.appName + ' : ' + location + ' : ' + message);
+                ret = console.log('DEBUG: ' + this.appName + ' : (continued) data: ' + data);
+
+            } else {
+                ret = console.log('DEBUG: ' + this.appName + ' : ' + location + ' : ' + message);
+            }
+        }
+
+        return ret;
+    }
 });
 
 /*********************************************************
  * MODELS
 *********************************************************/
 /* Set up the data store - fixtures for now */
-App.Store = DS.Store.extend({
+Blitz.Store = DS.Store.extend({
     revision: 13,
     adapter: DS.FixtureAdapter.extend({
         simulateRemoteResponse: false
@@ -18,22 +40,22 @@ App.Store = DS.Store.extend({
 });
 
 /* The data line object stores rows of data. */
-App.Reading = DS.Model.extend({
+Blitz.Reading = DS.Model.extend({
     sessionId: DS.attr('string'),
-    category: DS.belongsTo('App.Category'),
+    category: DS.belongsTo('Blitz.Category'),
     timeLogged: DS.attr('date'),
     value: DS.attr('string')
 });
 
 /* The variable name model for tracking which variables are visible in the chart */
-App.Category = DS.Model.extend({
+Blitz.Category = DS.Model.extend({
     variableName: DS.attr('string'),
     selected: DS.attr('bool'),
-    readings: DS.hasMany('App.Reading')
+    readings: DS.hasMany('Blitz.Reading')
 });
 
 /* The settings model stores setting information */
-App.Config = DS.Model.extend({
+Blitz.Config = DS.Model.extend({
     loggerPort: DS.attr('number'),
     loggerIp: DS.attr('string'),
     clientPort: DS.attr('number'),
@@ -45,7 +67,7 @@ App.Config = DS.Model.extend({
  * FIXTURES
 *********************************************************/
 
-App.Config.FIXTURES = [{
+Blitz.Config.FIXTURES = [{
     id: 1,
     loggerPort: 9000,
     loggerIp: "192.168.1.20",
@@ -53,7 +75,7 @@ App.Config.FIXTURES = [{
     sampleRate: 100
 }];
 
-App.Category.FIXTURES = [{
+Blitz.Category.FIXTURES = [{
     id: 1,
     variableName: "Acceleration",
     selected: false,
@@ -75,7 +97,7 @@ App.Category.FIXTURES = [{
     readings: []
 }];
 
-App.Reading.FIXTURES = [{
+Blitz.Reading.FIXTURES = [{
     id: 1,
     sessionId: 1,
     category: 1,
@@ -100,25 +122,25 @@ App.Reading.FIXTURES = [{
  * ROUTES
 *********************************************************/
 
-App.Router.map(function () {
+Blitz.Router.map(function () {
     this.route("category");
 });
 
-App.CategoryRouter = Ember.Route.extend({
+Blitz.CategoryRouter = Ember.Route.extend({
     model: function () {
-        return App.Category.find();
+        return Blitz.Category.find();
     }
 });
 
 // when opening the page go directly to the live route
-App.IndexRoute = Ember.Route.extend({
+Blitz.IndexRoute = Ember.Route.extend({
     model: function () {
-        return App.Reading.find();
+        return Blitz.Reading.find();
     },
     setupController: function (controller, model) {
         controller.set('content', model);
-        this.controllerFor("category").set('model', App.Category.find());
-        this.controllerFor("config").set('model', App.Config.find());
+        this.controllerFor("category").set('model', Blitz.Category.find());
+        this.controllerFor("config").set('model', Blitz.Config.find());
     }
 });
 
@@ -127,18 +149,18 @@ App.IndexRoute = Ember.Route.extend({
  * CONTROLLERS
 *********************************************************/
 
-App.IndexController = Ember.ArrayController.extend();
+Blitz.IndexController = Ember.ArrayController.extend();
 
-App.CategoryController = Ember.ArrayController.extend();
+Blitz.CategoryController = Ember.ArrayController.extend();
 
-App.ConfigController = Ember.ObjectController.extend();
+Blitz.ConfigController = Ember.ObjectController.extend();
 
 
 /*********************************************************
  * VIEWS
 *********************************************************/
 
-App.IndexView = Ember.View.extend({
+Blitz.IndexView = Ember.View.extend({
 
     chart: {},
     line: {},
@@ -210,15 +232,16 @@ App.IndexView = Ember.View.extend({
     }.observes('controllers.content.@each')
 });
 
-App.ConfigView = Ember.View.extend({
+Blitz.ConfigView = Ember.View.extend({
     templateName: 'config'
 });
 
-App.CategoryView = Ember.View.extend();
+Blitz.CategoryView = Ember.View.extend();
 
-App.CategoryLineView = Ember.View.extend({
+Blitz.CategoryLineView = Ember.View.extend({
     tagName: 'li',
     category: null,
+    templateName: "category_line",
     classNameBindings: ['category.selected:active'],
     click: function (event) {
         console.log("triggered!");
