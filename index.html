@@ -51,14 +51,9 @@
 
         <script type="text/x-handlebars" data-template-name="category">
             <ul class="variable_list">
-            {{#each category in model}}
-                {{#view App.CategoryLineView categoryBinding="category"}}
-                    <button {{bindAttr class=":pure-button category.selected:pure-button-variable-list-hide"}}>
-                        {{#if category.selected}}Hide{{else}}Show{{/if}}
-                    </button>
-                    {{category.variableName}}
-                {{/view}}
-            {{/each}}
+                {{#each category in model}}
+                    {{view Blitz.CategoryLineView categoryBinding="category"}}
+                {{/each}}
             </ul>
 
             <h4>Connected Boards</h4>
@@ -69,6 +64,13 @@
 
         <script type="text/x-handlebars" data-template-name="settings">
             <h2>Settings</h2>
+        </script>
+
+        <script type="text/x-handlebars" data-template-name="category_line">
+            <button {{action testAct}} {{bindAttr class=":pure-button category.selected:pure-button-variable-list-hide"}}>
+                {{#if category.selected}}Hide{{else}}Show{{/if}}
+            </button>
+            {{category.variableName}}
         </script>
 
         <!-- Add javascript -->
