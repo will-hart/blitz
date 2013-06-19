@@ -100,6 +100,16 @@ App.Reading.FIXTURES = [{
  * ROUTES
 *********************************************************/
 
+App.Router.map(function () {
+    this.route("category");
+});
+
+App.CategoryRouter = Ember.Route.extend({
+    model: function () {
+        return App.Category.find();
+    }
+});
+
 // when opening the page go directly to the live route
 App.IndexRoute = Ember.Route.extend({
     model: function () {
@@ -109,19 +119,6 @@ App.IndexRoute = Ember.Route.extend({
         controller.set('content', model);
         this.controllerFor("category").set('model', App.Category.find());
         this.controllerFor("config").set('model', App.Config.find());
-    },
-    renderTemplate: function () {
-        this.render();
-        this.render('cache', {
-            into: 'index',
-            outlet: 'category',
-            controller: this.controllerFor("category")
-        });
-        /*this.render('settings', {
-            into: 'index',
-            outlet: 'config',
-            controller: this.controllerFor("config")
-        });*/
     }
 });
 
@@ -217,17 +214,15 @@ App.ConfigView = Ember.View.extend({
     templateName: 'config'
 });
 
-App.CategoryView = Ember.View.extend({
-    templateName: 'cache'
-});
+App.CategoryView = Ember.View.extend();
 
 App.CategoryLineView = Ember.View.extend({
     tagName: 'li',
     category: null,
     classNameBindings: ['category.selected:active'],
-    click: function (e) {
+    click: function (event) {
         console.log("triggered!");
-        console.log(e);
+        console.log(event);
         this.get('category').toggleProperty('selected');
     }
 });
