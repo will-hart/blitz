@@ -53,7 +53,7 @@
             <ul class="variable_list">
             {{#each category in model}}
                 {{#view App.CategoryLineView categoryBinding="category"}}
-                    <button {{action select target="view"}} {{bindAttr class=":pure-button category.selected:pure-button-variable-list-hide"}}>
+                    <button {{bindAttr class=":pure-button category.selected:pure-button-variable-list-hide"}}>
                         {{#if category.selected}}Hide{{else}}Show{{/if}}
                     </button>
                     {{category.variableName}}

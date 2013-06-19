@@ -122,11 +122,6 @@ App.IndexRoute = Ember.Route.extend({
             outlet: 'config',
             controller: this.controllerFor("config")
         });*/
-    },
-    events: {
-        setSelected: function () {
-            console.log("CfgController");
-        }
     }
 });
 
@@ -135,23 +130,11 @@ App.IndexRoute = Ember.Route.extend({
  * CONTROLLERS
 *********************************************************/
 
-App.IndexController = Ember.ArrayController.extend({
-    setSelected: function () {
-        console.log("IdxController");
-    }
-});
+App.IndexController = Ember.ArrayController.extend();
 
-App.CategoryController = Ember.ArrayController.extend({
-    setSelected: function () {
-        console.log("CatController");
-    }
-});
+App.CategoryController = Ember.ArrayController.extend();
 
-App.ConfigController = Ember.ObjectController.extend({
-    setSelected: function () {
-        console.log("CfgController");
-    }
-});
+App.ConfigController = Ember.ObjectController.extend();
 
 
 /*********************************************************
@@ -242,10 +225,9 @@ App.CategoryLineView = Ember.View.extend({
     tagName: 'li',
     category: null,
     classNameBindings: ['category.selected:active'],
-    select: function (e) {
+    click: function (e) {
         console.log("triggered!");
+        console.log(e);
         this.get('category').toggleProperty('selected');
     }
 });
-
-App.initialize();
