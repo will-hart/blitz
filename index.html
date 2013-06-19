@@ -34,7 +34,7 @@
             <!-- The variables pane -->
             <div id="variable_pane">
                 <a class="close_button" href="javascript: $.pageslide.close()">x</a>
-                {{outlet category}}
+                {{render category}}
             </div>
 
             <!-- The settings pane -->
@@ -49,7 +49,7 @@
             </svg>
         </script>
 
-        <script type="text/x-handlebars" data-template-name="cache">
+        <script type="text/x-handlebars" data-template-name="category">
             <ul class="variable_list">
             {{#each category in model}}
                 {{#view App.CategoryLineView categoryBinding="category"}}
