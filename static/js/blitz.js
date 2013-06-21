@@ -112,9 +112,15 @@ Blitz.Reading.FIXTURES = [{
 }, {
     id: 3,
     sessionId: 1,
-    category: 1,
-    timeLogged: new Date('"13/1/2014 12:59.07'),
+    category: 2,
+    timeLogged: new Date('"13/1/2014 12:59.05'),
     value: "0.05"
+}, {
+    id: 4,
+    sessionId: 1,
+    category: 2,
+    timeLogged: new Date('"13/1/2014 12:59.06'),
+    value: "9.05"
 }];
 
 
@@ -176,7 +182,6 @@ Blitz.IndexView = Ember.View.extend({
 
     chart: null,
     line: {},
-    chartDrawn: false,
 
     /* the colours to use on the (max 5) chart series */
     colours: [
@@ -227,9 +232,11 @@ Blitz.CategoryLineView = Ember.View.extend({
     category: null,
     templateName: "category_line",
     classNameBindings: ['category.selected:active'],
-    click: function (event) {
-        console.log("triggered!");
-        console.log(event);
+    mouseUp: function (event) {
+        console.log("Triggered click on CategoryLineView");
         this.get('category').toggleProperty('selected');
+    },
+    mouseEnter: function(event) {
+        console.log("Triggered hover on CategoryLineView");
     }
 });
