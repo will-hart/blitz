@@ -1,13 +1,13 @@
 var Blitz = Ember.Application.create({
-    LOG_TRANSITIONS: true,
-    LOG_BINDINGS: true,
-    LOG_VIEW_LOOKUPS: true,
-    LOG_STACKTRACE_ON_DEPRECATION: true,
-    LOG_VERSION: true,
+    LOG_TRANSITIONS: false,
+    LOG_BINDINGS: false,
+    LOG_VIEW_LOOKUPS: false,
+    LOG_STACKTRACE_ON_DEPRECATION: false,
+    LOG_VERSION: false,
 
-    debugMode: true,
+    debugMode: false /*,
 
-    log: function (message, location, data) {
+     log: function (message, location, data) {
 
         var ret;
         if (this.debugMode) {
@@ -25,7 +25,7 @@ var Blitz = Ember.Application.create({
         }
 
         return ret;
-    }
+    }*/
 });
 
 /*********************************************************
@@ -138,7 +138,7 @@ Blitz.IndexRoute = Ember.Route.extend({
         return Blitz.Reading.find();
     },
     setupController: function (controller, model) {
-        controller.set('content', model);
+        controller.set('model', model);
         this.controllerFor("category").set('model', Blitz.Category.find());
         this.controllerFor("config").set('model', Blitz.Config.find());
     }
@@ -151,7 +151,16 @@ Blitz.IndexRoute = Ember.Route.extend({
 
 Blitz.IndexController = Ember.ArrayController.extend({
     content: [],
-    needs: "Category"
+    needs: "category",
+
+    /**
+     * Updates the content variable based on changes to the model
+     * and the selected variables from the CategoryController
+     */
+    updateContent: function() {
+        // todo implement content updating
+        console.log("updating content in Blitz.IndexController");
+    }
 });
 
 Blitz.CategoryController = Ember.ArrayController.extend();
@@ -180,23 +189,31 @@ Blitz.IndexView = Ember.View.extend({
 
     /* Initialise and draw the chart  */
     didInsertElement: function didInsertElement() {
+        this.drawChart();
+    },
 
+    drawChart: function drawChart() {
         // get the data to plot
         var content = this.get("content");
 
         // check if we have any content to draw
-        if (content === undefined) {
-            content = [[],[],[],[],[]];
+        if (content === undefined || content.length === 0) {
+            content = [[], [], [], [], []];
         }
 
         BlitzChart(this.get("content"), "chart");
     },
 
-    /* Update the chart */
+    /**
+     * Updates the chart when the content variable changes
+     */
     updateChart: function updateChart() {
+
         // TODO - implement chart updating
-        console.log("Updating Chart")
-    }.observes('controller.content.@each')
+        console.log("Updating Chart");
+        this.drawChart();
+
+    }.observes('content.@each')
 });
 
 Blitz.ConfigView = Ember.View.extend({

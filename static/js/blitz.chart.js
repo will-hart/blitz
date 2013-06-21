@@ -79,7 +79,7 @@
             .attr("height", height + margin.top + margin.bottom)
             .attr("viewBox", "-" + margin.left + ", -" + margin.top + ", " + elemWidth + ", " + elemHeight)
             .append("g")
-            .attr("transform", "translate(" + margin.left + "," + margin.top + ")"),
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
         // draw the x-axis
         chart.append("g")
