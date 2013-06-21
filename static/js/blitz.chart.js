@@ -3,17 +3,18 @@
     /** Get the maximum value from a list of lists
      *
      * @param data the multidimensional array to find the max for
+     * @param fn the function to apply to each array element (e.g. d3.max)
      * @param accessor the optional accessor function for max of the inner loop
      */
-    function getMaxValue(data, accessor) {
-        return d3.max(data.map(function (array) {
+    function getMinMaxValues(data, fn, accessor) {
+        return fn(data.map(function (array) {
 
             if (accessor === undefined) {
-                return d3.max(array, function (d) {
+                return fn(array, function (d) {
                     return d.value;
                 });
             } else {
-                return d3.max(array, accessor);
+                return fn(array, accessor);
             }
         }));
     }
@@ -24,6 +25,9 @@
      *  @param elem the container element to add the svg element to
      */
     var draw_chart = function (data, elem) {
+
+        d3.select("#" + elem + " svg").remove();
+
         var i = 0,
             max_elements = data === undefined ? 0 : data.length,
             colours = ["#0078e7", "#198A34", "#ff158a", "#cfda20", "#202020"],
@@ -35,12 +39,19 @@
                 left: 60
             },
 
-            width = innerWidth - margin.left - margin.right,
-            height = innerHeight - margin.top - margin.bottom,
+            domElem = d3.select("#" + elem),
             chart = d3.select("#" + elem).append("svg:svg"),
+            elemWidth = domElem.style("width").replace("px", ""),
+            elemHeight = domElem.style("height").replace("px", ""),
+            width = elemWidth - margin.left - margin.right,
+            height = elemHeight - margin.top - margin.bottom,
 
-            x_extents = max_elements === 0 ? [new Date("09/04/2011"), new Date("14/07/2011")] : [0, getMaxValue(data, function (d) { return d.timeLogged; })],
-            y_extents = max_elements === 0 ? [0, 1] : [0, getMaxValue(data)],
+            x_extents = max_elements === 0 ? [new Date("09/04/2011"), new Date("14/07/2011")] : [getMinMaxValues(data, d3.min, function (d) {
+                return d.timeLogged;
+            }), getMinMaxValues(data, d3.max, function (d) {
+                return d.timeLogged;
+            })],
+            y_extents = max_elements === 0 ? [0, 1] : [getMinMaxValues(data, d3.min), getMinMaxValues(data, d3.max)],
             x = d3.time.scale.utc()
                 .domain(x_extents)
                 .range([0, width]),
@@ -63,12 +74,12 @@
             chart.data([data]);
         }
 
-
-        chart.attr("width", width + margin.left + margin.right)
-                .attr("height", height + margin.top + margin.bottom)
-                .attr("viewBox", "0, 0, " + innerWidth + ", " + innerHeight)
-                .append("g")
-                .attr("transform", "translate(" + margin.left + "," + margin.top + ")"),
+        chart.attr("preserveAspectRatio", "xMidYMid")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .attr("viewBox", "-" + margin.left + ", -" + margin.top + ", " + elemWidth + ", " + elemHeight)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")"),
 
         // draw the x-axis
         chart.append("g")

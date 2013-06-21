@@ -181,22 +181,15 @@ Blitz.IndexView = Ember.View.extend({
     /* Initialise and draw the chart  */
     didInsertElement: function didInsertElement() {
 
-        // remove the previous chart if it exists
-        //var c = this.get('chart');
-        //if (c !== null) {
-        //    c.remove();
-        //}
-
-        // create a new chart
+        // get the data to plot
         var content = this.get("content");
 
         // check if we have any content to draw
         if (content === undefined) {
-            content = [];
+            content = [[],[],[],[],[]];
         }
 
-        c = BlitzChart(this.get("content"), "chart");
-        this.set("chart", c);
+        BlitzChart(this.get("content"), "chart");
     },
 
     /* Update the chart */

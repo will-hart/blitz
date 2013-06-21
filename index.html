@@ -46,8 +46,9 @@
 
             <!-- Display the body -->
             {{outlet}}
-            <div id="chart" preserveAspectRatio="xMidYMid">
-            </div>
+
+            <!-- A container for the chart -->
+            <div id="chart"></div>
         </script>
 
         <script type="text/x-handlebars" data-template-name="category">
@@ -101,9 +102,13 @@
                 // add a resize event for the chart
                 $(window).resize( function() {
                     var cht = $("#chart");
-                    cht.attr("viewBox", "0, 0, " + $(window).width() + ", " + $(window).height());
-                    cht.attr("width", $(window).width());
-                    cht.attr("height", $(window).height());
+                    cht.attr("width", $(window).width())
+                        .attr("height", $(window).height());
+
+                    cht.find("svg")
+                        .attr("viewBox", "0, 0, " + $(window).width() + ", " + $(window).height())
+                        .attr("width", $(window).width())
+                        .attr("height", $(window).height());
                 });
             });
         </script>
