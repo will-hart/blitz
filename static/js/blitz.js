@@ -165,7 +165,7 @@ Blitz.ConfigController = Ember.ObjectController.extend();
 
 Blitz.IndexView = Ember.View.extend({
 
-    chart: {},
+    chart: null,
     line: {},
     chartDrawn: false,
 
@@ -181,71 +181,28 @@ Blitz.IndexView = Ember.View.extend({
     /* Initialise and draw the chart  */
     didInsertElement: function didInsertElement() {
 
-        /* set up the main chart variables and layout */
-        var i,
-            margin = { top: 60, right: 60, bottom: 60, left: 60 },
-            width = innerWidth - margin.left - margin.right,
-            height = innerHeight - margin.top - margin.bottom,
-            x = d3.scale.linear().range([0, width]),
-            y = d3.scale.linear().range([height, 0]),
-            xAxis = d3.svg.axis().scale(x).orient('bottom'),
-            yAxis = d3.svg.axis().scale(y).orient('left'),
-            color = d3.scale.linear().domain([0, 1]).range([0, 4]),
-            parseDate = d3.time.format("%Y-%m-%d %H:%M:%S.%L").parse,
+        // remove the previous chart if it exists
+        //var c = this.get('chart');
+        //if (c !== null) {
+        //    c.remove();
+        //}
 
-            /* set up the line for drawing the series */
-            line = d3.svg.line()
-                .interpolate("basis")
-                .x(function (d) { return x(d.timeLogged); })
-                .y(function (d) { return y(d.value); }),
+        // create a new chart
+        var content = this.get("content");
 
-            /* add the axis to the SVG */
-            chart = d3.select("svg")
-                .attr("width", width + margin.left + margin.right)
-                .attr("height", height + margin.top + margin.bottom)
-                .attr("viewBox", "0, 0, " + innerWidth + ", " + innerHeight)
-                .append("g")
-                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+        // check if we have any content to draw
+        if (content === undefined) {
+            content = [];
+        }
 
-        /* draw the x-axis */
-        chart.append("g")
-            .attr("class", "x_axis")
-            .attr("transform", "translate(0, " + height + ")")
-            .call(xAxis);
-
-        /* draw the y-axis */
-        chart.append("g")
-            .attr("class", "y_axis")
-            .call(yAxis);
-
-        /* save the required variables */
-        this.set('chart', chart);
-        this.set('line', line);
-
-        // set the flag to show the chart has been drawn
-        this.set('chartDrawn', true);
+        c = BlitzChart(this.get("content"), "chart");
+        this.set("chart", c);
     },
 
     /* Update the chart */
     updateChart: function updateChart() {
-
-        // check we have drawn the chart
-        if (!this.get('chartDrawn')) {
-            return;
-        }
-
-        // get the chart objects
-        var content = this.get('content'),
-            chart = this.get('chart'),
-            line = this.get('line');
-
-        // draw the lines
-        chart.selectAll('path.line')
-            .data(content)
-            .transition()
-            .duration(500)
-            .ease('sin')
-            .attr('d', line(content));
+        // TODO - implement chart updating
+        console.log("Updating Chart")
     }.observes('controller.content.@each')
 });
 
