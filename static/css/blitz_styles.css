@@ -4,7 +4,7 @@ html, body, p {
 }
 
 #chart {
-    position: fixed;
+    position: relative;
     top: 0;
     bottom: 0;
     left: 0;
@@ -33,6 +33,7 @@ html, body, p {
 #top_controls {
     padding: 3px;
     background-color: #202020;
+    background-color: rgba(31,31,31,0.5);
     color: white;
     width: 300px;
     margin: 0 auto;
@@ -67,7 +68,7 @@ html, body, p {
 }
 
 .button-inactive {
-    color: dimgrey;
+    color: darkgrey;
 }
 
 #variables_slide_out_handle, #settings_slide_out_handle {
@@ -77,6 +78,7 @@ html, body, p {
     margin: 0 auto;
     width: 35px;
     background-color: #202020;
+    background-color: rgba(31,31,31,0.5);
     color: white;
     padding: 10px 5px;
     border-top-left-radius: 5px;
@@ -84,12 +86,12 @@ html, body, p {
 }
 
 #variables_slide_out_handle a, #settings_slide_out_handle a {
-    color: darkgrey;
+    color: white;
     text-decoration: none;
 }
 
 #variables_slide_out_handle a:hover, #settings_slide_out_handle a:hover {
-    color: white;
+    color: #0078e7;
 }
 
 #variables_slide_out_handle i, #settings_slide_out_handle i {
