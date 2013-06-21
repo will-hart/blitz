@@ -149,7 +149,10 @@ Blitz.IndexRoute = Ember.Route.extend({
  * CONTROLLERS
 *********************************************************/
 
-Blitz.IndexController = Ember.ArrayController.extend();
+Blitz.IndexController = Ember.ArrayController.extend({
+    content: [],
+    needs: "Category"
+});
 
 Blitz.CategoryController = Ember.ArrayController.extend();
 
@@ -164,6 +167,7 @@ Blitz.IndexView = Ember.View.extend({
 
     chart: {},
     line: {},
+    chartDrawn: false,
 
     /* the colours to use on the (max 5) chart series */
     colours: [
@@ -178,7 +182,8 @@ Blitz.IndexView = Ember.View.extend({
     didInsertElement: function didInsertElement() {
 
         /* set up the main chart variables and layout */
-        var margin = { top: 60, right: 60, bottom: 60, left: 60 },
+        var i,
+            margin = { top: 60, right: 60, bottom: 60, left: 60 },
             width = innerWidth - margin.left - margin.right,
             height = innerHeight - margin.top - margin.bottom,
             x = d3.scale.linear().range([0, width]),
@@ -186,15 +191,16 @@ Blitz.IndexView = Ember.View.extend({
             xAxis = d3.svg.axis().scale(x).orient('bottom'),
             yAxis = d3.svg.axis().scale(y).orient('left'),
             color = d3.scale.linear().domain([0, 1]).range([0, 4]),
+            parseDate = d3.time.format("%Y-%m-%d %H:%M:%S.%L").parse,
 
             /* set up the line for drawing the series */
             line = d3.svg.line()
                 .interpolate("basis")
                 .x(function (d) { return x(d.timeLogged); })
-                .y(function (d) { return y(d.variableValue); }),
+                .y(function (d) { return y(d.value); }),
 
             /* add the axis to the SVG */
-            svg = d3.select("svg")
+            chart = d3.select("svg")
                 .attr("width", width + margin.left + margin.right)
                 .attr("height", height + margin.top + margin.bottom)
                 .attr("viewBox", "0, 0, " + innerWidth + ", " + innerHeight)
@@ -202,34 +208,45 @@ Blitz.IndexView = Ember.View.extend({
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
         /* draw the x-axis */
-        svg.append("g")
+        chart.append("g")
             .attr("class", "x_axis")
             .attr("transform", "translate(0, " + height + ")")
             .call(xAxis);
 
         /* draw the y-axis */
-        svg.append("g")
+        chart.append("g")
             .attr("class", "y_axis")
             .call(yAxis);
 
-        /* dave the required variables */
-        this.set('chart', svg);
+        /* save the required variables */
+        this.set('chart', chart);
         this.set('line', line);
+
+        // set the flag to show the chart has been drawn
+        this.set('chartDrawn', true);
     },
 
     /* Update the chart */
     updateChart: function updateChart() {
+
+        // check we have drawn the chart
+        if (!this.get('chartDrawn')) {
+            return;
+        }
+
+        // get the chart objects
         var content = this.get('content'),
             chart = this.get('chart'),
             line = this.get('line');
 
+        // draw the lines
         chart.selectAll('path.line')
             .data(content)
             .transition()
             .duration(500)
             .ease('sin')
             .attr('d', line(content));
-    }.observes('controllers.content.@each')
+    }.observes('controller.content.@each')
 });
 
 Blitz.ConfigView = Ember.View.extend({
