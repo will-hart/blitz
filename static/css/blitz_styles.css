@@ -102,8 +102,19 @@ html, body, p {
     top: 95px;
 }
 
-#variable_pane, #settings_pane {
+#variable_pane {
     display: none;
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100%;
+    z-index: 999999;
+
+    width: 350px;
+    padding: 0 20px;
+
+    background-color: #303030;
+    color: #fff;
 }
 
 ul.variable_list {

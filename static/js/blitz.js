@@ -269,9 +269,31 @@ Blitz.IndexView = Ember.View.extend({
      * show that updating the chart is ok
      */
     didInsertElement: function () {
+        // Draw the chart
         console.log("Finished drawing chart view - ready for chart updates");
         this.set('rendered', true);
         this.drawChart();
+
+        // hook up jQuery events
+        // hook up the page slide buttons
+        $("#variables_slide_out_handle").on("click", function (e) {
+            e.preventDefault();
+
+            var elem = $("#variable_pane");
+            elem.fadeToggle();
+        });
+
+        // add a resize event for the chart
+        $(window).resize(function () {
+            var cht = $("#chart");
+            cht.attr("width", $(window).width())
+                .attr("height", $(window).height());
+
+            cht.find("svg")
+                .attr("viewBox", "0, 0, " + $(window).width() + ", " + $(window).height())
+                .attr("width", $(window).width())
+                .attr("height", $(window).height());
+        });
     },
 
     /**

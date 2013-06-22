@@ -7,7 +7,6 @@
 
           <!-- CSS Styles -->
           <link rel="stylesheet" media="screen" href="static/css/pure-min.css"/>
-          <link rel="stylesheet" media="screen" href="static/css/jquery.pageslide.css" />
           <link rel="stylesheet" media="screen" href="static/css/blitz_styles.css" />
           <link rel="stylesheet" media="screen" href="static/css/font-awesome.min.css" />
       </head>
@@ -34,7 +33,7 @@
 
             <!-- The variables pane -->
             <div id="variable_pane">
-                <a class="close_button" href="javascript: $.pageslide.close()">x</a>
+                <a class="close_button" href="javascript: $('#variable_pane').fadeOut();">x</a>
                 {{render category}}
             </div>
 
@@ -109,35 +108,11 @@
 
         <!-- Add javascript -->
         <script type="text/javascript" src="static/js/jquery.min.js"></script>
-        <script type="text/javascript" src="static/js/jquery.pageslide.min.js"></script>
         <script type="text/javascript" src="static/js/handlebars.js"></script>
         <script type="text/javascript" src="static/js/ember.min.js"></script>
         <script charset="utf-8" type="text/javascript" src="static/js/d3.v3.min.js"></script>
-        <script type="text/javascript" src="static/js/moment.min.js"></script>
+        <!--<script type="text/javascript" src="static/js/moment.min.js"></script>-->
         <script type="text/javascript" src="static/js/blitz.chart.js"></script>
         <script type="text/javascript" src="static/js/blitz.js"></script>
-
-        <!-- UI scripts for jQuery -->
-        <script>
-            $(document).ready( function () {
-
-                // hook up the page slide buttons
-                $("#variable_link").pageslide({
-                        direction: 'left'
-                });
-
-                // add a resize event for the chart
-                $(window).resize( function() {
-                    var cht = $("#chart");
-                    cht.attr("width", $(window).width())
-                        .attr("height", $(window).height());
-
-                    cht.find("svg")
-                        .attr("viewBox", "0, 0, " + $(window).width() + ", " + $(window).height())
-                        .attr("width", $(window).width())
-                        .attr("height", $(window).height());
-                });
-            });
-        </script>
     </body>
 </html>
