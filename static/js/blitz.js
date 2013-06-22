@@ -140,11 +140,8 @@ Blitz.CategoryRouter = Ember.Route.extend({
 
 // when opening the page go directly to the live route
 Blitz.IndexRoute = Ember.Route.extend({
-    model: function () {
-        return Blitz.Reading.find();
-    },
     setupController: function (controller, model) {
-        controller.set('model', model);
+        controller.set('content', model);
         this.controllerFor("category").set('model', Blitz.Category.find());
         this.controllerFor("config").set('model', Blitz.Config.find());
     }
@@ -156,27 +153,51 @@ Blitz.IndexRoute = Ember.Route.extend({
 *********************************************************/
 
 Blitz.IndexController = Ember.ArrayController.extend({
+
     content: [],
-    needs: "category",
+    chartVars: [],
 
     /**
-     * Updates the content variable based on changes to the model
-     * and the selected variables from the CategoryController
+     * Returns the chart content - which is results form variables
+     * that have been selected in the CategoryView.
      */
-    updateContent: function () {
-        // todo implement content updating
-        console.log("updating content in Blitz.IndexController");
-    }
+    chartContent: function () {
+        console.log("chart content updating");
+        // get all the currently selected categories
+        var chartVars = this.get('chartVars'),
+            content = this.get('content');
+
+        // filter the content variable
+        return content.filter(function (model) {
+            chartVars.contains(model.category)
+        });
+    }.property('chartVars.length')
 });
 
 Blitz.CategoryController = Ember.ArrayController.extend({
-    /** 
-     * A function that observes changes in category selection
-     * and causes the displayed chart values to change
+
+    needs: ["index"],
+
+    /**
+     * Ensures that the IndexController maintains a list of
+     * selected IDs from the CategoryView
+     *
+     * @param category_id the ID number of the category being toggled
      */
-    updateSelectedCategories: function updateSelectedCategories() {
-        console.log("observed categories changing!");
-    }.observes("model.@each.selected")
+    toggleCategory: function toggleCategory(category_id) {
+        var indexController = this.get('controllers.index'),
+            chartVars = indexController.get('chartVars'),
+            mod = this.get("model"),
+            selected = mod.filterProperty('selected'),
+            selectedIds = selected.mapProperty('id');
+
+        // set the chart vars
+        chartVars.clear();
+        chartVars.addObjects(selectedIds);
+
+        // log
+        console.log("Selected chart variables: " + chartVars);
+    }.observes('model.@each.selected')
 });
 
 Blitz.ConfigController = Ember.ObjectController.extend();
@@ -212,27 +233,19 @@ Blitz.IndexView = Ember.View.extend({
      * removing any previous SVG DOM elements inside this div
      */
     drawChart: function drawChart() {
+
+        console.log("drawing chart");
+
         // get the data to plot
-        var content = this.get("content");
+        var content = this.get("chartContent");
 
         // check if we have any content to draw
         if (content === undefined || content.length === 0) {
-            content = [[], [], [], [], []];
+            content = [];
         }
 
-        BlitzChart(this.get("content"), "chart");
-    },
-
-    /**
-     * Updates the chart when the content variable changes
-     */
-    updateChart: function updateChart() {
-
-        // TODO - implement chart updating
-        console.log("Updating Chart");
-        this.drawChart();
-
-    }.observes('content.@each.value')
+        BlitzChart(content, "chart");
+    }.observes('chartContent.length')
 });
 
 Blitz.ConfigView = Ember.View.extend({
