@@ -4,7 +4,7 @@ html, body, p {
 }
 
 #chart {
-    position: relative;
+    position: fixed; // change to "relative" to slide graph left when variable pane opens
     top: 0;
     bottom: 0;
     left: 0;

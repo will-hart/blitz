@@ -163,13 +163,21 @@ Blitz.IndexController = Ember.ArrayController.extend({
      * Updates the content variable based on changes to the model
      * and the selected variables from the CategoryController
      */
-    updateContent: function() {
+    updateContent: function () {
         // todo implement content updating
         console.log("updating content in Blitz.IndexController");
     }
 });
 
-Blitz.CategoryController = Ember.ArrayController.extend();
+Blitz.CategoryController = Ember.ArrayController.extend({
+    /** 
+     * A function that observes changes in category selection
+     * and causes the displayed chart values to change
+     */
+    updateSelectedCategories: function updateSelectedCategories() {
+        console.log("observed categories changing!");
+    }.observes("model.@each.selected")
+});
 
 Blitz.ConfigController = Ember.ObjectController.extend();
 
@@ -183,7 +191,7 @@ Blitz.IndexView = Ember.View.extend({
     chart: null,
     line: {},
 
-    /* the colours to use on the (max 5) chart series */
+    // the colours to use on the (max 5) chart series
     colours: [
         "#0078e7", // blue
         "#198A34", // green
@@ -192,11 +200,17 @@ Blitz.IndexView = Ember.View.extend({
         "#DF7514" // yellow
     ],
 
-    /* Initialise and draw the chart  */
+    /**
+     *  Initialise and draw the chart
+     */
     didInsertElement: function didInsertElement() {
         this.drawChart();
     },
 
+    /**
+     * Draws the chart inside the "#chart" div element, first
+     * removing any previous SVG DOM elements inside this div
+     */
     drawChart: function drawChart() {
         // get the data to plot
         var content = this.get("content");
@@ -218,7 +232,7 @@ Blitz.IndexView = Ember.View.extend({
         console.log("Updating Chart");
         this.drawChart();
 
-    }.observes('content.@each')
+    }.observes('content.@each.value')
 });
 
 Blitz.ConfigView = Ember.View.extend({
@@ -232,11 +246,29 @@ Blitz.CategoryLineView = Ember.View.extend({
     category: null,
     templateName: "category_line",
     classNameBindings: ['category.selected:active'],
-    mouseUp: function (event) {
-        console.log("Triggered click on CategoryLineView");
+
+    /**
+     * An event called when the user clicks on an item in the CategoryView
+     *
+     * @param e the event object
+     */
+    mouseUp: function (e) {
         this.get('category').toggleProperty('selected');
     },
-    mouseEnter: function(event) {
-        console.log("Triggered hover on CategoryLineView");
+
+    /**
+     * An event called when the user puts their mouse over an item in the CategoryView
+     *
+     * @param e the event object
+     */
+    mouseEnter: function (e) {
+        var li = e.target,
+            span = null;
+
+        // check we have hovered over the list element (and not the button)
+        if (li.tagName === "LI") {
+            // use jquery to select the child span
+            //console.log("Should show sparkline here");
+        }
     }
 });
