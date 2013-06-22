@@ -4,107 +4,149 @@ var Blitz = Ember.Application.create({
     LOG_VIEW_LOOKUPS: false,
     LOG_STACKTRACE_ON_DEPRECATION: false,
     LOG_VERSION: false,
-
     debugMode: false
 });
+
+
+/*********************************************************
+ * UTILITY FUNCTIONS
+*********************************************************/
+
+/**
+ * The base URL for api requests
+ * @type {string}
+ */
+Blitz.blitz_api_url = "http://willhart.apiary.io/";
+
+/**
+ * A JSON Handler which uses jQuery to send a JSON request and pushes
+ * the response objects onto the given model.
+ *
+ * @param url the API endpoint to send to (e.g. "categories" will request from "{{api_url}}/categories"
+ * @param model The model to add the new object to
+ * @returns {*} list of model instances
+ */
+Blitz.HandleJsonMultiple = function (url, model) {
+    console.log("Sending request for multiple results to " + url);
+
+    var responseVals = [];
+
+    $.ajax({
+        url: Blitz.blitz_api_url + url,
+        type: "GET",
+        dataType: "json"
+    }).then(function (response) {
+        console.log("Parsing JSON response for multiple results from " + url);
+        response.data.forEach(function (item) {
+            var instance = model.create(item);
+            responseVals.addObject(instance)
+        });
+    });/*.error(function (request, status, error) {
+        console.log("ERROR parsing response - ");
+        console.log("     " + status);
+        console.log("     " + error);
+    });*/
+
+    return responseVals;
+};
+
+/**
+ * Performs a JSON request
+ * @param url the API endpoint to send to (e.g. "categories" will request from "{{api_url}}/categories"
+ * @param model The model to add the new object to
+ * @returns {*} A single object retrieved from a JSON response
+ * @constructor
+ */
+Blitz.HandleJsonSingle = function (url, model) {
+    console.log("Sending request for one result to " + url);
+    var obj = model.create({});
+
+    // perform the AJAX request
+    $.ajax({
+        url: Blitz.blitz_api_url + url,
+        type: "GET",
+        dataType: "json"
+    }).then(function (response) {
+        console.log("Parsing JSON response for one result from " + url);
+        obj.setProperties(response.data);
+    });/*.error(function (request, status, error) {
+     console.log("ERROR parsing response - ");
+     console.log("     " + status);
+     console.log("     " + error);
+     });*/
+
+    return obj;
+};
+
+/**
+ * Performs an asynchronous post request to the given URL and sends the supplied JSON data
+ *
+ * @param url the API endpoint to send to (e.g. "categories" will request from "{{api_url}}/categories"
+ * @param json the JSON to send to the endpoint
+ */
+Blitz.PostJson = function (url, json) {
+    // TODO implement a success/failure reporting mechanism
+    $.ajax({
+        type: "POST",
+        url: Blitz.blitz_api_url + url,
+        data: json
+    });
+};
 
 /*********************************************************
  * MODELS
 *********************************************************/
-/* Set up the data store - fixtures for now */
-Blitz.Store = DS.Store.extend({
-    revision: 13,
-    adapter: DS.FixtureAdapter.extend({
-        simulateRemoteResponse: false
-    })
-});
 
 /* The data line object stores rows of data. */
-Blitz.Reading = DS.Model.extend({
-    sessionId: DS.attr('string'),
-    category: DS.belongsTo('Blitz.Category'),
-    timeLogged: DS.attr('date'),
-    value: DS.attr('string')
+Blitz.Reading = Ember.Object.extend({});
+
+Blitz.Reading.reopenClass({
+    /**
+     * Gets at most 50 recent readings for each variable in the cache
+     */
+    findAll: function () {
+        return Blitz.HandleJsonMultiple("cache", Blitz.Reading);
+    },
+
+    /**
+     * Requests the latest variables since the given timestamp
+     *
+     * @param timestamp the UNIX timestamp to retrieve records after
+     */
+    findUpdated: function (timestamp) {
+        return Blitz.HandleJsonMultiple("cache/" + timestamp, Blitz.Reading);
+    }
 });
 
 /* The variable name model for tracking which variables are visible in the chart */
-Blitz.Category = DS.Model.extend({
-    variableName: DS.attr('string'),
-    selected: DS.attr('bool'),
-    readings: DS.hasMany('Blitz.Reading'),
+Blitz.Category = Ember.Object.extend({
     sparkClass: function () {
         return 'spark-%@'.fmt(this.get('id'));
     }.property('id')
 });
 
-/* The settings model stores setting information */
-Blitz.Config = DS.Model.extend({
-    loggerPort: DS.attr('number'),
-    loggerIp: DS.attr('string'),
-    clientPort: DS.attr('number'),
-    sampleRate: DS.attr('number')
+Blitz.Category.reopenClass({
+    /**
+     * Gets all the available variables for the current logging session
+     */
+    findAll: function () {
+        return Blitz.HandleJsonMultiple("categories", Blitz.Category);
+    }
 });
 
+/* The settings model stores setting information */
+Blitz.Config = Ember.Object.extend({});
 
-/*********************************************************
- * FIXTURES
-*********************************************************/
-
-Blitz.Config.FIXTURES = [{
-    id: 1,
-    loggerPort: 9000,
-    loggerIp: "192.168.1.20",
-    clientPort: 9090,
-    sampleRate: 100
-}];
-
-Blitz.Category.FIXTURES = [{
-    id: 1,
-    variableName: "Acceleration",
-    selected: false,
-    readings: []
-}, {
-    id: 2,
-    variableName: "Steering Input",
-    selected: true,
-    readings: []
-}, {
-    id: 3,
-    variableName: "Brake",
-    selected: false,
-    readings: []
-}, {
-    id: 4,
-    variableName: "Temperature",
-    selected: false,
-    readings: []
-}];
-
-Blitz.Reading.FIXTURES = [{
-    id: 1,
-    sessionId: 1,
-    category: 1,
-    timeLogged: new Date('"13/1/2014 12:59:05'),
-    value: "0.56"
-}, {
-    id: 2,
-    sessionId: 1,
-    category: 1,
-    timeLogged: new Date('"13/1/2014 12:59:06'),
-    value: "0.59"
-}, {
-    id: 3,
-    sessionId: 1,
-    category: 2,
-    timeLogged: new Date('"13/1/2014 12:59.05'),
-    value: "0.05"
-}, {
-    id: 4,
-    sessionId: 1,
-    category: 2,
-    timeLogged: new Date('"13/1/2014 12:59.06'),
-    value: "9.05"
-}];
+Blitz.Config.reopenClass({
+    /**
+     * Gets configuration information from the server
+     *
+     * @returns A configuration object
+     */
+    find: function () {
+        return Blitz.HandleJsonSingle("config", Blitz.Config);
+    }
+});
 
 
 /*********************************************************
@@ -113,23 +155,19 @@ Blitz.Reading.FIXTURES = [{
 
 Blitz.Router.map(function () {
     this.route("category");
+    this.route("config");
 });
 
-Blitz.CategoryRouter = Ember.Route.extend({
-    model: function () {
-        return Blitz.Category.find();
-    }
-});
-
-// when opening the page go directly to the live route
 Blitz.IndexRoute = Ember.Route.extend({
+    model: function () {
+        return Blitz.Reading.findAll();
+    },
     setupController: function (controller, model) {
         controller.set('content', model);
-        this.controllerFor("category").set('model', Blitz.Category.find());
+        this.controllerFor("category").set('model', Blitz.Category.findAll());
         this.controllerFor("config").set('model', Blitz.Config.find());
     }
 });
-
 
 /*********************************************************
  * CONTROLLERS
@@ -140,6 +178,7 @@ Blitz.IndexController = Ember.ArrayController.extend({
     content: [],
     chartContent: [],
     chartVars: [],
+    needs: ['category'],
 
     /**
      * Returns the chart content - which is results form variables
@@ -187,8 +226,16 @@ Blitz.CategoryController = Ember.ArrayController.extend({
         var indexController = this.get('controllers.index'),
             chartVars = indexController.get('chartVars'),
             mod = this.get("model"),
-            selected = mod.filterProperty('selected'),
-            selectedIds = selected.mapProperty('id');
+            selected = null,
+            selectedIds = null;
+
+        // Check if there is a model
+        if (mod === undefined) {
+            return;
+        }
+
+        selected = mod.filterProperty('selected');
+        selectedIds = selected.mapProperty('id');
 
         // set the chart vars
         chartVars.clear();
@@ -249,7 +296,8 @@ Blitz.ConfigView = Ember.View.extend({
     templateName: 'config'
 });
 
-Blitz.CategoryView = Ember.View.extend();
+Blitz.CategoryView = Ember.View.extend({
+});
 
 Blitz.CategoryLineView = Ember.View.extend({
     tagName: 'li',
@@ -280,15 +328,6 @@ Blitz.CategoryLineView = Ember.View.extend({
             id = "",
             category = this.get('category'),
             data = null;
-        /*[
-                { value: Math.random() * 5, timeLogged: new Date("01/01/2001 10:00:00") },
-                { value: Math.random() * 5, timeLogged: new Date("01/01/2001 10:00:01") },
-                { value: Math.random() * 5, timeLogged: new Date("01/01/2001 10:00:02") },
-                { value: Math.random() * 5, timeLogged: new Date("01/01/2001 10:00:03") },
-                { value: Math.random() * 5, timeLogged: new Date("01/01/2001 10:00:04") },
-                { value: Math.random() * 5, timeLogged: new Date("01/01/2001 10:00:05") },
-                { value: Math.random() * 5, timeLogged: new Date("01/01/2001 10:00:06") }
-            ];*/
 
         // check we have hovered over the list element (and not the button)
         if (li.tagName === "LI") {
