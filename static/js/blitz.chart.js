@@ -132,15 +132,17 @@
         draw_sparkline = function (data, elem) {
 
             var margin = {
-                    top: 5,
+                    top: 3,
                     right: 5,
-                    bottom: 5,
+                    bottom: 3,
                     left: 5
                 },
+                totalWidth = 120,
+                totalHeight = 20,
 
                 // TODO - get element height and width or set defaults
-                width = 200 - margin.left - margin.right,
-                height = 40 - margin.top - margin.bottom,
+                width = totalWidth - margin.left - margin.right,
+                height = totalHeight - margin.top - margin.bottom,
 
                 x = d3.time.scale.utc()
                     .domain(d3.extent(data, function (d) {
@@ -165,7 +167,7 @@
                     .data([data])
                     .attr("width", width + margin.left + margin.right)
                     .attr("height", height + margin.top + margin.bottom)
-                    .attr("viewBox", "0, 0, " + 100 + ", " + 40)
+                    .attr("viewBox", "0, 0, " + totalWidth + ", " + totalHeight)
                     .append("g")
                     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
@@ -174,7 +176,7 @@
                 .data([data])
                 .attr("class", "line")
                 .attr("fill", "none")
-                .attr("stroke", "white")
+                .attr("stroke", "lightGrey")
                 .attr("stroke-width", 2)
                 .attr("d", line);
 

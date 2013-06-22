@@ -120,6 +120,8 @@ ul.variable_list li.active {
     background: rgb(28, 184, 65);
 }
 
+ul.variable_list li svg { float: right; }
+
 .close_button {
     position: absolute;
     top: 4px;

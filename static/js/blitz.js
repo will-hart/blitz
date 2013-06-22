@@ -5,27 +5,7 @@ var Blitz = Ember.Application.create({
     LOG_STACKTRACE_ON_DEPRECATION: false,
     LOG_VERSION: false,
 
-    debugMode: false /*,
-
-     log: function (message, location, data) {
-
-        var ret;
-        if (this.debugMode) {
-            if (data != null) {
-                if (typeof data === 'object') {
-                    data = Ember.inspect(data);
-                }
-
-                console.log('DEBUG: ' + this.appName + ' : ' + location + ' : ' + message);
-                ret = console.log('DEBUG: ' + this.appName + ' : (continued) data: ' + data);
-
-            } else {
-                ret = console.log('DEBUG: ' + this.appName + ' : ' + location + ' : ' + message);
-            }
-        }
-
-        return ret;
-    }*/
+    debugMode: false
 });
 
 /*********************************************************
@@ -51,7 +31,10 @@ Blitz.Reading = DS.Model.extend({
 Blitz.Category = DS.Model.extend({
     variableName: DS.attr('string'),
     selected: DS.attr('bool'),
-    readings: DS.hasMany('Blitz.Reading')
+    readings: DS.hasMany('Blitz.Reading'),
+    sparkClass: function () {
+        return 'spark-%@'.fmt(this.get('id'));
+    }.property('id')
 });
 
 /* The settings model stores setting information */
@@ -290,23 +273,34 @@ Blitz.CategoryLineView = Ember.View.extend({
      */
     mouseEnter: function (e) {
         var li = e.target,
-            span = null;
+            id = "",
+            // TODO - remove temporary data and get filtered chart data
+            data = [
+                { value: 1.5, timeLogged: new Date("01/01/2001 10:00:00") },
+                { value: 5.1, timeLogged: new Date("01/01/2001 10:00:01") },
+                { value: 3.2, timeLogged: new Date("01/01/2001 10:00:02") },
+                { value: 3.9, timeLogged: new Date("01/01/2001 10:00:03") },
+                { value: 4.2, timeLogged: new Date("01/01/2001 10:00:04") },
+                { value: 4.4, timeLogged: new Date("01/01/2001 10:00:05") },
+                { value: 4.5, timeLogged: new Date("01/01/2001 10:00:06") }
+            ];
 
         // check we have hovered over the list element (and not the button)
         if (li.tagName === "LI") {
-            // use jquery to select the child span
-            console.log("Should show sparkline here");
-            $(li).css('color', 'black');
+            $('ul.variable_list li svg').remove();
+            id = $(li).attr("id");
+            BlitzSparkline(data, id);
         }
     },
 
+    /**
+     * An event handler for when the mouse leaves a variable - to hide the sparkline
+     *
+     * @param e the event object
+     */
     mouseLeave: function(e) {
-        var li = e.target,
-            span = null;
-
-        if (li.tagName === "LI") {
-            // hiding the sparkline
-            $(li).css('color', 'white');
-        }
+        // remove all sparklines (blanket approach to try to avoid mouseLeaves not
+        // firing when the mouse moves quickly
+        $('ul.variable_list li svg').remove();
     }
 });
