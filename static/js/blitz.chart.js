@@ -13,9 +13,8 @@
                 return fn(array, function (d) {
                     return d.value;
                 });
-            } else {
-                return fn(array, accessor);
             }
+            return fn(array, accessor);
         }));
     }
 
@@ -46,7 +45,7 @@
             width = elemWidth - margin.left - margin.right,
             height = elemHeight - margin.top - margin.bottom,
 
-            x_extents = max_elements === 0 ? [new Date("09/04/2011"), new Date("14/07/2011")] : [getMinMaxValues(data, d3.min, function (d) {
+            x_extents = max_elements === 0 ? [new Date("04/09/2011 00:00"), new Date("07/14/2011 23:59")] : [getMinMaxValues(data, d3.min, function (d) {
                 return d.timeLogged;
             }), getMinMaxValues(data, d3.max, function (d) {
                 return d.timeLogged;
@@ -123,64 +122,64 @@
 
         // return the chart object for storage and in-app manipulation
         return chart;
-    };
+    },
 
-    /** Function for drawing a sparkline
-     *
-     *  @param data the list of data to be plotted
-     *  @param elem the container element to add the svg element to
-     */
-    var draw_sparkline = function (data, elem) {
+        /** Function for drawing a sparkline
+         *
+         *  @param data the list of data to be plotted
+         *  @param elem the container element to add the svg element to
+         */
+        draw_sparkline = function (data, elem) {
 
-        var margin = {
-                top: 5,
-                right: 5,
-                bottom: 5,
-                left: 5
-            },
+            var margin = {
+                    top: 5,
+                    right: 5,
+                    bottom: 5,
+                    left: 5
+                },
 
-            // TODO - get element height and width or set defaults
-            width = 200 - margin.left - margin.right,
-            height = 40 - margin.top - margin.bottom,
+                // TODO - get element height and width or set defaults
+                width = 200 - margin.left - margin.right,
+                height = 40 - margin.top - margin.bottom,
 
-            x = d3.time.scale.utc()
-                .domain(d3.extent(data, function (d) {
-                    return d.timeLogged;
-                }))
-                .range([0, width]),
-            y = d3.scale.linear()
-                .domain([0, d3.max(data, function(d) {
-                    return d.value;
-                })])
-                .range([height, 0]),
+                x = d3.time.scale.utc()
+                    .domain(d3.extent(data, function (d) {
+                        return d.timeLogged;
+                    }))
+                    .range([0, width]),
+                y = d3.scale.linear()
+                    .domain([0, d3.max(data, function (d) {
+                        return d.value;
+                    })])
+                    .range([height, 0]),
 
-            line = d3.svg.line()
-                .x(function (d) {
-                    return x(d.timeLogged);
-                })
-                .y(function (d) {
-                    return y(d.value);
-                }),
+                line = d3.svg.line()
+                    .x(function (d) {
+                        return x(d.timeLogged);
+                    })
+                    .y(function (d) {
+                        return y(d.value);
+                    }),
 
-            chart = d3.select("#" + elem).append("svg:svg")
+                chart = d3.select("#" + elem).append("svg:svg")
+                    .data([data])
+                    .attr("width", width + margin.left + margin.right)
+                    .attr("height", height + margin.top + margin.bottom)
+                    .attr("viewBox", "0, 0, " + 100 + ", " + 40)
+                    .append("g")
+                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+            // draw the line
+            chart.append("svg:path")
                 .data([data])
-                .attr("width", width + margin.left + margin.right)
-                .attr("height", height + margin.top + margin.bottom)
-                .attr("viewBox", "0, 0, " + 100 + ", " + 40)
-                .append("g")
-                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+                .attr("class", "line")
+                .attr("fill", "none")
+                .attr("stroke", "white")
+                .attr("stroke-width", 2)
+                .attr("d", line);
 
-        // draw the line
-        chart.append("svg:path")
-            .data([data])
-            .attr("class", "line")
-            .attr("fill", "none")
-            .attr("stroke", "white")
-            .attr("stroke-width", 2)
-            .attr("d", line);
-
-        return chart;
-    };
+            return chart;
+        };
 
     root.BlitzChart = draw_chart;
     root.BlitzSparkline = draw_sparkline;
