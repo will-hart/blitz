@@ -155,23 +155,38 @@ Blitz.IndexRoute = Ember.Route.extend({
 Blitz.IndexController = Ember.ArrayController.extend({
 
     content: [],
+    chartContent: [],
     chartVars: [],
 
     /**
      * Returns the chart content - which is results form variables
      * that have been selected in the CategoryView.
      */
-    chartContent: function () {
-        console.log("chart content updating");
+    updateChartData: function () {
+        console.log("Updating chart content");
+
         // get all the currently selected categories
         var chartVars = this.get('chartVars'),
-            content = this.get('content');
+            content = this.get('content'),
+            chartContent = this.get('chartContent');
 
-        // filter the content variable
-        return content.filter(function (model) {
-            chartVars.contains(model.category)
+        // clear existing chart content
+        chartContent.clear();
+
+        // ensure content is defined
+        if (content === undefined) {
+            content = [];
+        }
+
+        // for each chartVar, add a filtered list to the chartContent
+        chartVars.forEach(function (d) {
+            var cc = content.filterProperty('category', chartVars);
+
+            if (cc.length > 0) {
+                chartContent.push(cc);
+            }
         });
-    }.property('chartVars.length')
+    }.observes('chartVars.length')
 });
 
 Blitz.CategoryController = Ember.ArrayController.extend({
@@ -185,6 +200,7 @@ Blitz.CategoryController = Ember.ArrayController.extend({
      * @param category_id the ID number of the category being toggled
      */
     toggleCategory: function toggleCategory(category_id) {
+
         var indexController = this.get('controllers.index'),
             chartVars = indexController.get('chartVars'),
             mod = this.get("model"),
@@ -209,22 +225,15 @@ Blitz.ConfigController = Ember.ObjectController.extend();
 
 Blitz.IndexView = Ember.View.extend({
 
-    chart: null,
-    line: {},
-
-    // the colours to use on the (max 5) chart series
-    colours: [
-        "#0078e7", // blue
-        "#198A34", // green
-        "#202020", // dark grey
-        "#CA3C3C", // red
-        "#DF7514" // yellow
-    ],
+    rendered: false,
 
     /**
-     *  Initialise and draw the chart
+     * When the view has finished rendering, set a flag to
+     * show that updating the chart is ok
      */
-    didInsertElement: function didInsertElement() {
+    didInsertElement: function () {
+        console.log("Finished drawing chart view - ready for chart updates");
+        this.set('rendered', true);
         this.drawChart();
     },
 
@@ -234,7 +243,12 @@ Blitz.IndexView = Ember.View.extend({
      */
     drawChart: function drawChart() {
 
-        console.log("drawing chart");
+        if (!this.get('rendered')) {
+            console.log("Aborting chart drawing - page not rendered");
+            return;
+        }
+
+        console.log("Drawing chart");
 
         // get the data to plot
         var content = this.get("chartContent");
@@ -245,7 +259,7 @@ Blitz.IndexView = Ember.View.extend({
         }
 
         BlitzChart(content, "chart");
-    }.observes('chartContent.length')
+    }.observes('controller.chartContent.length')
 });
 
 Blitz.ConfigView = Ember.View.extend({
@@ -281,7 +295,18 @@ Blitz.CategoryLineView = Ember.View.extend({
         // check we have hovered over the list element (and not the button)
         if (li.tagName === "LI") {
             // use jquery to select the child span
-            //console.log("Should show sparkline here");
+            console.log("Should show sparkline here");
+            $(li).css('color', 'black');
+        }
+    },
+
+    mouseLeave: function(e) {
+        var li = e.target,
+            span = null;
+
+        if (li.tagName === "LI") {
+            // hiding the sparkline
+            $(li).css('color', 'white');
         }
     }
 });
