@@ -131,7 +131,7 @@ ul.variable_list li.active {
     background: rgb(28, 184, 65);
 }
 
-ul.variable_list li svg { float: right; }
+ul.variable_list li svg, .float-right { float: right; }
 
 .close_button {
     position: absolute;
@@ -191,4 +191,17 @@ ul.variable_list li svg { float: right; }
     background-color: #eee;
     padding: 10px 40px 20px 40px;
     margin: 30px auto 0 auto;
+}
+
+.settings-header {
+    background: white;
+    margin: 0 auto;
+    padding: 10px 0 20px 0;
+    min-width: 380px;
+    width: 45%;
+}
+
+.no-top-margin {
+    margin-top: 0;
+    padding-top: 0;
 }
