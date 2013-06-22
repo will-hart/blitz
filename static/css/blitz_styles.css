@@ -113,6 +113,7 @@ ul.variable_list {
 
 ul.variable_list li {
     margin-bottom: 5px;
+    cursor: pointer;
 }
 
 ul.variable_list li.active {
