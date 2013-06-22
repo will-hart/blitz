@@ -166,3 +166,18 @@ ul.variable_list li svg { float: right; }
 .pure-button-secondary {
     background: rgb(66, 184, 221); /* this is a light blue */
 }
+
+.settings-container {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    background-color: white;
+}
+
+.settings-main {
+    width: 40%;
+    min-width: 300px;
+    background-color: #eee;
+    padding: 10px 40px 20px 40px;
+    margin: 30px auto 0 auto;
+}

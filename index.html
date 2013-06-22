@@ -30,18 +30,12 @@
 
             <!-- Show the slide out buttons for variables and settings -->
             <div id="variables_slide_out_handle"><a id="variable_link" title="Variables" href="#variable_pane"><i class="icon-list"></i></a></div>
-            <div id="settings_slide_out_handle"><a id="settings_link" title="Settings" href="#settings_pane"><i class="icon-cog"></i></a></div>
+            <div id="settings_slide_out_handle">{{#linkTo config}}<i class="icon-cog"></i>{{/linkTo}}</div>
 
             <!-- The variables pane -->
             <div id="variable_pane">
                 <a class="close_button" href="javascript: $.pageslide.close()">x</a>
                 {{render category}}
-            </div>
-
-            <!-- The settings pane -->
-            <div id="settings_pane">
-                <a class="close_button" href="javascript: $.pageslide.close()">x</a>
-                {{outlet config}}
             </div>
 
             <!-- Display the body -->
@@ -64,8 +58,46 @@
             </ul>
         </script>
 
-        <script type="text/x-handlebars" data-template-name="settings">
-            <h2>Settings</h2>
+        <script type="text/x-handlebars" data-template-name="config">
+            <div class="settings-main">
+                <h2>Settings</h2>
+
+                <form class="pure-form pure-form-aligned">
+                    <fieldset>
+                        <legend>Client Connection Settings</legend>
+                        <div class="pure-control-group">
+                            <label for="clientIp">Client IP</label>
+                            {{view Ember.TextField name="clientIp" id="clientIp" valueBinding="model.clientIp"
+                            placeholder="Client IP address"}}
+                        </div>
+
+                        <div class="pure-control-group">
+                            <label for="clientPort">Client Port</label>
+                            {{view Ember.TextField name="clientPort" id="clientPort" valueBinding="clientPort"
+                            placeholder="Client Port"}}
+                        </div>
+                    </fieldset>
+
+                    <fieldset>
+                        <legend>Data Logger Settings</legend>
+                        <div class="pure-control-group">
+                            <label for="loggerIp">Logger IP</label>
+                            {{view Ember.TextField name="loggerIp" id="loggerIp" valueBinding="model.loggerIp"
+                            placeholder="Client IP address"}}
+                        </div>
+
+                        <div class="pure-control-group">
+                            <label for="loggerPort">Client Port</label>
+                            {{view Ember.TextField name="loggerPort" id="loggerPort" valueBinding="loggerPort"
+                            placeholder="Logger Port"}}
+                        </div>
+                    </fieldset>
+
+                    <div class="pure-controls">
+                        {{#linkTo index class="pure-button pure-button-success"}}Save & Return{{/linkTo}}
+                    </div>
+                </form>
+            </div>
         </script>
 
         <script type="text/x-handlebars" data-template-name="category_line">
@@ -91,10 +123,6 @@
 
                 // hook up the page slide buttons
                 $("#variable_link").pageslide({
-                        direction: 'left'
-                });
-
-                $("#settings_link").pageslide({
                         direction: 'left'
                 });
 

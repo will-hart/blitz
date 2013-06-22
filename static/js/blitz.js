@@ -1,10 +1,10 @@
 var Blitz = Ember.Application.create({
-    LOG_TRANSITIONS: false,
-    LOG_BINDINGS: false,
-    LOG_VIEW_LOOKUPS: false,
-    LOG_STACKTRACE_ON_DEPRECATION: false,
-    LOG_VERSION: false,
-    debugMode: false
+    LOG_TRANSITIONS: true,
+    LOG_BINDINGS: true,
+    LOG_VIEW_LOOKUPS: true,
+    LOG_STACKTRACE_ON_DEPRECATION: true,
+    LOG_VERSION: true,
+    debugMode: true
 });
 
 
@@ -68,7 +68,7 @@ Blitz.HandleJsonSingle = function (url, model) {
         dataType: "json"
     }).then(function (response) {
         console.log("Parsing JSON response for one result from " + url);
-        obj.setProperties(response.data);
+        obj.setProperties(response);
     });/*.error(function (request, status, error) {
      console.log("ERROR parsing response - ");
      console.log("     " + status);
@@ -165,9 +165,17 @@ Blitz.IndexRoute = Ember.Route.extend({
     setupController: function (controller, model) {
         controller.set('content', model);
         this.controllerFor("category").set('content', Blitz.Category.findAll());
-        this.controllerFor("config").set('content', Blitz.Config.find());
     }
 });
+
+Blitz.ConfigRoute = Ember.Route.extend({
+    model: function () {
+        return Blitz.Config.find();
+    }
+    /*setupController: function (controller, model) {
+        controller.set('content', model);
+    }*/
+})
 
 /*********************************************************
  * CONTROLLERS
@@ -292,7 +300,7 @@ Blitz.IndexView = Ember.View.extend({
 });
 
 Blitz.ConfigView = Ember.View.extend({
-    templateName: 'config'
+    classNameBindings: [':settings-container']
 });
 
 Blitz.CategoryView = Ember.View.extend({
