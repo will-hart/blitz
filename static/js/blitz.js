@@ -164,8 +164,8 @@ Blitz.IndexRoute = Ember.Route.extend({
     },
     setupController: function (controller, model) {
         controller.set('content', model);
-        this.controllerFor("category").set('model', Blitz.Category.findAll());
-        this.controllerFor("config").set('model', Blitz.Config.find());
+        this.controllerFor("category").set('content', Blitz.Category.findAll());
+        this.controllerFor("config").set('content', Blitz.Config.find());
     }
 });
 
@@ -185,7 +185,7 @@ Blitz.IndexController = Ember.ArrayController.extend({
      * that have been selected in the CategoryView.
      */
     updateChartData: function () {
-        console.log("Updating chart content");
+        // console.log("Updating chart content");
 
         // get all the currently selected categories
         var chartVars = this.get('chartVars'),
@@ -241,8 +241,7 @@ Blitz.CategoryController = Ember.ArrayController.extend({
         chartVars.clear();
         chartVars.addObjects(selectedIds);
 
-        // log
-        console.log("Selected chart variables: " + chartVars);
+        // console.log("Selected chart variables: " + chartVars);
     }.observes('model.@each.selected')
 });
 
@@ -332,11 +331,16 @@ Blitz.CategoryLineView = Ember.View.extend({
         // check we have hovered over the list element (and not the button)
         if (li.tagName === "LI") {
 
+            // remove any previous charts (hack to prevent fast mouseLeave stranding SVG sparklines in the DOM
+            $('ul.variable_list li svg').remove();
+
+
             // get the category readings
             data = category.get("readings");
 
-            // remove any previous charts (hack to prevent fast mouseLeave stranding SVG sparklines in the DOM
-            $('ul.variable_list li svg').remove();
+            if (data === undefined) {
+                return;
+            }
 
             // Get the ID and draw the sparkline
             id = $(li).attr("id");
