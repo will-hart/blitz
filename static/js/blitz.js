@@ -4,7 +4,6 @@ var Blitz = Ember.Application.create({
     LOG_VIEW_LOOKUPS: false,
     LOG_STACKTRACE_ON_DEPRECATION: false,
     LOG_VERSION: false,
-
     debugMode: false
 });
 
@@ -24,19 +23,59 @@ Blitz.blitz_api_url = "http://willhart.apiary.io/";
  * the response objects onto the given model.
  *
  * @param url the API endpoint to send to (e.g. "categories" will request from "{{api_url}}/categories"
- * @param model The model to add the
- * @returns A list of model instances
+ * @param model The model to add the new object to
+ * @returns {*} list of model instances
  */
-Blitz.HandleJson = function (url, model) {
-    console.log("Sending request for " + url);
-    return $.getJSON(Blitz.blitz_api_url + url).then(function (response) {
-        console.log("Hnadling response for " + url);
-        var responseVals = [];
-        response.data.forEach(function (child) {
-            responseVals.push(model.create(child));
+Blitz.HandleJsonMultiple = function (url, model) {
+    console.log("Sending request for multiple results to " + url);
+
+    var responseVals = [];
+
+    $.ajax({
+        url: Blitz.blitz_api_url + url,
+        type: "GET",
+        dataType: "json"
+    }).then(function (response) {
+        console.log("Parsing JSON response for multiple results from " + url);
+        response.data.forEach(function (item) {
+            var instance = model.create(item);
+            responseVals.addObject(instance)
         });
-        return responseVals;
-    });
+    });/*.error(function (request, status, error) {
+        console.log("ERROR parsing response - ");
+        console.log("     " + status);
+        console.log("     " + error);
+    });*/
+
+    return responseVals;
+};
+
+/**
+ * Performs a JSON request
+ * @param url the API endpoint to send to (e.g. "categories" will request from "{{api_url}}/categories"
+ * @param model The model to add the new object to
+ * @returns {*} A single object retrieved from a JSON response
+ * @constructor
+ */
+Blitz.HandleJsonSingle = function (url, model) {
+    console.log("Sending request for one result to " + url);
+    var obj = model.create({});
+
+    // perform the AJAX request
+    $.ajax({
+        url: Blitz.blitz_api_url + url,
+        type: "GET",
+        dataType: "json"
+    }).then(function (response) {
+        console.log("Parsing JSON response for one result from " + url);
+        obj.setProperties(response.data);
+    });/*.error(function (request, status, error) {
+     console.log("ERROR parsing response - ");
+     console.log("     " + status);
+     console.log("     " + error);
+     });*/
+
+    return obj;
 };
 
 /**
@@ -62,12 +101,11 @@ Blitz.PostJson = function (url, json) {
 Blitz.Reading = Ember.Object.extend({});
 
 Blitz.Reading.reopenClass({
-
     /**
      * Gets at most 50 recent readings for each variable in the cache
      */
     findAll: function () {
-        return Blitz.HandleJson("cache", Blitz.Reading);
+        return Blitz.HandleJsonMultiple("cache", Blitz.Reading);
     },
 
     /**
@@ -76,7 +114,7 @@ Blitz.Reading.reopenClass({
      * @param timestamp the UNIX timestamp to retrieve records after
      */
     findUpdated: function (timestamp) {
-        return Blitz.HandleJson("cache/" + timestamp, Blitz.Reading);
+        return Blitz.HandleJsonMultiple("cache/" + timestamp, Blitz.Reading);
     }
 });
 
@@ -88,12 +126,11 @@ Blitz.Category = Ember.Object.extend({
 });
 
 Blitz.Category.reopenClass({
-
     /**
      * Gets all the available variables for the current logging session
      */
     findAll: function () {
-        return Blitz.HandleJson("categories", Blitz.Category);
+        return Blitz.HandleJsonMultiple("categories", Blitz.Category);
     }
 });
 
@@ -107,13 +144,7 @@ Blitz.Config.reopenClass({
      * @returns A configuration object
      */
     find: function () {
-        var response = Blitz.HandleJson("config", Blitz.Config);
-        if (response.length === 0) {
-            return null;
-        }
-
-        // just return the first response
-        return response[0];
+        return Blitz.HandleJsonSingle("config", Blitz.Config);
     }
 });
 
@@ -127,21 +158,14 @@ Blitz.Router.map(function () {
     this.route("config");
 });
 
-Blitz.CategoryRouter = Ember.Route.extend({
-    model: function () {
-        return Blitz.Category.findAll();
-    }
-});
-
 Blitz.IndexRoute = Ember.Route.extend({
     model: function () {
         return Blitz.Reading.findAll();
-    }
-});
-
-Blitz.ConfigRouter = Ember.Route.extend({
-    model: function () {
-        return Blitz.Config.find();
+    },
+    setupController: function (controller, model) {
+        controller.set('content', model);
+        this.controllerFor("category").set('model', Blitz.Category.findAll());
+        this.controllerFor("config").set('model', Blitz.Config.find());
     }
 });
 
@@ -154,6 +178,7 @@ Blitz.IndexController = Ember.ArrayController.extend({
     content: [],
     chartContent: [],
     chartVars: [],
+    needs: ['category'],
 
     /**
      * Returns the chart content - which is results form variables
@@ -231,7 +256,6 @@ Blitz.ConfigController = Ember.ObjectController.extend();
 Blitz.IndexView = Ember.View.extend({
 
     rendered: false,
-    controller: indexController,
 
     /**
      * When the view has finished rendering, set a flag to
@@ -269,16 +293,13 @@ Blitz.IndexView = Ember.View.extend({
 });
 
 Blitz.ConfigView = Ember.View.extend({
-    controller: configController,
     templateName: 'config'
 });
 
 Blitz.CategoryView = Ember.View.extend({
-    controller: categoryController
 });
 
 Blitz.CategoryLineView = Ember.View.extend({
-    controller: categoryController,
     tagName: 'li',
     category: null,
     templateName: "category_line",
@@ -307,15 +328,6 @@ Blitz.CategoryLineView = Ember.View.extend({
             id = "",
             category = this.get('category'),
             data = null;
-        /*[
-                { value: Math.random() * 5, timeLogged: new Date("01/01/2001 10:00:00") },
-                { value: Math.random() * 5, timeLogged: new Date("01/01/2001 10:00:01") },
-                { value: Math.random() * 5, timeLogged: new Date("01/01/2001 10:00:02") },
-                { value: Math.random() * 5, timeLogged: new Date("01/01/2001 10:00:03") },
-                { value: Math.random() * 5, timeLogged: new Date("01/01/2001 10:00:04") },
-                { value: Math.random() * 5, timeLogged: new Date("01/01/2001 10:00:05") },
-                { value: Math.random() * 5, timeLogged: new Date("01/01/2001 10:00:06") }
-            ];*/
 
         // check we have hovered over the list element (and not the button)
         if (li.tagName === "LI") {
