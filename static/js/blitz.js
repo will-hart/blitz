@@ -263,6 +263,10 @@ Blitz.CategoryLineView = Ember.View.extend({
      * @param e the event object
      */
     mouseUp: function (e) {
+        // check if it was a left click
+        if (e.button !== 0) return;
+
+        // if left clicking, toggle the property and start a chain of events unlike any other!
         this.get('category').toggleProperty('selected');
     },
 
@@ -274,20 +278,28 @@ Blitz.CategoryLineView = Ember.View.extend({
     mouseEnter: function (e) {
         var li = e.target,
             id = "",
-            // TODO - remove temporary data and get filtered chart data
-            data = [
-                { value: 1.5, timeLogged: new Date("01/01/2001 10:00:00") },
-                { value: 5.1, timeLogged: new Date("01/01/2001 10:00:01") },
-                { value: 3.2, timeLogged: new Date("01/01/2001 10:00:02") },
-                { value: 3.9, timeLogged: new Date("01/01/2001 10:00:03") },
-                { value: 4.2, timeLogged: new Date("01/01/2001 10:00:04") },
-                { value: 4.4, timeLogged: new Date("01/01/2001 10:00:05") },
-                { value: 4.5, timeLogged: new Date("01/01/2001 10:00:06") }
-            ];
+            category = this.get('category'),
+            data = null;
+        /*[
+                { value: Math.random() * 5, timeLogged: new Date("01/01/2001 10:00:00") },
+                { value: Math.random() * 5, timeLogged: new Date("01/01/2001 10:00:01") },
+                { value: Math.random() * 5, timeLogged: new Date("01/01/2001 10:00:02") },
+                { value: Math.random() * 5, timeLogged: new Date("01/01/2001 10:00:03") },
+                { value: Math.random() * 5, timeLogged: new Date("01/01/2001 10:00:04") },
+                { value: Math.random() * 5, timeLogged: new Date("01/01/2001 10:00:05") },
+                { value: Math.random() * 5, timeLogged: new Date("01/01/2001 10:00:06") }
+            ];*/
 
         // check we have hovered over the list element (and not the button)
         if (li.tagName === "LI") {
+
+            // get the category readings
+            data = category.get("readings");
+
+            // remove any previous charts (hack to prevent fast mouseLeave stranding SVG sparklines in the DOM
             $('ul.variable_list li svg').remove();
+
+            // Get the ID and draw the sparkline
             id = $(li).attr("id");
             BlitzSparkline(data, id);
         }

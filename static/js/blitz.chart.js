@@ -140,7 +140,6 @@
                 totalWidth = 120,
                 totalHeight = 20,
 
-                // TODO - get element height and width or set defaults
                 width = totalWidth - margin.left - margin.right,
                 height = totalHeight - margin.top - margin.bottom,
 
@@ -150,7 +149,9 @@
                     }))
                     .range([0, width]),
                 y = d3.scale.linear()
-                    .domain([0, d3.max(data, function (d) {
+                    .domain([d3.min(data, function (d) {
+                        return d.value;
+                    }), d3.max(data, function (d) {
                         return d.value;
                     })])
                     .range([height, 0]),
@@ -176,8 +177,8 @@
                 .data([data])
                 .attr("class", "line")
                 .attr("fill", "none")
-                .attr("stroke", "lightGrey")
-                .attr("stroke-width", 2)
+                .attr("stroke", "white")
+                .attr("stroke-width", 1)
                 .attr("d", line);
 
             return chart;
