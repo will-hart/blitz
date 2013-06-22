@@ -88,6 +88,8 @@ Blitz.PostJson = function (url, json) {
     // TODO implement a success/failure reporting mechanism
     $.ajax({
         type: "POST",
+        dataType: 'json',
+        contentType: 'json',
         url: Blitz.blitz_api_url + url,
         data: json
     });
@@ -135,7 +137,18 @@ Blitz.Category.reopenClass({
 });
 
 /* The settings model stores setting information */
-Blitz.Config = Ember.Object.extend({});
+Blitz.Config = Ember.Object.extend({
+    save: function (model) {
+        var json = "{ \n" +
+            "\t'loggerPort': " + this.get("loggerPort") + ", \n" +
+            "\t'loggerIp': '" + this.get("loggerIp") + "', \n" +
+            "\t'clientPort': " + this.get("clientPort") + ", \n" +
+            "\t'clientIp': '" + this.get("clientIp") + "', \n" +
+            "}";
+
+        Blitz.PostJson('config', json);
+    }
+});
 
 Blitz.Config.reopenClass({
     /**
@@ -172,10 +185,7 @@ Blitz.ConfigRoute = Ember.Route.extend({
     model: function () {
         return Blitz.Config.find();
     }
-    /*setupController: function (controller, model) {
-        controller.set('content', model);
-    }*/
-})
+});
 
 /*********************************************************
  * CONTROLLERS
@@ -253,7 +263,20 @@ Blitz.CategoryController = Ember.ArrayController.extend({
     }.observes('model.@each.selected')
 });
 
-Blitz.ConfigController = Ember.ObjectController.extend();
+Blitz.ConfigController = Ember.ObjectController.extend({
+
+    /**
+     * Closes the settings view and returns to index, after saving changes to the model
+     * @param model the model to save changes to
+     */
+    closeSettings: function (model) {
+        // commit the changes to the configuration and update via a REST POST command
+        model.save();
+
+        // transition to the index page
+        this.transitionToRoute("index");
+    }
+});
 
 
 /*********************************************************
@@ -275,7 +298,6 @@ Blitz.IndexView = Ember.View.extend({
         this.drawChart();
 
         // hook up jQuery events
-        // hook up the page slide buttons
         $("#variables_slide_out_handle").on("click", function (e) {
             e.preventDefault();
 

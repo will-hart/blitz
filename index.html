@@ -61,7 +61,9 @@
 
                 <form class="pure-form pure-form-aligned">
                     <div class="settings-header">
-                        {{#linkTo index class="pure-button pure-button-success float-right"}}Save & Return{{/linkTo}}
+                        <button {{action closeSettings model}} class="pure-button pure-button-success float-right">
+                            Save & Return
+                        </button>
                     </div>
 
                     <div class="settings-main">
