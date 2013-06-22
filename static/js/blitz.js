@@ -13,7 +13,10 @@ var Blitz = Ember.Application.create({
  * UTILITY FUNCTIONS
 *********************************************************/
 
-
+/**
+ * The base URL for api requests
+ * @type {string}
+ */
 Blitz.blitz_api_url = "http://willhart.apiary.io/";
 
 /**
@@ -25,18 +28,19 @@ Blitz.blitz_api_url = "http://willhart.apiary.io/";
  * @returns A list of model instances
  */
 Blitz.HandleJson = function (url, model) {
-
+    console.log("Sending request for " + url);
     return $.getJSON(Blitz.blitz_api_url + url).then(function (response) {
+        console.log("Hnadling response for " + url);
         var responseVals = [];
         response.data.forEach(function (child) {
-            responseVals.push(model.create(child.data));
+            responseVals.push(model.create(child));
         });
         return responseVals;
     });
 };
 
 /**
- * Performs an aynchronous post request to the given URL and sends the supplied JSON data
+ * Performs an asynchronous post request to the given URL and sends the supplied JSON data
  *
  * @param url the API endpoint to send to (e.g. "categories" will request from "{{api_url}}/categories"
  * @param json the JSON to send to the endpoint
@@ -55,7 +59,7 @@ Blitz.PostJson = function (url, json) {
 *********************************************************/
 
 /* The data line object stores rows of data. */
-Blitz.Reading = Ember.Object.extend();
+Blitz.Reading = Ember.Object.extend({});
 
 Blitz.Reading.reopenClass({
 
@@ -88,13 +92,13 @@ Blitz.Category.reopenClass({
     /**
      * Gets all the available variables for the current logging session
      */
-    findAll: function() {
+    findAll: function () {
         return Blitz.HandleJson("categories", Blitz.Category);
     }
-})
+});
 
 /* The settings model stores setting information */
-Blitz.Config = Ember.Object.extend();
+Blitz.Config = Ember.Object.extend({});
 
 Blitz.Config.reopenClass({
     /**
@@ -107,6 +111,8 @@ Blitz.Config.reopenClass({
         if (response.length === 0) {
             return null;
         }
+
+        // just return the first response
         return response[0];
     }
 });
@@ -225,6 +231,7 @@ Blitz.ConfigController = Ember.ObjectController.extend();
 Blitz.IndexView = Ember.View.extend({
 
     rendered: false,
+    controller: indexController,
 
     /**
      * When the view has finished rendering, set a flag to
@@ -262,12 +269,16 @@ Blitz.IndexView = Ember.View.extend({
 });
 
 Blitz.ConfigView = Ember.View.extend({
+    controller: configController,
     templateName: 'config'
 });
 
-Blitz.CategoryView = Ember.View.extend();
+Blitz.CategoryView = Ember.View.extend({
+    controller: categoryController
+});
 
 Blitz.CategoryLineView = Ember.View.extend({
+    controller: categoryController,
     tagName: 'li',
     category: null,
     templateName: "category_line",
