@@ -373,7 +373,7 @@ Blitz.CategoryController = Ember.ArrayController.extend({
         var indexController = this.get('controllers.index'),
             content = indexController.get('content');
 
-        console.log("getting sparkline data for " + category_id);
+        // console.log("getting sparkline data for " + category_id);
         return content.filterProperty('category', category_id);
     }
 });
