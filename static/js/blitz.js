@@ -1,10 +1,10 @@
 var Blitz = Ember.Application.create({
-    LOG_TRANSITIONS: true,
-    LOG_BINDINGS: true,
-    LOG_VIEW_LOOKUPS: true,
-    LOG_STACKTRACE_ON_DEPRECATION: true,
-    LOG_VERSION: true,
-    debugMode: true
+    LOG_TRANSITIONS: false,
+    LOG_BINDINGS: false,
+    LOG_VIEW_LOOKUPS: false,
+    LOG_STACKTRACE_ON_DEPRECATION: false,
+    LOG_VERSION: false,
+    debugMode: false
 });
 
 
@@ -27,7 +27,7 @@ Blitz.blitz_api_url = "http://willhart.apiary.io/";
  * @returns {*} list of model instances
  */
 Blitz.HandleJsonMultiple = function (url, model) {
-    console.log("Sending request for multiple results to " + url);
+    // console.log("Sending request for multiple results to " + url);
 
     var responseVals = [];
 
@@ -36,7 +36,7 @@ Blitz.HandleJsonMultiple = function (url, model) {
         type: "GET",
         dataType: "json"
     }).then(function (response) {
-        console.log("Parsing JSON response for multiple results from " + url);
+        // console.log("Parsing JSON response for multiple results from " + url);
         response.data.forEach(function (item) {
             var instance = model.create(item);
             responseVals.addObject(instance)
@@ -58,7 +58,7 @@ Blitz.HandleJsonMultiple = function (url, model) {
  * @constructor
  */
 Blitz.HandleJsonSingle = function (url, model) {
-    console.log("Sending request for one result to " + url);
+    // console.log("Sending request for one result to " + url);
     var obj = model.create({});
 
     // perform the AJAX request
@@ -67,7 +67,7 @@ Blitz.HandleJsonSingle = function (url, model) {
         type: "GET",
         dataType: "json"
     }).then(function (response) {
-        console.log("Parsing JSON response for one result from " + url);
+        //console.log("Parsing JSON response for one result from " + url);
         obj.setProperties(response);
     });/*.error(function (request, status, error) {
      console.log("ERROR parsing response - ");
@@ -173,6 +173,7 @@ Blitz.IndexRoute = Ember.Route.extend({
     model: function () {
         return Blitz.Reading.findAll();
     },
+
     setupController: function (controller, model) {
         // check if we have already saved controller data
         var content = controller.get("content");
@@ -215,12 +216,13 @@ Blitz.IndexController = Ember.ArrayController.extend({
      * that have been selected in the CategoryView.
      */
     updateChartData: function () {
-        // console.log("Updating chart content");
 
         // get all the currently selected categories
         var chartVars = this.get('chartVars'),
             content = this.get('content'),
             chartContent = this.get('chartContent');
+
+        console.log("Updating chart content with " + chartVars.length + " series");
 
         // clear existing chart content
         chartContent.clear();
@@ -280,21 +282,32 @@ Blitz.CategoryController = Ember.ArrayController.extend({
             chartVars = indexController.get('chartVars'),
             mod = this.get("model"),
             selected = null,
-            selectedIds = null;
+            selectedIds = null,
+            i;
 
         // Check if there is a model
         if (mod === undefined) {
             return;
         }
 
+        // get the selected items
         selected = mod.filterProperty('selected');
         selectedIds = selected.mapProperty('id');
 
         // set the chart vars
-        chartVars.clear();
-        chartVars.addObjects(selectedIds);
+        for (i = 0; i < selectedIds.length; i += 1) {
+            if (chartVars.indexOf(selectedIds[i]) == -1) {
+                chartVars.addObject(selectedIds[i]);
+            }
+        }
 
-        // console.log("Selected chart variables: " + chartVars);
+        for (i = 0; i < chartVars.length; i += 1) {
+            if (selectedIds.indexOf(chartVars[i]) === -1) {
+                chartVars.removeObject(chartVars[i]);
+            }
+        }
+
+        console.log("Selected chart variables: " + chartVars);
     }.observes('model.@each.selected')
 });
 
@@ -328,7 +341,7 @@ Blitz.IndexView = Ember.View.extend({
      */
     didInsertElement: function () {
         // Draw the chart
-        console.log("Finished drawing chart view - ready for chart updates");
+        // console.log("Finished drawing chart view - ready for chart updates");
         this.set('rendered', true);
         this.drawChart();
 
@@ -338,11 +351,11 @@ Blitz.IndexView = Ember.View.extend({
 
             // fade in the element
             var elem = $("#variable_pane");
-            elem.slideDown();
+            elem.fadeIn();
 
             // add a body click handler for fading out
             $("div#chart").one('click', function () {
-                elem.slideUp();
+                elem.fadeOut();
             });
 
         });
@@ -367,7 +380,7 @@ Blitz.IndexView = Ember.View.extend({
     drawChart: function drawChart() {
 
         if (!this.get('rendered')) {
-            console.log("Aborting chart drawing - page not rendered");
+            // console.log("Aborting chart drawing - page not rendered");
             return;
         }
 
@@ -382,15 +395,14 @@ Blitz.IndexView = Ember.View.extend({
         }
 
         BlitzChart(content, "chart");
-    }.observes('controller.chartContent.length')
+    }.observes('chartContent.length')
 });
 
 Blitz.ConfigView = Ember.View.extend({
     classNameBindings: [':settings-container']
 });
 
-Blitz.CategoryView = Ember.View.extend({
-});
+Blitz.CategoryView = Ember.View.extend({});
 
 Blitz.CategoryLineView = Ember.View.extend({
     tagName: 'li',

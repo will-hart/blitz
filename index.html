@@ -45,6 +45,9 @@
         </script>
 
         <script type="text/x-handlebars" data-template-name="category">
+
+            <img src="static/img/blitz_small.png" class="blitz-logo" width="300px" height="100px" alt="Blitz Logo" />
+
             <ul class="variable_list">
                 {{#if model}}
                     {{#each category in model}}
@@ -55,10 +58,9 @@
                 {{/if}}
             </ul>
 
+            <hr>
             <h4>Connected Boards</h4>
-            <ul>
-                <li><small>None</small></li>
-            </ul>
+            <small>None</small>
         </script>
 
         <script type="text/x-handlebars" data-template-name="config">
