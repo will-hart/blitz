@@ -58,7 +58,7 @@
             }), getMinMaxValues(data, d3.max, function (d) {
                 return d.get('loggedAt');
             })],
-            y_extents = max_elements === 0 ? [0, 1] : [getMinMaxValues(data, d3.min), getMinMaxValues(data, d3.max)],
+            y_extents = max_elements === 0 ? [0, 1] : [0, getMinMaxValues(data, d3.max)],
             x = d3.time.scale.utc()
                 .domain(x_extents)
                 .range([0, width]),
@@ -128,14 +128,14 @@
                 .text("Series " + (i + 1));
         }
 
-        console.log("===================================");
+        /*console.log("===================================");
         console.log("CHART DATA");
         console.log("-----------------------------------");
         console.log("X extents: " + x_extents);
         console.log("Y extents: " + y_extents);
         console.log("Data: ");
         console.log(data);
-        console.log("===================================");
+        console.log("===================================");*/
     };
 
     /**
