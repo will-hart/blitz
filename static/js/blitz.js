@@ -360,6 +360,14 @@ Blitz.IndexView = Ember.View.extend({
 
         });
 
+        // when clicking the settings div, ensure the enclosed link is also clicked
+        $("#settings_slide_out_handle").on("click", function (e) {
+            // no need to handle the click event of a link!
+            if (e.target.tagName !== "A") {
+                $(this).find("a").click();
+            }
+        });
+
         // add a resize event for the chart
         $(window).resize(function () {
             var cht = $("#chart");
