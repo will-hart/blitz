@@ -95,6 +95,7 @@ Blitz.PostJson = function (url, json) {
     });
 };
 
+
 /*********************************************************
  * MODELS
 *********************************************************/
@@ -173,8 +174,21 @@ Blitz.IndexRoute = Ember.Route.extend({
         return Blitz.Reading.findAll();
     },
     setupController: function (controller, model) {
-        controller.set('content', model);
-        this.controllerFor("category").set('content', Blitz.Category.findAll());
+        // check if we have already saved controller data
+        var content = controller.get("content");
+        if (content === undefined || content.length === 0) {
+
+            // load all data
+            controller.set('content', model);
+            this.controllerFor("category").set('content', Blitz.Category.findAll());
+
+        } else {
+
+            // load updates only and don't touch the category data
+            controller.set('content', Blitz.Reading.findUpdated(
+                controller.get("lastUpdated")
+            ));
+        }
     }
 });
 
@@ -193,6 +207,7 @@ Blitz.IndexController = Ember.ArrayController.extend({
     content: [],
     chartContent: [],
     chartVars: [],
+    lastUpdate: null,
     needs: ['category'],
 
     /**
@@ -223,7 +238,30 @@ Blitz.IndexController = Ember.ArrayController.extend({
                 chartContent.push(cc);
             }
         });
-    }.observes('chartVars.length')
+    }.observes('chartVars.length'),
+
+    /**
+     * Watches the length of the content variable and saves the UNIX timestamp
+     * for when the content was last updated
+     */
+    updateLastUpdatedTime: function () {
+        var content = this.get('content'),
+            maxDates = content.mapProperty("timeLogged").sort(),
+            timestamp = 0,
+            theDate = 0,
+            momentDate = 0;
+
+        // check if we have a date
+        if (maxDates.length > 0) {
+            // get the date from string using moment.js
+            timestamp = maxDates[maxDates.length - 1];
+            momentDate = moment(timestamp, "DD-MM-YYYY HH:m:s.SSS");
+
+            // convert to unix timestamp
+            theDate = momentDate.valueOf();
+        }
+        this.set('lastUpdated', theDate);
+    }.observes('content.length')
 });
 
 Blitz.CategoryController = Ember.ArrayController.extend({
@@ -256,7 +294,7 @@ Blitz.CategoryController = Ember.ArrayController.extend({
         chartVars.clear();
         chartVars.addObjects(selectedIds);
 
-        console.log("Selected chart variables: " + chartVars);
+        // console.log("Selected chart variables: " + chartVars);
     }.observes('model.@each.selected')
 });
 
