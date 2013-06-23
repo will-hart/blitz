@@ -54,9 +54,9 @@
             height = elemHeight - margin.top - margin.bottom,
 
             x_extents = max_elements === 0 ? [new Date("04/09/2011 00:00"), new Date("07/14/2011 23:59")] : [getMinMaxValues(data, d3.min, function (d) {
-                return d.loggedAt;
+                return d.get('loggedAt');
             }), getMinMaxValues(data, d3.max, function (d) {
-                return d.loggedAt;
+                return d.get('loggedAt');
             })],
             y_extents = max_elements === 0 ? [0, 1] : [getMinMaxValues(data, d3.min), getMinMaxValues(data, d3.max)],
             x = d3.time.scale.utc()
@@ -70,10 +70,10 @@
 
             line = d3.svg.line()
                 .x(function (d) {
-                    return x(d.loggedAt);
+                    return x(d.get('loggedAt'));
                 })
                 .y(function (d) {
-                    return y(d.value);
+                    return y(d.get('value'));
                 });
 
         // set up the chart area
@@ -127,10 +127,24 @@
                 .attr("y", -40)
                 .text("Series " + (i + 1));
         }
+
+        console.log("===================================");
+        console.log("CHART DATA");
+        console.log("-----------------------------------");
+        console.log("X extents: " + x_extents);
+        console.log("Y extents: " + y_extents);
+        console.log("Data: ");
+        console.log(data);
+        console.log("===================================");
     };
 
+    /**
+     * Draws a sparkline chart in a small element - no axis or labels
+     *
+     * @param data The data to use for plotting the sparkline
+     * @param elem The element to draw the sparkline into
+     */
     draw_sparkline = function (data, elem) {
-
         var margin = {
                 top: 3,
                 right: 5,
@@ -145,23 +159,21 @@
 
             x = d3.time.scale.utc()
                 .domain(d3.extent(data, function (d) {
-                    return d.loggedAt;
+                    return d.get('loggedAt');
                 }))
                 .range([0, width]),
             y = d3.scale.linear()
-                .domain([d3.min(data, function (d) {
-                    return d.value;
-                }), d3.max(data, function (d) {
-                    return d.value;
-                })])
+                .domain(d3.extent(data, function (d) {
+                    return d.get('value');
+                }))
                 .range([height, 0]),
 
             line = d3.svg.line()
                 .x(function (d) {
-                    return x(d.loggedAt);
+                    return x(d.get('loggedAt'));
                 })
                 .y(function (d) {
-                    return y(d.value);
+                    return y(d.get("value"));
                 }),
 
             chart = d3.select("#" + elem).append("svg:svg")
@@ -180,8 +192,6 @@
             .attr("stroke", "white")
             .attr("stroke-width", 1)
             .attr("d", line);
-
-        return chart;
     };
 
     root.BlitzChart = draw_chart;

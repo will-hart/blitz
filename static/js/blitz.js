@@ -108,8 +108,8 @@ Blitz.Reading = Ember.Object.extend({
      * A property which returns a moment date from the raw timeLogged value
      */
     loggedAt: function () {
-        return moment(this.get('timeLogged')).toDate(); //, "DD-MM-YYYY HH:m:s.SSS").toDate();
-    }.property('timeLogged').volatile()
+        return moment(this.get('timeLogged'), "DD-MM-YYYY HH:m:s.SSS").toDate();
+    }.property('timeLogged')
 });
 Blitz.Reading.reopenClass({
     /**
@@ -239,7 +239,7 @@ Blitz.IndexController = Ember.ArrayController.extend({
             return;
         }
 
-        console.log("Updating chart content with " + chartVars.length + " series");
+        // console.log("Updating chart content with " + chartVars.length + " series");
 
         // clear existing chart content
         chartContent.clear();
@@ -303,7 +303,7 @@ Blitz.IndexController = Ember.ArrayController.extend({
             return;
         }
 
-        console.log("Drawing chart with " + content.length + " series");
+        // console.log("Drawing chart with " + content.length + " series");
 
         // check if we have any content to draw
         if (content === undefined || content.length === 0) {
@@ -361,7 +361,7 @@ Blitz.CategoryController = Ember.ArrayController.extend({
         // flag the chart data as dirty and in need of an update
         indexController.set('chartDataDirty', true);
 
-        console.log("Selected chart variables: " + chartVars);
+        // console.log("Selected chart variables: " + chartVars);
     }.observes('model.@each.selected')
 });
 
