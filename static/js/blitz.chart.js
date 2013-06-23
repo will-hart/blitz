@@ -1,5 +1,7 @@
 (function (root) {
 
+    var draw_chart, draw_sparkline;
+
     /** Get the maximum value from a list of lists
      *
      * @param data the multidimensional array to find the max for
@@ -23,7 +25,7 @@
      *  @param data the list of data to be plotted
      *  @param elem the container element to add the svg element to
      */
-    var draw_chart = function (data, elem) {
+    draw_chart = function draw_chart(data, elem) {
 
         d3.select("#" + elem + " svg").remove();
 
@@ -39,16 +41,22 @@
             },
 
             domElem = d3.select("#" + elem),
-            chart = d3.select("#" + elem).append("svg:svg"),
-            elemWidth = domElem.style("width").replace("px", ""),
+            chart = d3.select("#" + elem).append("svg:svg");
+
+        // run checks to see if the DOM element was found
+        if (domElem.empty()) {
+            return;
+        }
+
+        var elemWidth = domElem.style("width").replace("px", ""),
             elemHeight = domElem.style("height").replace("px", ""),
             width = elemWidth - margin.left - margin.right,
             height = elemHeight - margin.top - margin.bottom,
 
             x_extents = max_elements === 0 ? [new Date("04/09/2011 00:00"), new Date("07/14/2011 23:59")] : [getMinMaxValues(data, d3.min, function (d) {
-                return d.timeLogged;
+                return d.loggedAt;
             }), getMinMaxValues(data, d3.max, function (d) {
-                return d.timeLogged;
+                return d.loggedAt;
             })],
             y_extents = max_elements === 0 ? [0, 1] : [getMinMaxValues(data, d3.min), getMinMaxValues(data, d3.max)],
             x = d3.time.scale.utc()
@@ -62,7 +70,7 @@
 
             line = d3.svg.line()
                 .x(function (d) {
-                    return x(d.timeLogged);
+                    return x(d.loggedAt);
                 })
                 .y(function (d) {
                     return y(d.value);
@@ -119,70 +127,62 @@
                 .attr("y", -40)
                 .text("Series " + (i + 1));
         }
+    };
 
-        // return the chart object for storage and in-app manipulation
-        return chart;
-    },
+    draw_sparkline = function (data, elem) {
 
-        /** Function for drawing a sparkline
-         *
-         *  @param data the list of data to be plotted
-         *  @param elem the container element to add the svg element to
-         */
-        draw_sparkline = function (data, elem) {
+        var margin = {
+                top: 3,
+                right: 5,
+                bottom: 3,
+                left: 5
+            },
+            totalWidth = 120,
+            totalHeight = 20,
 
-            var margin = {
-                    top: 3,
-                    right: 5,
-                    bottom: 3,
-                    left: 5
-                },
-                totalWidth = 120,
-                totalHeight = 20,
+            width = totalWidth - margin.left - margin.right,
+            height = totalHeight - margin.top - margin.bottom,
 
-                width = totalWidth - margin.left - margin.right,
-                height = totalHeight - margin.top - margin.bottom,
+            x = d3.time.scale.utc()
+                .domain(d3.extent(data, function (d) {
+                    return d.loggedAt;
+                }))
+                .range([0, width]),
+            y = d3.scale.linear()
+                .domain([d3.min(data, function (d) {
+                    return d.value;
+                }), d3.max(data, function (d) {
+                    return d.value;
+                })])
+                .range([height, 0]),
 
-                x = d3.time.scale.utc()
-                    .domain(d3.extent(data, function (d) {
-                        return d.timeLogged;
-                    }))
-                    .range([0, width]),
-                y = d3.scale.linear()
-                    .domain([d3.min(data, function (d) {
-                        return d.value;
-                    }), d3.max(data, function (d) {
-                        return d.value;
-                    })])
-                    .range([height, 0]),
+            line = d3.svg.line()
+                .x(function (d) {
+                    return x(d.loggedAt);
+                })
+                .y(function (d) {
+                    return y(d.value);
+                }),
 
-                line = d3.svg.line()
-                    .x(function (d) {
-                        return x(d.timeLogged);
-                    })
-                    .y(function (d) {
-                        return y(d.value);
-                    }),
-
-                chart = d3.select("#" + elem).append("svg:svg")
-                    .data([data])
-                    .attr("width", width + margin.left + margin.right)
-                    .attr("height", height + margin.top + margin.bottom)
-                    .attr("viewBox", "0, 0, " + totalWidth + ", " + totalHeight)
-                    .append("g")
-                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-            // draw the line
-            chart.append("svg:path")
+            chart = d3.select("#" + elem).append("svg:svg")
                 .data([data])
-                .attr("class", "line")
-                .attr("fill", "none")
-                .attr("stroke", "white")
-                .attr("stroke-width", 1)
-                .attr("d", line);
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .attr("viewBox", "0, 0, " + totalWidth + ", " + totalHeight)
+                .append("g")
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-            return chart;
-        };
+        // draw the line
+        chart.append("svg:path")
+            .data([data])
+            .attr("class", "line")
+            .attr("fill", "none")
+            .attr("stroke", "white")
+            .attr("stroke-width", 1)
+            .attr("d", line);
+
+        return chart;
+    };
 
     root.BlitzChart = draw_chart;
     root.BlitzSparkline = draw_sparkline;

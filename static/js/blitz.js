@@ -35,17 +35,17 @@ Blitz.HandleJsonMultiple = function (url, model) {
         url: Blitz.blitz_api_url + url,
         type: "GET",
         dataType: "json"
-    }).then(function (response) {
+    }).success(function (response) {
         // console.log("Parsing JSON response for multiple results from " + url);
         response.data.forEach(function (item) {
             var instance = model.create(item);
             responseVals.addObject(instance)
         });
-    });/*.error(function (request, status, error) {
+    }).error(function (request, status, error) {
         console.log("ERROR parsing response - ");
         console.log("     " + status);
         console.log("     " + error);
-    });*/
+    });
 
     return responseVals;
 };
@@ -66,14 +66,14 @@ Blitz.HandleJsonSingle = function (url, model) {
         url: Blitz.blitz_api_url + url,
         type: "GET",
         dataType: "json"
-    }).then(function (response) {
+    }).success(function (response) {
         //console.log("Parsing JSON response for one result from " + url);
         obj.setProperties(response);
-    });/*.error(function (request, status, error) {
-     console.log("ERROR parsing response - ");
-     console.log("     " + status);
-     console.log("     " + error);
-     });*/
+    }).error(function (request, status, error) {
+        console.log("ERROR parsing response - ");
+        console.log("     " + status);
+        console.log("     " + error);
+    });
 
     return obj;
 };
@@ -101,7 +101,16 @@ Blitz.PostJson = function (url, json) {
 *********************************************************/
 
 /* The data line object stores rows of data. */
-Blitz.Reading = Ember.Object.extend({});
+Blitz.Reading = Ember.Object.extend({
+    timeLogged: new Date(),
+
+    /**
+     * A property which returns a moment date from the raw timeLogged value
+     */
+    loggedAt: function () {
+        return moment(this.get('timeLogged')).toDate(); //, "DD-MM-YYYY HH:m:s.SSS").toDate();
+    }.property('timeLogged').volatile()
+});
 Blitz.Reading.reopenClass({
     /**
      * Gets at most 50 recent readings for each variable in the cache
@@ -209,6 +218,8 @@ Blitz.IndexController = Ember.ArrayController.extend({
     chartContent: [],
     chartVars: [],
     lastUpdate: null,
+    chartDataDirty: false,
+    chartDirty: false,
     needs: ['category'],
 
     /**
@@ -220,7 +231,13 @@ Blitz.IndexController = Ember.ArrayController.extend({
         // get all the currently selected categories
         var chartVars = this.get('chartVars'),
             content = this.get('content'),
-            chartContent = this.get('chartContent');
+            chartContent = this.get('chartContent'),
+            chartDataDirty = this.get('chartDataDirty');
+
+        // check we are mean to update data
+        if (!chartDataDirty) {
+            return;
+        }
 
         console.log("Updating chart content with " + chartVars.length + " series");
 
@@ -234,13 +251,20 @@ Blitz.IndexController = Ember.ArrayController.extend({
 
         // for each chartVar, add a filtered list to the chartContent
         chartVars.forEach(function (d) {
-            var cc = content.filterProperty('category', chartVars);
+            var cc = content.filterProperty('category', d);
 
             if (cc.length > 0) {
                 chartContent.push(cc);
             }
         });
-    }.observes('chartVars.length'),
+
+        // save the chart content
+        this.set('chartContent', chartContent);
+
+        // now set the flags for rendering the chart
+        this.set('chartDataDirty', false);
+        this.set('chartDirty', true);
+    }.observes('chartDataDirty'),
 
     /**
      * Watches the length of the content variable and saves the UNIX timestamp
@@ -248,7 +272,7 @@ Blitz.IndexController = Ember.ArrayController.extend({
      */
     updateLastUpdatedTime: function () {
         var content = this.get('content'),
-            maxDates = content.mapProperty("timeLogged").sort(),
+            maxDates = content.mapProperty("loggedAt").sort(),
             timestamp = 0,
             theDate = 0,
             momentDate = 0;
@@ -257,13 +281,41 @@ Blitz.IndexController = Ember.ArrayController.extend({
         if (maxDates.length > 0) {
             // get the date from string using moment.js
             timestamp = maxDates[maxDates.length - 1];
-            momentDate = moment(timestamp, "DD-MM-YYYY HH:m:s.SSS");
+            momentDate = moment(timestamp);//, "DD-MM-YYYY HH:m:s.SSS");
 
             // convert to unix timestamp
             theDate = momentDate.valueOf();
         }
         this.set('lastUpdated', theDate);
-    }.observes('content.length')
+    }.observes('content.length'),
+
+    /**
+     * Draws the chart inside the "#chart" div element, first
+     * removing any previous SVG DOM elements inside this div
+     */
+    drawChart: function drawChart() {
+
+        var content = this.get("chartContent"),
+            dirty = this.get('chartDirty');
+
+        if (!dirty) {
+            //console.log("Aborting chart drawing - nothing to plot");
+            return;
+        }
+
+        console.log("Drawing chart with " + content.length + " series");
+
+        // check if we have any content to draw
+        if (content === undefined || content.length === 0) {
+            content = [];
+        }
+
+        // draw the chart
+        BlitzChart(content, "chart");
+
+        // unset the render chart flag
+        this.set('chartDirty', false);
+    }.observes('chartDirty')
 });
 
 Blitz.CategoryController = Ember.ArrayController.extend({
@@ -281,8 +333,8 @@ Blitz.CategoryController = Ember.ArrayController.extend({
         var indexController = this.get('controllers.index'),
             chartVars = indexController.get('chartVars'),
             mod = this.get("model"),
-            selected = null,
-            selectedIds = null,
+            selected,
+            selectedIds,
             i;
 
         // Check if there is a model
@@ -300,12 +352,14 @@ Blitz.CategoryController = Ember.ArrayController.extend({
                 chartVars.addObject(selectedIds[i]);
             }
         }
-
         for (i = 0; i < chartVars.length; i += 1) {
             if (selectedIds.indexOf(chartVars[i]) === -1) {
                 chartVars.removeObject(chartVars[i]);
             }
         }
+
+        // flag the chart data as dirty and in need of an update
+        indexController.set('chartDataDirty', true);
 
         console.log("Selected chart variables: " + chartVars);
     }.observes('model.@each.selected')
@@ -332,9 +386,6 @@ Blitz.ConfigController = Ember.ObjectController.extend({
 *********************************************************/
 
 Blitz.IndexView = Ember.View.extend({
-
-    rendered: false,
-
     /**
      * When the view has finished rendering, set a flag to
      * show that updating the chart is ok
@@ -342,8 +393,13 @@ Blitz.IndexView = Ember.View.extend({
     didInsertElement: function () {
         // Draw the chart
         // console.log("Finished drawing chart view - ready for chart updates");
-        this.set('rendered', true);
-        this.drawChart();
+        var indexController = this.get('controller'),
+            rendered;
+
+        if (indexController === undefined) {
+            return;
+        }
+        rendered = indexController.get("chartDirty");
 
         // hook up jQuery events
         $("#variables_slide_out_handle").on("click", function (e) {
@@ -379,31 +435,10 @@ Blitz.IndexView = Ember.View.extend({
                 .attr("width", $(window).width())
                 .attr("height", $(window).height());
         });
-    },
 
-    /**
-     * Draws the chart inside the "#chart" div element, first
-     * removing any previous SVG DOM elements inside this div
-     */
-    drawChart: function drawChart() {
-
-        if (!this.get('rendered')) {
-            // console.log("Aborting chart drawing - page not rendered");
-            return;
-        }
-
-        console.log("Drawing chart");
-
-        // get the data to plot
-        var content = this.get("chartContent");
-
-        // check if we have any content to draw
-        if (content === undefined || content.length === 0) {
-            content = [];
-        }
-
-        BlitzChart(content, "chart");
-    }.observes('chartContent.length')
+        // set the flag for updating chart data
+        indexController.set('chartDataDirty', true);
+    }
 });
 
 Blitz.ConfigView = Ember.View.extend({
