@@ -73,16 +73,21 @@ html, body, p {
 
 #variables_slide_out_handle, #settings_slide_out_handle {
     position: fixed;
-    right: 0;
-    top: 50px;
+    right: 150px;
+    top: 0;
     margin: 0 auto;
     width: 35px;
     background-color: #202020;
     background-color: rgba(31,31,31,0.5);
     color: white;
     padding: 10px 5px;
-    border-top-left-radius: 5px;
+    border-bottom-right-radius: 5px;
     border-bottom-left-radius: 5px;
+    cursor: pointer;
+}
+
+#variables_slide_out_handle:hover, #settings_slide_out_handle:hover {
+    background-color: rgba(31, 31, 31, 1);
 }
 
 #variables_slide_out_handle a, #settings_slide_out_handle a {
@@ -90,16 +95,12 @@ html, body, p {
     text-decoration: none;
 }
 
-#variables_slide_out_handle a:hover, #settings_slide_out_handle a:hover {
-    color: #0078e7;
-}
-
 #variables_slide_out_handle i, #settings_slide_out_handle i {
     padding-left: 10px;
 }
 
 #settings_slide_out_handle {
-    top: 95px;
+    right: 80px;
 }
 
 #variable_pane {
@@ -120,6 +121,8 @@ html, body, p {
 ul.variable_list {
     list-style-type: none;
     padding-left: 10px;
+    margin-top: 40px;
+    margin-bottom: 50px;
 }
 
 ul.variable_list li {
@@ -140,6 +143,10 @@ ul.variable_list li svg, .float-right { float: right; }
     color: white;
     font-weight: bold;
     text-decoration: none;
+}
+
+.close_button:hover {
+    color: rgb(28, 184, 65);
 }
 
 .pure-button {

@@ -101,7 +101,6 @@ Blitz.PostJson = function (url, json) {
 
 /* The data line object stores rows of data. */
 Blitz.Reading = Ember.Object.extend({});
-
 Blitz.Reading.reopenClass({
     /**
      * Gets at most 50 recent readings for each variable in the cache
@@ -126,7 +125,6 @@ Blitz.Category = Ember.Object.extend({
         return 'spark-%@'.fmt(this.get('id'));
     }.property('id')
 });
-
 Blitz.Category.reopenClass({
     /**
      * Gets all the available variables for the current logging session
@@ -149,7 +147,6 @@ Blitz.Config = Ember.Object.extend({
         Blitz.PostJson('config', json);
     }
 });
-
 Blitz.Config.reopenClass({
     /**
      * Gets configuration information from the server
@@ -259,7 +256,7 @@ Blitz.CategoryController = Ember.ArrayController.extend({
         chartVars.clear();
         chartVars.addObjects(selectedIds);
 
-        // console.log("Selected chart variables: " + chartVars);
+        console.log("Selected chart variables: " + chartVars);
     }.observes('model.@each.selected')
 });
 
@@ -301,8 +298,15 @@ Blitz.IndexView = Ember.View.extend({
         $("#variables_slide_out_handle").on("click", function (e) {
             e.preventDefault();
 
+            // fade in the element
             var elem = $("#variable_pane");
-            elem.fadeToggle();
+            elem.slideDown();
+
+            // add a body click handler for fading out
+            $("div#chart").one('click', function () {
+                elem.slideUp();
+            });
+
         });
 
         // add a resize event for the chart

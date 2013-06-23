@@ -46,9 +46,13 @@
 
         <script type="text/x-handlebars" data-template-name="category">
             <ul class="variable_list">
-                {{#each category in model}}
-                    {{view Blitz.CategoryLineView categoryBinding="category"}}
-                {{/each}}
+                {{#if model}}
+                    {{#each category in model}}
+                        {{view Blitz.CategoryLineView categoryBinding="category"}}
+                    {{/each}}
+                {{else}}
+                    Loading...
+                {{/if}}
             </ul>
 
             <h4>Connected Boards</h4>
@@ -113,8 +117,8 @@
                                 placeholder="Logger Port"}}
                             </div>
                         </fieldset>
+                    </div>
                 </form>
-            </div>
         </script>
 
         <script type="text/x-handlebars" data-template-name="category_line">
