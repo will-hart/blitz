@@ -176,6 +176,7 @@ Blitz.Config.reopenClass({
 Blitz.Router.map(function () {
     this.route("category");
     this.route("config");
+    this.route("browse");
 });
 
 Blitz.IndexRoute = Ember.Route.extend({
@@ -362,7 +363,19 @@ Blitz.CategoryController = Ember.ArrayController.extend({
         indexController.set('chartDataDirty', true);
 
         // console.log("Selected chart variables: " + chartVars);
-    }.observes('model.@each.selected')
+    }.observes('model.@each.selected'),
+
+    /**
+     * Gets the relevant sparkline data for a given category ID
+     * by filtering the content from the IndexController
+     */
+    getSparklineDataFor: function (category_id) {
+        var indexController = this.get('controllers.index'),
+            content = indexController.get('content');
+
+        console.log("getting sparkline data for " + category_id);
+        return content.filterProperty('category', category_id);
+    }
 });
 
 Blitz.ConfigController = Ember.ObjectController.extend({
@@ -407,11 +420,11 @@ Blitz.IndexView = Ember.View.extend({
 
             // fade in the element
             var elem = $("#variable_pane");
-            elem.fadeIn();
+            elem.slideDown('fast');
 
             // add a body click handler for fading out
             $("div#chart").one('click', function () {
-                elem.fadeOut();
+                elem.slideUp('fast');
             });
 
         });
@@ -448,6 +461,8 @@ Blitz.ConfigView = Ember.View.extend({
 Blitz.CategoryView = Ember.View.extend({});
 
 Blitz.CategoryLineView = Ember.View.extend({
+
+    needs: ['index'],
     tagName: 'li',
     category: null,
     templateName: "category_line",
@@ -472,26 +487,25 @@ Blitz.CategoryLineView = Ember.View.extend({
      * @param e the event object
      */
     mouseEnter: function (e) {
-        var li = e.target,
-            id = "",
-            category = this.get('category'),
-            data = null;
+        var controller = this.get('controller'),
+            category_id = this.get('category.id'),
+            li = e.target,
+            id,
+            data;
+
+        // remove any previous charts
+        // (hack to prevent fast mouseLeave stranding SVG sparklines in the DOM)
+        $('ul.variable_list li svg').remove();
 
         // check we have hovered over the list element (and not the button)
-        if (li.tagName === "LI") {
-
-            // remove any previous charts (hack to prevent fast mouseLeave stranding SVG sparklines in the DOM
-            $('ul.variable_list li svg').remove();
-
+        if (li.tagName === "LI"
+                && controller !== undefined
+                && category_id !== undefined) {
 
             // get the category readings
-            data = category.get("readings");
+            data = controller.getSparklineDataFor(category_id);
 
-            if (data === undefined) {
-                return;
-            }
-
-            // Get the ID and draw the sparkline
+            // Get the ID of the element to draw into and get Blitz to spark it up
             id = $(li).attr("id");
             BlitzSparkline(data, id);
         }
