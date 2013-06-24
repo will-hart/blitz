@@ -117,6 +117,9 @@ html, body, p {
     color: #fff;
 
     text-align:center;
+
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 ul.variable_list {
@@ -229,6 +232,8 @@ ul.variable_list li svg, .float-right { float: right; }
     padding: 40px 0 10px 0;
     color: white;
     background: #303030;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 #session_detail_pane {
@@ -261,5 +266,8 @@ ul.variable_list li svg, .float-right { float: right; }
     text-decoration: none;
 }
 .session_list li a.active {
-    background: #707070;
+    background: white;
+    color: #303030;
 }
+
+a.downloadable { color: rgb(223, 117, 20) !important; }
