@@ -29,7 +29,8 @@
 
             <!-- Show the slide out buttons for variables and settings -->
             <div id="variables_slide_out_handle"><a id="variable_link" title="Variables" href="#variable_pane"><i class="icon-list"></i></a></div>
-            <div id="settings_slide_out_handle">{{#linkTo config}}<i class="icon-cog"></i>{{/linkTo}}</div>
+            <div id="settings_slide_out_handle">{{#linkTo config title="Config"}}<i class="icon-cog"></i>{{/linkTo}}</div>
+            <div id="browse_slide_out_handle">{{#linkTo browse title="Archive"}}<i class="icon-archive"></i>{{/linkTo}}</div>
 
             <!-- The variables pane -->
             <div id="variable_pane">
@@ -128,6 +129,12 @@
                 {{#if category.selected}}Hide{{else}}Show{{/if}}
             </button>
             <span class="category-line-name" {{bindAttr id=category.sparkClass}}>{{category.variableName}}</span>
+        </script>
+
+        <script type="text/x-handlebars" data-template-name="browse">
+            <h1>Browse</h1>
+
+            {{#linkTo index}}<< Return{{/linkTo}}
         </script>
 
         <!-- Add javascript -->

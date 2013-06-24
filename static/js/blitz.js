@@ -14,6 +14,7 @@ var Blitz = Ember.Application.create({
 
 /**
  * The base URL for api requests
+ *
  * @type {string}
  */
 Blitz.blitz_api_url = "http://willhart.apiary.io/";
@@ -23,13 +24,15 @@ Blitz.blitz_api_url = "http://willhart.apiary.io/";
  * the response objects onto the given model.
  *
  * @param url the API endpoint to send to (e.g. "categories" will request from "{{api_url}}/categories"
- * @param model The model to add the new object to
+ * @param modelClass The model class to use to create the objects
+ * @param callback An optional callback that runs after the data has been decoded
+ * @param initialItems An optional argument specifying initial content for this content to be appended to
  * @returns {*} list of model instances
  */
-Blitz.HandleJsonMultiple = function (url, model) {
+Blitz.HandleJsonMultiple = function (url, modelClass, callback, initialItems) {
     // console.log("Sending request for multiple results to " + url);
 
-    var responseVals = [];
+    var responseVals = initialItems === undefined ? [] : initialItems;
 
     $.ajax({
         url: Blitz.blitz_api_url + url,
@@ -38,9 +41,14 @@ Blitz.HandleJsonMultiple = function (url, model) {
     }).success(function (response) {
         // console.log("Parsing JSON response for multiple results from " + url);
         response.data.forEach(function (item) {
-            var instance = model.create(item);
-            responseVals.addObject(instance)
+            var instance = modelClass.create(item);
+            responseVals.addObject(instance);
         });
+
+        // run callback, if supplied
+        if (callback !== undefined) {
+            callback();
+        }
     }).error(function (request, status, error) {
         console.log("ERROR parsing response - ");
         console.log("     " + status);
@@ -52,12 +60,13 @@ Blitz.HandleJsonMultiple = function (url, model) {
 
 /**
  * Performs a JSON request
+ *
  * @param url the API endpoint to send to (e.g. "categories" will request from "{{api_url}}/categories"
  * @param model The model to add the new object to
+ * @param callback An optional callback that runs after the data has been decoded
  * @returns {*} A single object retrieved from a JSON response
- * @constructor
  */
-Blitz.HandleJsonSingle = function (url, model) {
+Blitz.HandleJsonSingle = function (url, model, callback) {
     // console.log("Sending request for one result to " + url);
     var obj = model.create({});
 
@@ -69,6 +78,11 @@ Blitz.HandleJsonSingle = function (url, model) {
     }).success(function (response) {
         //console.log("Parsing JSON response for one result from " + url);
         obj.setProperties(response);
+
+        // run the callback if supplied
+        if (callback !== undefined) {
+            callback();
+        }
     }).error(function (request, status, error) {
         console.log("ERROR parsing response - ");
         console.log("     " + status);
@@ -123,9 +137,11 @@ Blitz.Reading.reopenClass({
      * Requests the latest variables since the given timestamp
      *
      * @param timestamp the UNIX timestamp to retrieve records after
+     * @param callback An optional callback that runs after the data has been decoded
+     * @param initial The initial array of items to append the updates to
      */
-    findUpdated: function (timestamp) {
-        return Blitz.HandleJsonMultiple("cache/" + timestamp, Blitz.Reading);
+    findUpdated: function (timestamp, callback, initial) {
+        return Blitz.HandleJsonMultiple("cache/" + timestamp, Blitz.Reading, callback, initial);
     }
 });
 
@@ -181,24 +197,30 @@ Blitz.Router.map(function () {
 
 Blitz.IndexRoute = Ember.Route.extend({
     model: function () {
-        return Blitz.Reading.findAll();
+        var controller = this.controllerFor('index'),
+            content = controller.get('content');
+
+        if (content === undefined || content.length === 0) {
+            return Blitz.Reading.findAll();
+        }
+        return content;
     },
 
     setupController: function (controller, model) {
         // check if we have already saved controller data
-        var content = controller.get("content");
+        var content = controller.get("content"),
+            lastUpdated = controller.get("lastUpdated"),
+            callbackFn = function () { controller.updateChartData(true); };
+
         if (content === undefined || content.length === 0) {
 
             // load all data
             controller.set('content', model);
-            this.controllerFor("category").set('content', Blitz.Category.findAll());
+            this.controllerFor('category').set('content', Blitz.Category.findAll());
 
         } else {
-
-            // load updates only and don't touch the category data
-            controller.set('content', Blitz.Reading.findUpdated(
-                controller.get("lastUpdated")
-            ));
+            // Append updated chart values only - don't touch the category data
+            controller.set('content', Blitz.Reading.findUpdated(lastUpdated, callbackFn, content));
         }
     }
 });
@@ -208,6 +230,8 @@ Blitz.ConfigRoute = Ember.Route.extend({
         return Blitz.Config.find();
     }
 });
+
+Blitz.BrowseRoute = Ember.Route.extend({});
 
 /*********************************************************
  * CONTROLLERS
@@ -226,8 +250,10 @@ Blitz.IndexController = Ember.ArrayController.extend({
     /**
      * Returns the chart content - which is results form variables
      * that have been selected in the CategoryView.
+     *
+     * @param force An optional argument to force updating chart data
      */
-    updateChartData: function () {
+    updateChartData: function (force) {
 
         // get all the currently selected categories
         var chartVars = this.get('chartVars'),
@@ -236,7 +262,8 @@ Blitz.IndexController = Ember.ArrayController.extend({
             chartDataDirty = this.get('chartDataDirty');
 
         // check we are mean to update data
-        if (!chartDataDirty) {
+        if (!chartDataDirty && force === undefined) {
+            //console.log("Aborting update");
             return;
         }
 
@@ -272,6 +299,8 @@ Blitz.IndexController = Ember.ArrayController.extend({
      * for when the content was last updated
      */
     updateLastUpdatedTime: function () {
+        // console.log("New data received - checking for the last update time");
+
         var content = this.get('content'),
             maxDates = content.mapProperty("loggedAt").sort(),
             timestamp = 0,
@@ -318,6 +347,8 @@ Blitz.IndexController = Ember.ArrayController.extend({
         this.set('chartDirty', false);
     }.observes('chartDirty')
 });
+
+Blitz.BrowseController = Ember.ArrayController.extend({});
 
 Blitz.CategoryController = Ember.ArrayController.extend({
 
@@ -430,7 +461,7 @@ Blitz.IndexView = Ember.View.extend({
         });
 
         // when clicking the settings div, ensure the enclosed link is also clicked
-        $("#settings_slide_out_handle").on("click", function (e) {
+        $("#settings_slide_out_handle, #browse_slide_out_handle").on("click", function (e) {
             // no need to handle the click event of a link!
             if (e.target.tagName !== "A") {
                 $(this).find("a").click();
@@ -521,4 +552,10 @@ Blitz.CategoryLineView = Ember.View.extend({
         // firing when the mouse moves quickly
         $('ul.variable_list li svg').remove();
     }
+});
+
+Blitz.BrowseView = Ember.View.extend({
+    tagName: 'div',
+    template: 'browse',
+    classNameBindings: [':session-browser']
 });

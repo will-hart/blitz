@@ -71,7 +71,7 @@ html, body, p {
     color: darkgrey;
 }
 
-#variables_slide_out_handle, #settings_slide_out_handle {
+#variables_slide_out_handle, #settings_slide_out_handle, #browse_slide_out_handle {
     position: fixed;
     right: 150px;
     top: 0;
@@ -86,21 +86,25 @@ html, body, p {
     cursor: pointer;
 }
 
-#variables_slide_out_handle:hover, #settings_slide_out_handle:hover {
+#variables_slide_out_handle:hover, #settings_slide_out_handle:hover, #browse_slide_out_handle:hover {
     background-color: rgba(31, 31, 31, 1);
 }
 
-#variables_slide_out_handle a, #settings_slide_out_handle a {
+#variables_slide_out_handle a, #settings_slide_out_handle a, #browse_slide_out_handle a {
     color: white;
     text-decoration: none;
 }
 
-#variables_slide_out_handle i, #settings_slide_out_handle i {
+#variables_slide_out_handle i, #settings_slide_out_handle i, #browse_slide_out_handle i {
     padding-left: 10px;
 }
 
 #settings_slide_out_handle {
-    right: 80px;
+    right: 100px;
+}
+
+#browse_slide_out_handle {
+    right: 50px;
 }
 
 #variable_pane {
