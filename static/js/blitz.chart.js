@@ -59,16 +59,16 @@
                 return d.get('loggedAt');
             })],
             y_extents = max_elements === 0 ? [0, 1] : [0, getMinMaxValues(data, d3.max)],
-            x = d3.time.scale.utc()
+            xMap = d3.time.scale.utc()
                 .domain(x_extents)
                 .range([0, width]),
-            y = d3.scale.linear()
+            yMap = d3.scale.linear()
                 .domain(y_extents)
                 .range([height, 0]),
-            xAxis = d3.svg.axis().scale(x).orient('bottom'),
-            yAxis = d3.svg.axis().scale(y).orient('left'),
-            xGather = function (d) { return x(d.get('loggedAt')); },
-            yGather = function (d) { return y(d.get('value')); },
+            xAxis = d3.svg.axis().scale(xMap).orient('bottom'),
+            yAxis = d3.svg.axis().scale(yMap).orient('left'),
+            xGather = function (d) { return xMap(d.get('loggedAt')); },
+            yGather = function (d) { return yMap(d.get('value')); },
 
             line = d3.svg.line()
                 .x(xGather)
@@ -108,7 +108,7 @@
         for (i = 0; i < max_elements; i += 1) {
 
             // draw the line
-            chart.append("svg:path")
+            chart.append("path")
                 .data([data[i]])
                 .attr("class", "line")
                 .attr("fill", "none")
@@ -118,7 +118,7 @@
 
             // draw the legend at the top of the screen
             // draw the coloured block
-            chart.append("svg:rect")
+            chart.append("rect")
                 .attr("x", 25 + 130 * i)
                 .attr("y", -46)
                 .attr("stroke", colours[i])
@@ -127,7 +127,7 @@
                 .attr("width", 22);
 
             // draw the text
-            chart.append("svg:text")
+            chart.append("text")
                 .attr("x", 50 + 130 * i)
                 .attr("y", -40)
                 .text("Series " + (i + 1));
@@ -153,12 +153,12 @@
             width = totalWidth - margin.left - margin.right,
             height = totalHeight - margin.top - margin.bottom,
 
-            x = d3.time.scale.utc()
+            xMap = d3.time.scale.utc()
                 .domain(d3.extent(data, function (d) {
                     return d.get('loggedAt');
                 }))
                 .range([0, width]),
-            y = d3.scale.linear()
+            yMap = d3.scale.linear()
                 .domain(d3.extent(data, function (d) {
                     return d.get('value');
                 }))
@@ -166,10 +166,10 @@
 
             line = d3.svg.line()
                 .x(function (d) {
-                    return x(d.get('loggedAt'));
+                    return xMap(d.get('loggedAt'));
                 })
                 .y(function (d) {
-                    return y(d.get("value"));
+                    return yMap(d.get("value"));
                 }),
 
             chart = d3.select("#" + elem).append("svg:svg")
