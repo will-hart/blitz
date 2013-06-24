@@ -132,6 +132,13 @@ Blitz.Reading = Ember.Object.extend({
      */
     loggedAt: function () {
         return moment(this.get('timeLogged'), "DD-MM-YYYY HH:m:s.SSS").toDate();
+    }.property('timeLogged'),
+
+    /**
+     * Formats the date for chart titles
+     */
+    titleDate: function () {
+        return moment(this.get('timeLogged'), "DD-MM-YYYY HH:m:s.SSS").format("MMM Do h:mm:ss.SSS");
     }.property('timeLogged')
 });
 Blitz.Reading.reopenClass({
