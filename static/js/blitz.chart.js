@@ -80,9 +80,10 @@
             .call(yAxis
                 .tickSize(-width, 0, 0));
 
-        lines = chart.selectAll("g.line")
-            .data(data)
-            .enter().append("svg:g")
+        g = chart.selectAll("g.line")
+            .data(data);
+        lines = g.enter()
+            .append("svg:g")
             .attr("class", "line");
 
         lines.append("svg:path")
@@ -121,7 +122,7 @@
             chart.append("text")
                 .attr("x", 50 + 130 * i)
                 .attr("y", -40)
-                .text("Series " + (i + 1));
+                .text(labels[i] === undefined ? "Series " + (i + 1) : labels[i]);
         }
     };
 
