@@ -73,6 +73,7 @@ html, body, p {
     padding: 10px 5px;
     cursor: pointer;
     text-align:center;
+    z-index: 5;
 }
 
 .slide_out_handle:hover {
@@ -224,8 +225,41 @@ ul.variable_list li svg, .float-right { float: right; }
     top: 0;
     left: 0;
     bottom: 0;
-    width: 350px;
-    padding-left: 10px;
+    width: 300px;
+    padding: 40px 0 10px 0;
     color: white;
     background: #303030;
+}
+
+#session_detail_pane {
+    position: fixed;
+    top: 0;
+    left: 340px;
+    bottom: 0;
+    right: 0;
+    padding: 20px;
+}
+
+.session_list {
+    margin: 0;
+    padding: 0;
+    display: block;
+    width: 100%;
+    list-style-type: none;
+}
+
+.session_list li {
+    margin: 0;
+    padding: 0;
+    text-indent: 0;
+}
+
+.session_list li a {
+    display: block;
+    color: white;
+    padding: 5px 10px;
+    text-decoration: none;
+}
+.session_list li a.active {
+    background: #707070;
 }

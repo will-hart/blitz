@@ -43,13 +43,9 @@
             <img src="static/img/blitz_small.png" class="blitz-logo" width="300px" height="100px" alt="Blitz Logo" />
 
             <ul class="variable_list">
-                {{#if model}}
-                    {{#each category in model}}
-                        {{view Blitz.CategoryLineView categoryBinding="category"}}
-                    {{/each}}
-                {{else}}
-                    Loading...
-                {{/if}}
+            {{#each category in model}}
+                {{view Blitz.CategoryLineView categoryBinding="category"}}
+            {{/each}}
             </ul>
 
             <hr>
@@ -93,13 +89,13 @@
 
                         <div class="pure-control-group">
                             <label for="clientIp">Client IP</label>
-                            {{view Ember.TextField name="clientIp" id="clientIp" valueBinding="model.clientIp"
+                            {{view Ember.TextField name="clientIp" id="clientIp" valueBinding="content.clientIp"
                             placeholder="Client IP address"}}
                         </div>
 
                         <div class="pure-control-group">
                             <label for="clientPort">Client Port</label>
-                            {{view Ember.TextField name="clientPort" id="clientPort" valueBinding="clientPort"
+                            {{view Ember.TextField name="clientPort" id="clientPort" valueBinding="content.clientPort"
                             placeholder="Client Port"}}
                         </div>
                     </fieldset>
@@ -118,13 +114,13 @@
 
                         <div class="pure-control-group">
                             <label for="loggerIp">Logger IP</label>
-                            {{view Ember.TextField name="loggerIp" id="loggerIp" valueBinding="model.loggerIp"
+                            {{view Ember.TextField name="loggerIp" id="loggerIp" valueBinding="content.loggerIp"
                             placeholder="Client IP address"}}
                         </div>
 
                         <div class="pure-control-group">
                             <label for="loggerPort">Client Port</label>
-                            {{view Ember.TextField name="loggerPort" id="loggerPort" valueBinding="loggerPort"
+                            {{view Ember.TextField name="loggerPort" id="loggerPort" valueBinding="content.loggerPort"
                             placeholder="Logger Port"}}
                         </div>
                     </fieldset>
@@ -140,19 +136,51 @@
         </script>
 
         <script type="text/x-handlebars" data-template-name="sessions">
+
+            {{render loading_indicator}}
+
             <div id="settings_handle" class="slide_out_handle success_handle">
                 {{#linkTo index title="Return to live data"}}<i class="icon-backward"></i>{{/linkTo}}
             </div>
 
             <div id="browse_pane">
-                <img src="static/img/blitz_small.png" class="blitz-logo" width="300px" height="100px" alt="Blitz Logo"/>
-                <h1>Browse</h1>
+                <ul class="session_list">
+                {{#each sess in model}}
+                    <li>{{#linkTo session sess}}Session #{{sess.id}}{{/linkTo}}</li>
+                {{/each}}
+                </ul>
             </div>
 
             <div id="session_detail_pane">
                 {{outlet}}
             </div>
+        </script>
 
+        <script type="text/x-handlebars" data-template-name="session">
+
+            <h2>Session Detail</h2>
+            <p>
+                <strong>Started Logging:</strong> {{model.timeStarted}} <br/>
+                <strong>Stopped Logging:</strong> {{model.timeStopped}} <br/>
+                <strong>Readings Taken:</strong> {{model.readings}}
+            </p>
+
+            <hr>
+
+            {{#if model.isDownloadable}}
+            <h3>Raw Data</h3>
+            <table class="pure-table">
+                <tr>
+                    <th>Variable Name</th>
+                    <th>Time Logged</th>
+                    <th>Value</th>
+                </tr>
+
+            </table>
+            {{else}}
+            <p>This session has not been downloaded from the data logger</p>
+            <button class="pure-button pure-button-primary" {{action download_session model.id}}>Download</button>
+            {{/if}}
         </script>
 
         <!-- Add javascript -->

@@ -170,7 +170,18 @@ Blitz.Category.reopenClass({
 
 /* The settings model stores setting information */
 Blitz.Config = Ember.Object.extend({
-    save: function (model) {
+
+    /**
+     * A property to determine if the data logger is currently logging
+     */
+    isLogging: function () {
+        return !this.get('sessionId') === -1;
+    }.property('sessionId'),
+
+    /**
+     * Performs a custom AJAX POST request to update the saved configuration
+     */
+    save: function () {
         var json = "{ \n" +
             "\t'loggerPort': " + this.get("loggerPort") + ", \n" +
             "\t'loggerIp': '" + this.get("loggerIp") + "', \n" +
@@ -193,16 +204,38 @@ Blitz.Config.reopenClass({
     }
 });
 
+/* A model for storing information about sessions */
+Blitz.Session = Ember.Object.extend({
+    /**
+     * A property which determines if the session can be downloaded
+     * from the data logger
+     */
+    isDownloadable: function() {
+        return this.get("available");
+    }.property("available")
+});
+Blitz.Session.reopenClass({
+    /**
+     * Gets the available sessions
+     *
+     * @param callback
+     * @returns {*}
+     */
+    findAll: function (callback) {
+        return Blitz.HandleJsonMultiple('sessions', Blitz.Session, callback);
+    }
+});
+
 
 /*********************************************************
  * ROUTES
 *********************************************************/
 
 Blitz.Router.map(function () {
-    this.route("category");
-    this.route("config");
+    this.resource("category");
+    this.resource("config");
     this.resource("sessions", function () {
-        this.resource('session')
+        this.resource('session', { path: ':session_id' });
     });
 });
 
@@ -245,7 +278,15 @@ Blitz.ConfigRoute = Ember.Route.extend({
     }
 });
 
-Blitz.SessionsRoute = Ember.Route.extend({});
+Blitz.SessionsRoute = Ember.Route.extend({
+    model: function () {
+        return Blitz.Session.findAll(Blitz.RemoveLoadingIndicator);
+    },
+    setupController: function(controller, model) {
+        controller.set('content', model);
+    }
+});
+
 
 /*********************************************************
  * CONTROLLERS
@@ -362,7 +403,9 @@ Blitz.IndexController = Ember.ArrayController.extend({
     }.observes('chartDirty')
 });
 
-Blitz.SessionController = Ember.ArrayController.extend({});
+Blitz.SessionsController = Ember.ArrayController.extend({});
+
+Blitz.SessionController = Ember.ObjectController.extend({});
 
 Blitz.CategoryController = Ember.ArrayController.extend({
 
@@ -566,10 +609,4 @@ Blitz.CategoryLineView = Ember.View.extend({
         // firing when the mouse moves quickly
         $('ul.variable_list li svg').remove();
     }
-});
-
-Blitz.SessionView = Ember.View.extend({
-    tagName: 'div',
-    template: 'browse',
-    classNameBindings: [':session-browser']
 });
