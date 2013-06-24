@@ -67,18 +67,18 @@
                 .range([height, 0]),
             xAxis = d3.svg.axis().scale(xMap).orient('bottom'),
             yAxis = d3.svg.axis().scale(yMap).orient('left'),
-            xGather = function (d) { return xMap(d.get('loggedAt')); },
-            yGather = function (d) { return yMap(d.get('value')); },
+            xGather = function (d) {
+                console.log(d);
+                return xMap(d.get('loggedAt'));
+            },
+            yGather = function (d) {
+                return yMap(d.get('value'));
+            },
 
             line = d3.svg.line()
                 .x(xGather)
                 .y(yGather),
             tooltip;
-
-        // set up the chart area
-        if (maxElements > 0) {
-            chart.data([data]);
-        }
 
         chart.attr("preserveAspectRatio", "xMidYMid")
             .attr("width", width + margin.left + margin.right)
@@ -116,6 +116,15 @@
                 .attr("stroke-width", 2)
                 .attr("d", line);
 
+            // draw data points
+            /*chart.selectAll("circle")
+                .data([data[i]])
+                .enter()
+                .append("circle")
+                .attr("cx", xGather)
+                .attr("cy", yGather)
+                .attr("r", 3);*/
+
             // draw the legend at the top of the screen
             // draw the coloured block
             chart.append("rect")
@@ -141,6 +150,11 @@
      * @param elem The element to draw the sparkline into
      */
     draw_sparkline = function (data, elem) {
+
+        if (data.length === 0) {
+            return;
+        }
+
         var margin = {
                 top: 3,
                 right: 5,
@@ -181,13 +195,21 @@
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
         // draw the line
-        chart.append("svg:path")
+        chart.append("path")
             .data([data])
             .attr("class", "line")
             .attr("fill", "none")
             .attr("stroke", "white")
-            .attr("stroke-width", 1)
+            .attr("stroke-width", 2)
             .attr("d", line);
+
+        // draw a circle at the last point (hopefully they are in order :])
+        chart.append("circle")
+            .attr("cx", xMap(data[data.length - 1].get("loggedAt")))
+            .attr("cy", yMap(data[data.length - 1].get("value")))
+            .attr("r", 3)
+            .attr("stroke", "none")
+            .attr("fill", "#CA3C3C");
     };
 
     root.BlitzChart = draw_chart;

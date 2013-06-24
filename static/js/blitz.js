@@ -65,7 +65,8 @@ Blitz.HandleJsonMultiple = function (url, modelClass, callback, initialItems) {
  * @param url the API endpoint to send to (e.g. "categories" will request from "{{api_url}}/categories"
  * @param model The model to add the new object to
  * @param callback An optional callback that runs after the data has been decoded
- * @returns {*} A single object retrieved from a JSON response
+ *
+ * @returns {Ember.Object} A single object retrieved from a JSON response
  */
 Blitz.HandleJsonSingle = function (url, model, callback) {
     // console.log("Sending request for one result to " + url);
