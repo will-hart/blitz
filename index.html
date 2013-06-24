@@ -16,11 +16,11 @@
         <script type="text/x-handlebars" id="index">
 
             <!-- Show the slide out buttons for variables and settings -->
-            <div id="alert_handle" class="slide_out_handle error_handle">{{#linkTo browse title="Connect"}}<i class="icon-exclamation"></i>{{/linkTo}}</div>
-            <div id="control_handle" class="slide_out_handle primary_handle">{{#linkTo browse title="Connect"}}<i class="icon-signal"></i>{{/linkTo}}</div>
+            <div id="alert_handle" class="slide_out_handle error_handle">{{#linkTo sessions title="Connect"}}<i class="icon-exclamation"></i>{{/linkTo}}</div>
+            <div id="control_handle" class="slide_out_handle primary_handle">{{#linkTo sessions title="Connect"}}<i class="icon-signal"></i>{{/linkTo}}</div>
             <div id="variables_handle" class="slide_out_handle"><a id="variable_link" title="Variables" href="#variable_pane"><i class="icon-list"></i></a></div>
             <div id="settings_handle" class="slide_out_handle">{{#linkTo config title="Config"}}<i class="icon-cog"></i>{{/linkTo}}</div>
-            <div id="browse_handle" class="slide_out_handle">{{#linkTo browse title="Archive"}}<i class="icon-folder-open"></i>{{/linkTo}}</div>
+            <div id="browse_handle" class="slide_out_handle">{{#linkTo sessions title="Session History"}}<i class="icon-folder-open"></i>{{/linkTo}}</div>
 
             <!-- The variables pane -->
             <div id="variable_pane">
@@ -139,7 +139,7 @@
             <span class="category-line-name" {{bindAttr id=category.sparkClass}}>{{category.variableName}}</span>
         </script>
 
-        <script type="text/x-handlebars" data-template-name="browse">
+        <script type="text/x-handlebars" data-template-name="sessions">
             <div id="settings_handle" class="slide_out_handle success_handle">
                 {{#linkTo index title="Return to live data"}}<i class="icon-backward"></i>{{/linkTo}}
             </div>
@@ -147,6 +147,10 @@
             <div id="browse_pane">
                 <img src="static/img/blitz_small.png" class="blitz-logo" width="300px" height="100px" alt="Blitz Logo"/>
                 <h1>Browse</h1>
+            </div>
+
+            <div id="session_detail_pane">
+                {{outlet}}
             </div>
 
         </script>

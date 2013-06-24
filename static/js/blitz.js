@@ -201,7 +201,9 @@ Blitz.Config.reopenClass({
 Blitz.Router.map(function () {
     this.route("category");
     this.route("config");
-    this.route("browse");
+    this.resource("sessions", function () {
+        this.resource('session')
+    });
 });
 
 Blitz.IndexRoute = Ember.Route.extend({
@@ -243,7 +245,7 @@ Blitz.ConfigRoute = Ember.Route.extend({
     }
 });
 
-Blitz.BrowseRoute = Ember.Route.extend({});
+Blitz.SessionsRoute = Ember.Route.extend({});
 
 /*********************************************************
  * CONTROLLERS
@@ -257,7 +259,7 @@ Blitz.IndexController = Ember.ArrayController.extend({
     lastUpdate: null,
     chartDataDirty: false,
     chartDirty: false,
-    needs: ['category'],
+    needs: ['category', 'config'],
 
     /**
      * Returns the chart content - which is results form variables
@@ -360,7 +362,7 @@ Blitz.IndexController = Ember.ArrayController.extend({
     }.observes('chartDirty')
 });
 
-Blitz.BrowseController = Ember.ArrayController.extend({});
+Blitz.SessionController = Ember.ArrayController.extend({});
 
 Blitz.CategoryController = Ember.ArrayController.extend({
 
@@ -566,7 +568,7 @@ Blitz.CategoryLineView = Ember.View.extend({
     }
 });
 
-Blitz.BrowseView = Ember.View.extend({
+Blitz.SessionView = Ember.View.extend({
     tagName: 'div',
     template: 'browse',
     classNameBindings: [':session-browser']
