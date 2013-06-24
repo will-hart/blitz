@@ -9,6 +9,7 @@
      * @param accessor the optional accessor function for max of the inner loop
      */
     function getMinMaxValues(data, fn, accessor) {
+        // TODO: convert to d3.merge ?
         return fn(data.map(function (array) {
 
             if (accessor === undefined) {
@@ -68,7 +69,6 @@
             xAxis = d3.svg.axis().scale(xMap).orient('bottom'),
             yAxis = d3.svg.axis().scale(yMap).orient('left'),
             xGather = function (d) {
-                console.log(d);
                 return xMap(d.get('loggedAt'));
             },
             yGather = function (d) {
@@ -91,12 +91,14 @@
         chart.append("g")
             .attr("class", "x_axis")
             .attr("transform", "translate(0, " + height + ")")
-            .call(xAxis);
+            .call(xAxis
+                .tickSize(-height, 0, 0));
 
         // draw the y-axis
         chart.append("g")
             .attr("class", "y_axis")
-            .call(yAxis);
+            .call(yAxis
+                .tickSize(-width, 0, 0));
 
         // draw a tooltip
         tooltip = chart.append("div")
@@ -123,7 +125,9 @@
                 .append("circle")
                 .attr("cx", xGather)
                 .attr("cy", yGather)
-                .attr("r", 3);*/
+                .attr("r", 3)
+                .attr("fill", colours[i])
+                .attr("stroke", "none");*/
 
             // draw the legend at the top of the screen
             // draw the coloured block

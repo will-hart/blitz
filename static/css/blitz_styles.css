@@ -19,6 +19,12 @@ html, body, p {
     stroke-width: 2px;
 }
 
+.tick line {
+    color: lightgray;
+    opacity: 0.2;
+    stroke-width: 1px;
+}
+
 #loading-indicator {
     position: fixed;
     top: 0;
