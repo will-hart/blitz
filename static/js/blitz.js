@@ -53,6 +53,7 @@ Blitz.HandleJsonMultiple = function (url, modelClass, callback, initialItems) {
         console.log("ERROR parsing response - ");
         console.log("     " + status);
         console.log("     " + error);
+        Blitz.RemoveLoadingIndicator();
     });
 
     return responseVals;
@@ -87,6 +88,7 @@ Blitz.HandleJsonSingle = function (url, model, callback) {
         console.log("ERROR parsing response - ");
         console.log("     " + status);
         console.log("     " + error);
+        Blitz.RemoveLoadingIndicator();
     });
 
     return obj;
@@ -109,6 +111,12 @@ Blitz.PostJson = function (url, json) {
     });
 };
 
+/**
+ * Removes a loading indicator from the screen
+ */
+Blitz.RemoveLoadingIndicator = function () {
+    $("#loading-indicator").remove();
+};
 
 /*********************************************************
  * MODELS
@@ -130,7 +138,7 @@ Blitz.Reading.reopenClass({
      * Gets at most 50 recent readings for each variable in the cache
      */
     findAll: function () {
-        return Blitz.HandleJsonMultiple("cache", Blitz.Reading);
+        return Blitz.HandleJsonMultiple("cache", Blitz.Reading, Blitz.RemoveLoadingIndicator);
     },
 
     /**
@@ -177,10 +185,11 @@ Blitz.Config.reopenClass({
     /**
      * Gets configuration information from the server
      *
+     * @param callback an optional callback function triggered after the REST request is successful
      * @returns A configuration object
      */
-    find: function () {
-        return Blitz.HandleJsonSingle("config", Blitz.Config);
+    find: function (callback) {
+        return Blitz.HandleJsonSingle("config", Blitz.Config, callback);
     }
 });
 
@@ -210,7 +219,10 @@ Blitz.IndexRoute = Ember.Route.extend({
         // check if we have already saved controller data
         var content = controller.get("content"),
             lastUpdated = controller.get("lastUpdated"),
-            callbackFn = function () { controller.updateChartData(true); };
+            callbackFn = function () {
+                controller.updateChartData(true);
+                Blitz.RemoveLoadingIndicator();
+            };
 
         if (content === undefined || content.length === 0) {
 
@@ -227,7 +239,7 @@ Blitz.IndexRoute = Ember.Route.extend({
 
 Blitz.ConfigRoute = Ember.Route.extend({
     model: function () {
-        return Blitz.Config.find();
+        return Blitz.Config.find(Blitz.RemoveLoadingIndicator);
     }
 });
 

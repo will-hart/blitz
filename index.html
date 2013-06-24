@@ -28,6 +28,11 @@
                 {{render category}}
             </div>
 
+            <!-- Display a loading indicator -->
+            <div id="loading-indicator">
+                <img src="static/img/loading.gif">
+            </div>
+
             <!-- Display the body -->
             {{outlet}}
 
@@ -56,62 +61,68 @@
 
         <script type="text/x-handlebars" data-template-name="config">
 
-                <form class="pure-form pure-form-aligned">
-                    <div class="settings-header">
-                        <button {{action closeSettings model}} class="pure-button pure-button-success float-right">
-                            Save & Return
-                        </button>
-                    </div>
 
-                    <div class="settings-main">
-                        <fieldset>
-                            <legend>Client Connection Settings</legend>
+            <!-- Display a loading indicator -->
+            <div id="loading-indicator">
+                <img src="static/img/loading.gif">
+            </div>
 
-                            <p class="no-top-margin">
-                                <small>
-                                    These settings are used by the application to connect to the local host PC
-                                </small>
-                            </p>
+            <form class="pure-form pure-form-aligned">
+                <div class="settings-header">
+                    <button {{action closeSettings model}} class="pure-button pure-button-success float-right">
+                        Save & Return
+                    </button>
+                </div>
 
-                            <div class="pure-control-group">
-                                <label for="clientIp">Client IP</label>
-                                {{view Ember.TextField name="clientIp" id="clientIp" valueBinding="model.clientIp"
-                                placeholder="Client IP address"}}
-                            </div>
+                <div class="settings-main">
+                    <fieldset>
+                        <legend>Client Connection Settings</legend>
 
-                            <div class="pure-control-group">
-                                <label for="clientPort">Client Port</label>
-                                {{view Ember.TextField name="clientPort" id="clientPort" valueBinding="clientPort"
-                                placeholder="Client Port"}}
-                            </div>
-                        </fieldset>
-                    </div>
+                        <p class="no-top-margin">
+                            <small>
+                                These settings are used by the application to connect to the local host PC
+                            </small>
+                        </p>
 
-                    <div class="settings-main">
-                        <fieldset>
-                            <legend>Data Logger Settings</legend>
+                        <div class="pure-control-group">
+                            <label for="clientIp">Client IP</label>
+                            {{view Ember.TextField name="clientIp" id="clientIp" valueBinding="model.clientIp"
+                            placeholder="Client IP address"}}
+                        </div>
 
-                            <p class="no-top-margin">
-                                <small>
-                                    These settings are used to connect to the data logger over a network (wired or
-                                    wireless) connection
-                                </small>
-                            </p>
+                        <div class="pure-control-group">
+                            <label for="clientPort">Client Port</label>
+                            {{view Ember.TextField name="clientPort" id="clientPort" valueBinding="clientPort"
+                            placeholder="Client Port"}}
+                        </div>
+                    </fieldset>
+                </div>
 
-                            <div class="pure-control-group">
-                                <label for="loggerIp">Logger IP</label>
-                                {{view Ember.TextField name="loggerIp" id="loggerIp" valueBinding="model.loggerIp"
-                                placeholder="Client IP address"}}
-                            </div>
+                <div class="settings-main">
+                    <fieldset>
+                        <legend>Data Logger Settings</legend>
 
-                            <div class="pure-control-group">
-                                <label for="loggerPort">Client Port</label>
-                                {{view Ember.TextField name="loggerPort" id="loggerPort" valueBinding="loggerPort"
-                                placeholder="Logger Port"}}
-                            </div>
-                        </fieldset>
-                    </div>
-                </form>
+                        <p class="no-top-margin">
+                            <small>
+                                These settings are used to connect to the data logger over a network (wired or
+                                wireless) connection
+                            </small>
+                        </p>
+
+                        <div class="pure-control-group">
+                            <label for="loggerIp">Logger IP</label>
+                            {{view Ember.TextField name="loggerIp" id="loggerIp" valueBinding="model.loggerIp"
+                            placeholder="Client IP address"}}
+                        </div>
+
+                        <div class="pure-control-group">
+                            <label for="loggerPort">Client Port</label>
+                            {{view Ember.TextField name="loggerPort" id="loggerPort" valueBinding="loggerPort"
+                            placeholder="Logger Port"}}
+                        </div>
+                    </fieldset>
+                </div>
+            </form>
         </script>
 
         <script type="text/x-handlebars" data-template-name="category_line">

@@ -19,6 +19,23 @@ html, body, p {
     stroke-width: 2px;
 }
 
+#loading-indicator {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    z-index: 1000;
+    background: white;
+    background: rgba(255, 255, 255, 0.8);
+    text-align: center;
+}
+
+#loading-indicator img {
+    position: absolute;
+    top: 50%;
+}
+
 .right-spacer {
     margin-right: 150px;
 }
