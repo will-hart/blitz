@@ -30,7 +30,7 @@
         d3.select("#" + elem + " svg").remove();
 
         var i = 0,
-            max_elements = data === undefined ? 0 : data.length,
+            maxElements = data === undefined ? 0 : data.length,
             colours = ["#0078e7", "#198A34", "#ff158a", "#cfda20", "#202020"],
 
             margin = {
@@ -53,17 +53,17 @@
             width = elemWidth - margin.left - margin.right,
             height = elemHeight - margin.top - margin.bottom,
 
-            x_extents = max_elements === 0 ? [new Date("04/09/2011 00:00"), new Date("07/14/2011 23:59")] : [getMinMaxValues(data, d3.min, function (d) {
+            xExtents = maxElements === 0 ? [new Date("04/09/2011 00:00"), new Date("07/14/2011 23:59")] : [getMinMaxValues(data, d3.min, function (d) {
                 return d.get('loggedAt');
             }), getMinMaxValues(data, d3.max, function (d) {
                 return d.get('loggedAt');
             })],
-            y_extents = max_elements === 0 ? [0, 1] : [0, getMinMaxValues(data, d3.max)],
+            yExtents = maxElements === 0 ? [0, 1] : [0, getMinMaxValues(data, d3.max)],
             xMap = d3.time.scale.utc()
-                .domain(x_extents)
+                .domain(xExtents)
                 .range([0, width]),
             yMap = d3.scale.linear()
-                .domain(y_extents)
+                .domain(yExtents)
                 .range([height, 0]),
             xAxis = d3.svg.axis().scale(xMap).orient('bottom'),
             yAxis = d3.svg.axis().scale(yMap).orient('left'),
@@ -76,7 +76,7 @@
             tooltip;
 
         // set up the chart area
-        if (max_elements > 0) {
+        if (maxElements > 0) {
             chart.data([data]);
         }
 
@@ -105,7 +105,7 @@
             .style("visibility", "hidden");
 
         // draw the lines
-        for (i = 0; i < max_elements; i += 1) {
+        for (i = 0; i < maxElements; i += 1) {
 
             // draw the line
             chart.append("path")
