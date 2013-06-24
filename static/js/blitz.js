@@ -473,7 +473,7 @@ Blitz.IndexView = Ember.View.extend({
         });
 
         // when clicking the route button divs, click the enclosed link automatically
-        $(".header_route_button").on("click", function (e) {
+        $(".slide_out_handle").on("click", function (e) {
             // no need to handle the click event of a link!
             if (e.target.tagName !== "A") {
                 $(this).find("a").click();
