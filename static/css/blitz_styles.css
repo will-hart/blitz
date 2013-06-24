@@ -28,12 +28,13 @@ html, body, p {
     z-index: 1000;
     background: white;
     background: rgba(255, 255, 255, 0.8);
-    text-align: center;
 }
 
-#loading-indicator img {
+#loading-indicator .img_container {
     position: absolute;
-    top: 50%;
+    top: 40%;
+    left: 45%;
+    text-align: center;
 }
 
 .right-spacer {
