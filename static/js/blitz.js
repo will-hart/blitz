@@ -543,7 +543,29 @@ Blitz.IndexView = Ember.View.extend({
 });
 
 Blitz.ConfigView = Ember.View.extend({
-    classNameBindings: [':settings-container']
+    classNameBindings: [':settings-container'],
+
+    didInsertElement: function () {
+        // when clicking the route button divs, click the enclosed link automatically
+        $(".slide_out_handle").on("click", function (e) {
+            // no need to handle the click event of a link!
+            if (e.target.tagName !== "A") {
+                $(this).find("a").click();
+            }
+        });
+    }
+});
+
+Blitz.SessionsView = Ember.View.extend({
+    didInsertElement: function () {
+        // when clicking the route button divs, click the enclosed link automatically
+        $(".slide_out_handle").on("click", function (e) {
+            // no need to handle the click event of a link!
+            if (e.target.tagName !== "A") {
+                $(this).find("a").click();
+            }
+        });
+    }
 });
 
 Blitz.CategoryView = Ember.View.extend({});
