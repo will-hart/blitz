@@ -2,31 +2,13 @@
 
     var draw_chart, draw_sparkline;
 
-    /** Get the maximum value from a list of lists
-     *
-     * @param data the multidimensional array to find the max for
-     * @param fn the function to apply to each array element (e.g. d3.max)
-     * @param accessor the optional accessor function for max of the inner loop
-     */
-    function getMinMaxValues(data, fn, accessor) {
-        // TODO: convert to d3.merge ?
-        return fn(data.map(function (array) {
-
-            if (accessor === undefined) {
-                return fn(array, function (d) {
-                    return d.value;
-                });
-            }
-            return fn(array, accessor);
-        }));
-    }
-
     /** Draws a chart at the node with the given selector
      *
      *  @param data the list of data to be plotted
      *  @param elem the container element to add the svg element to
+     *  @param labels the optional strings to give the series labels (or Series N if none given)
      */
-    draw_chart = function draw_chart(data, elem) {
+    draw_chart = function draw_chart(data, elem, labels) {
 
         d3.select("#" + elem + " svg").remove();
 
@@ -54,12 +36,10 @@
             width = elemWidth - margin.left - margin.right,
             height = elemHeight - margin.top - margin.bottom,
 
-            xExtents = maxElements === 0 ? [new Date("04/09/2011 00:00"), new Date("07/14/2011 23:59")] : [getMinMaxValues(data, d3.min, function (d) {
-                return d.get('loggedAt');
-            }), getMinMaxValues(data, d3.max, function (d) {
-                return d.get('loggedAt');
-            })],
-            yExtents = maxElements === 0 ? [0, 1] : [0, getMinMaxValues(data, d3.max)],
+            xExtents = maxElements === 0 ?
+                [new Date("04/09/2011 00:00"), new Date("07/14/2011 23:59")] :
+                [d3.min(d3.merge(data), function (d) { return d.get('loggedAt'); }), d3.max(d3.merge(data), function (d) { return d.get('loggedAt'); })],
+            yExtents = maxElements === 0 ? [0, 1] : [0, d3.max(d3.merge(data), function (d) { return d.get('value'); })],
             xMap = d3.time.scale.utc()
                 .domain(xExtents)
                 .range([0, width]),
