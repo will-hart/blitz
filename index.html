@@ -29,9 +29,7 @@
             </div>
 
             <!-- Display a loading indicator -->
-            <div id="loading-indicator">
-                <img src="static/img/loading.gif">
-            </div>
+            {{render loading_indicator}}
 
             <!-- Display the body -->
             {{outlet}}
@@ -59,13 +57,16 @@
             <small>None</small>
         </script>
 
-        <script type="text/x-handlebars" data-template-name="config">
-
-
-            <!-- Display a loading indicator -->
+        <script type="text/x-handlebars" data-template-name="loading_indicator">
             <div id="loading-indicator">
                 <img src="static/img/loading.gif">
             </div>
+        </script>
+
+        <script type="text/x-handlebars" data-template-name="config">
+
+            <!-- Display a loading indicator -->
+            {{render loading_indicator}}
 
             <form class="pure-form pure-form-aligned">
                 <div class="settings-header">
