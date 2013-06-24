@@ -445,8 +445,8 @@ Blitz.IndexView = Ember.View.extend({
         }
         rendered = indexController.get("chartDirty");
 
-        // hook up jQuery events
-        $("#variables_slide_out_handle").on("click", function (e) {
+        // show the variables pane on clicking the handle
+        $("#variables_handle").on("click", function (e) {
             e.preventDefault();
 
             // fade in the element
@@ -460,8 +460,8 @@ Blitz.IndexView = Ember.View.extend({
 
         });
 
-        // when clicking the settings div, ensure the enclosed link is also clicked
-        $("#settings_slide_out_handle, #browse_slide_out_handle").on("click", function (e) {
+        // when clicking the route button divs, click the enclosed link automatically
+        $(".header_route_button").on("click", function (e) {
             // no need to handle the click event of a link!
             if (e.target.tagName !== "A") {
                 $(this).find("a").click();

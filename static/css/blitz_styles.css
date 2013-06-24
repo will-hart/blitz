@@ -19,34 +19,6 @@ html, body, p {
     stroke-width: 2px;
 }
 
-#top_control_container {
-    width: 100%;
-    position: fixed;
-    top: 0;
-    left: 0;
-    border: 0;
-    margin: 0;
-    padding: 0;
-    text-align: center;
-}
-
-#top_controls {
-    padding: 3px;
-    background-color: #202020;
-    background-color: rgba(31,31,31,0.5);
-    color: white;
-    width: 300px;
-    margin: 0 auto;
-    text-align: center;
-    border-bottom-left-radius: 7px;
-    border-bottom-right-radius: 7px;
-}
-
-#top_controls a {
-    text-decoration: none;
-    color: white;
-}
-
 .right-spacer {
     margin-right: 150px;
 }
@@ -71,9 +43,9 @@ html, body, p {
     color: darkgrey;
 }
 
-#variables_slide_out_handle, #settings_slide_out_handle, #browse_slide_out_handle {
+.slide_out_handle, .header_route_button {
     position: fixed;
-    right: 150px;
+    right: 200px;
     top: 0;
     margin: 0 auto;
     width: 35px;
@@ -84,27 +56,34 @@ html, body, p {
     border-bottom-right-radius: 5px;
     border-bottom-left-radius: 5px;
     cursor: pointer;
+    text-align:center;
 }
 
-#variables_slide_out_handle:hover, #settings_slide_out_handle:hover, #browse_slide_out_handle:hover {
+.slide_out_handle:hover, .header_route_button:hover {
     background-color: rgba(31, 31, 31, 1);
 }
 
-#variables_slide_out_handle a, #settings_slide_out_handle a, #browse_slide_out_handle a {
+.slide_out_handle a, .header_route_button a {
     color: white;
     text-decoration: none;
 }
 
-#variables_slide_out_handle i, #settings_slide_out_handle i, #browse_slide_out_handle i {
-    padding-left: 10px;
+#variables_handle {
+    right: 150px;
 }
 
-#settings_slide_out_handle {
+#settings_handle {
+    right: 50px;
+}
+
+#browse_handle {
     right: 100px;
 }
 
-#browse_slide_out_handle {
-    right: 50px;
+#error_handle {
+    right: 250px;
+    background-color: rgb(185, 75, 75);
+    display: none;
 }
 
 #variable_pane {

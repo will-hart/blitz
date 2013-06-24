@@ -15,22 +15,12 @@
         <!-- The main view - this is just an outlet -->
         <script type="text/x-handlebars" id="index">
 
-            <!-- Show the controller menu -->
-            <div id="top_control_container">
-                <div id="top_controls" class="pure-menu-horizontal">
-                    <a title="Start Logging" href="#"><i class="icon-play button-inactive"></i></a>
-                    <a title="Stop Logging" href="#"><i class="icon-stop button-inactive"></i></a>
-                    <a title="Connect" class="right-spacer" href="#"><i class="icon-signal"></i></a>
-
-                    <a title="Warnings" class="right-spacer-small" href="#"><i class="icon-question button-inactive"></i></a>
-                    <a title="Alerts" href="#"><i class="icon-exclamation button-inactive"></i></a>
-                </div>
-            </div>
-
             <!-- Show the slide out buttons for variables and settings -->
-            <div id="variables_slide_out_handle"><a id="variable_link" title="Variables" href="#variable_pane"><i class="icon-list"></i></a></div>
-            <div id="settings_slide_out_handle">{{#linkTo config title="Config"}}<i class="icon-cog"></i>{{/linkTo}}</div>
-            <div id="browse_slide_out_handle">{{#linkTo browse title="Archive"}}<i class="icon-archive"></i>{{/linkTo}}</div>
+            <div id="error_handle" class="header_route_button">{{#linkTo browse title="Connect"}}<i class="icon-exclamation"></i>{{/linkTo}}</div>
+            <div id="control_handle" class="slide_out_handle">{{#linkTo browse title="Connect"}}<i class="icon-signal"></i>{{/linkTo}}</div>
+            <div id="variables_handle" class="slide_out_handle"><a id="variable_link" title="Variables" href="#variable_pane"><i class="icon-list"></i></a></div>
+            <div id="settings_handle" class="header_route_button">{{#linkTo config title="Config"}}<i class="icon-cog"></i>{{/linkTo}}</div>
+            <div id="browse_handle" class="header_route_button">{{#linkTo browse title="Archive"}}<i class="icon-folder-open"></i>{{/linkTo}}</div>
 
             <!-- The variables pane -->
             <div id="variable_pane">
