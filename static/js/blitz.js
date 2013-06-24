@@ -195,6 +195,8 @@ Blitz.Config = Ember.Object.extend({
             "\t'loggerIp': '" + this.get("loggerIp") + "', \n" +
             "\t'clientPort': " + this.get("clientPort") + ", \n" +
             "\t'clientIp': '" + this.get("clientIp") + "', \n" +
+            "\t'sampleRate': " + this.get("sampleRate") + ", \n" +
+            "\t'clientRefreshRate': '" + this.get("clientRefreshRate") + ", \n" +
             "}";
 
         Blitz.PostJson('config', json);

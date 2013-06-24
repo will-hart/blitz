@@ -123,6 +123,21 @@
                             {{view Ember.TextField name="loggerPort" id="loggerPort" valueBinding="content.loggerPort"
                             placeholder="Logger Port"}}
                         </div>
+
+                        <hr>
+
+                        <div class="pure-control-group">
+                            <label for="sampleRate">Logging Rate (Hz)</label>
+                            {{view Ember.TextField name="sampleRate" id="sampleRate" valueBinding="content.sampleRate"
+                            placeholder="Logging sample rate"}}
+                        </div>
+
+                        <div class="pure-control-group">
+                            <label for="clientRefreshRate">Client Refresh Rate (seconds)</label>
+                            {{view Ember.TextField name="clientRefreshRate" id="clientRefreshRate" valueBinding="content.clientRefreshRate"
+                            placeholder="Refresh client rate"}}
+                        </div>
+
                     </fieldset>
                 </div>
             </form>
