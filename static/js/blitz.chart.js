@@ -67,14 +67,13 @@
                 .range([height, 0]),
             xAxis = d3.svg.axis().scale(x).orient('bottom'),
             yAxis = d3.svg.axis().scale(y).orient('left'),
+            xGather = function (d) { return x(d.get('loggedAt')); },
+            yGather = function (d) { return y(d.get('value')); },
 
             line = d3.svg.line()
-                .x(function (d) {
-                    return x(d.get('loggedAt'));
-                })
-                .y(function (d) {
-                    return y(d.get('value'));
-                });
+                .x(xGather)
+                .y(yGather),
+            tooltip;
 
         // set up the chart area
         if (max_elements > 0) {
@@ -99,8 +98,16 @@
             .attr("class", "y_axis")
             .call(yAxis);
 
+        // draw a tooltip
+        tooltip = chart.append("div")
+            .style("position", "absolute")
+            .style("z-index", 10)
+            .style("visibility", "hidden");
+
         // draw the lines
         for (i = 0; i < max_elements; i += 1) {
+
+            // draw the line
             chart.append("svg:path")
                 .data([data[i]])
                 .attr("class", "line")
@@ -108,10 +115,8 @@
                 .attr("stroke", colours[i])
                 .attr("stroke-width", 2)
                 .attr("d", line);
-        }
 
-        // draw the legend at the top of the screen
-        for (i = 0; i < max_elements; i += 1) {
+            // draw the legend at the top of the screen
             // draw the coloured block
             chart.append("svg:rect")
                 .attr("x", 25 + 130 * i)
@@ -127,15 +132,6 @@
                 .attr("y", -40)
                 .text("Series " + (i + 1));
         }
-
-        /*console.log("===================================");
-        console.log("CHART DATA");
-        console.log("-----------------------------------");
-        console.log("X extents: " + x_extents);
-        console.log("Y extents: " + y_extents);
-        console.log("Data: ");
-        console.log(data);
-        console.log("===================================");*/
     };
 
     /**
