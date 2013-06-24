@@ -132,6 +132,13 @@ Blitz.Reading = Ember.Object.extend({
      */
     loggedAt: function () {
         return moment(this.get('timeLogged'), "DD-MM-YYYY HH:m:s.SSS").toDate();
+    }.property('timeLogged'),
+
+    /**
+     * Formats the date for chart titles
+     */
+    titleDate: function () {
+        return moment(this.get('timeLogged'), "DD-MM-YYYY HH:m:s.SSS").format("MMM Do h:mm:ss.SSS");
     }.property('timeLogged')
 });
 Blitz.Reading.reopenClass({
@@ -296,6 +303,7 @@ Blitz.SessionsRoute = Ember.Route.extend({
 Blitz.IndexController = Ember.ArrayController.extend({
 
     content: [],
+    labels: [],
     chartContent: [],
     chartVars: [],
     lastUpdate: null,
@@ -315,7 +323,10 @@ Blitz.IndexController = Ember.ArrayController.extend({
         var chartVars = this.get('chartVars'),
             content = this.get('content'),
             chartContent = this.get('chartContent'),
-            chartDataDirty = this.get('chartDataDirty');
+            chartDataDirty = this.get('chartDataDirty'),
+            labels = this.get('labels'),
+            categoryController = this.get("controllers.category"),
+            categories = categoryController.get("content");
 
         // check we are mean to update data
         if (!chartDataDirty && force === undefined) {
@@ -327,6 +338,7 @@ Blitz.IndexController = Ember.ArrayController.extend({
 
         // clear existing chart content
         chartContent.clear();
+        labels.clear();
 
         // ensure content is defined
         if (content === undefined) {
@@ -336,14 +348,13 @@ Blitz.IndexController = Ember.ArrayController.extend({
         // for each chartVar, add a filtered list to the chartContent
         chartVars.forEach(function (d) {
             var cc = content.filterProperty('category', d);
-
-            if (cc.length > 0) {
-                chartContent.push(cc);
-            }
+            chartContent.push(cc);
+            labels.push(categories.findProperty('id', d).get('variableName'));
         });
 
-        // save the chart content
+        // save the chart content and labels back to the controller
         this.set('chartContent', chartContent);
+        this.set('labels', labels);
 
         // now set the flags for rendering the chart
         this.set('chartDataDirty', false);
@@ -382,7 +393,8 @@ Blitz.IndexController = Ember.ArrayController.extend({
     drawChart: function drawChart() {
 
         var content = this.get("chartContent"),
-            dirty = this.get('chartDirty');
+            dirty = this.get('chartDirty'),
+            labels = this.get('labels');
 
         if (!dirty) {
             //console.log("Aborting chart drawing - nothing to plot");
@@ -397,7 +409,7 @@ Blitz.IndexController = Ember.ArrayController.extend({
         }
 
         // draw the chart
-        BlitzChart(content, "chart");
+        BlitzChart(content, "chart", labels);
 
         // unset the render chart flag
         this.set('chartDirty', false);

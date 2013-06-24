@@ -58,7 +58,7 @@
             line = d3.svg.line()
                 .x(xGather)
                 .y(yGather),
-            tooltip;
+            lines;
 
         chart.attr("preserveAspectRatio", "xMidYMid")
             .attr("width", width + margin.left + margin.right)
@@ -80,35 +80,34 @@
             .call(yAxis
                 .tickSize(-width, 0, 0));
 
-        // draw a tooltip
-        tooltip = chart.append("div")
-            .style("position", "absolute")
-            .style("z-index", 10)
-            .style("visibility", "hidden");
+        g = chart.selectAll("g.line")
+            .data(data);
+        lines = g.enter()
+            .append("svg:g")
+            .attr("class", "line");
 
-        // draw the lines
+        lines.append("svg:path")
+            .attr("d", line)
+            .attr("fill", "none")
+            .attr("stroke", function (d, i) {
+                return colours[i];
+            })
+            .attr("stroke-width", 2);
+
+        lines.selectAll("circle")
+            .data(function (d) { return d; })
+            .enter()
+            .append("svg:circle")
+            .attr("cx", function (d) { return xMap(d.get("loggedAt")); })
+            .attr("cy", function (d) { return yMap(d.get("value")); })
+            .attr("r", 3)
+            .attr("stroke", "none")
+            .append("title")
+            .text(function (d) {
+                return d.get("value") + " @ " + d.get("titleDate");
+            });
+
         for (i = 0; i < maxElements; i += 1) {
-
-            // draw the line
-            chart.append("path")
-                .data([data[i]])
-                .attr("class", "line")
-                .attr("fill", "none")
-                .attr("stroke", colours[i])
-                .attr("stroke-width", 2)
-                .attr("d", line);
-
-            // draw data points
-            /*chart.selectAll("circle")
-                .data([data[i]])
-                .enter()
-                .append("circle")
-                .attr("cx", xGather)
-                .attr("cy", yGather)
-                .attr("r", 3)
-                .attr("fill", colours[i])
-                .attr("stroke", "none");*/
-
             // draw the legend at the top of the screen
             // draw the coloured block
             chart.append("rect")
@@ -123,7 +122,7 @@
             chart.append("text")
                 .attr("x", 50 + 130 * i)
                 .attr("y", -40)
-                .text("Series " + (i + 1));
+                .text(labels[i] === undefined ? "Series " + (i + 1) : labels[i]);
         }
     };
 
