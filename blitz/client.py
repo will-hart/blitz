@@ -106,12 +106,12 @@ class Application(object):
         # create an application
         self.application = tornado.web.Application([
             (r'/', blitz_http.IndexHandler),
-           ('r/categories', blitz_api.CategoriesHandler),
-           ('r/cache/(?P<since>[^\/]+)', blitz_api.CacheHandler),
-           ('r/download/(?P<session_id>[^\/]+)', blitz_api.DownloadHandler),
-           ('r/session/(?P<session_id>[^\/]+)', blitz_api.SessionHandler),
-           ('r/sessions', blitz_api.SessionsHandler),
-           ('r/config', blitz_api.ConfigHandler)
+            ('r/categories', blitz_api.CategoriesHandler),
+            ('r/cache/(?P<since>[^\/]+)', blitz_api.CacheHandler),
+            ('r/download/(?P<session_id>[^\/]+)', blitz_api.DownloadHandler),
+            ('r/session/(?P<session_id>[^\/]+)', blitz_api.SessionHandler),
+            ('r/sessions', blitz_api.SessionsHandler),
+            ('r/config', blitz_api.ConfigHandler)
         ], **self.config.settings)
         self.logger.info("Initialised client application")
 

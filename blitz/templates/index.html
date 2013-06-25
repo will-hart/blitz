@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+      <head>
+          <meta charset="utf-8">
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+          <title>Blitz Logger Live Data Feed</title>
+
+          <!-- CSS Styles -->
+          <link rel="stylesheet" media="screen" href="static/css/pure-min.css"/>
+          <link rel="stylesheet" media="screen" href="static/css/blitz_styles.css" />
+          <link rel="stylesheet" media="screen" href="static/css/font-awesome.min.css" />
+      </head>
+
+    <body>
+        <!-- The main view - this is just an outlet -->
+        <script type="text/x-handlebars" id="index">
+
+            <!-- Show the slide out buttons for variables and settings -->
+            <div id="alert_handle" class="slide_out_handle error_handle"><a {{action showAlerts}}><i class="icon-exclamation"></i></a></div>
+            <div id="control_handle" class="slide_out_handle primary_handle"><a {{action connectToLogger}}<i class="icon-signal"></i></a></div>
+            <div id="variables_handle" class="slide_out_handle"><a id="variable_link" title="Variables" href="#variable_pane"><i class="icon-list"></i></a></div>
+            <div id="settings_handle" class="slide_out_handle">{{#linkTo config title="Config"}}<i class="icon-cog"></i>{{/linkTo}}</div>
+            <div id="browse_handle" class="slide_out_handle">{{#linkTo sessions title="Session History"}}<i class="icon-folder-open"></i>{{/linkTo}}</div>
+
+            <!-- The variables pane -->
+            <div id="variable_pane">
+                <a class="close_button" href="javascript: $('#variable_pane').slideUp();">close</a>
+                {{render category}}
+            </div>
+
+            <!-- Display a loading indicator -->
+            {{render loading_indicator}}
+
+            <!-- Display the body -->
+            {{outlet}}
+
+            <!-- A container for the chart -->
+            <div id="chart"></div>
+        </script>
+
+        <script type="text/x-handlebars" data-template-name="category">
+
+            <img src="static/img/blitz_small.png" class="blitz-logo" width="300px" height="100px" alt="Blitz Logo" />
+
+            <ul class="variable_list">
+            {{#each category in model}}
+                {{view Blitz.CategoryLineView categoryBinding="category"}}
+            {{/each}}
+            </ul>
+
+            <hr>
+            <h4>Connected Boards</h4>
+            <small>None</small>
+        </script>
+
+        <script type="text/x-handlebars" data-template-name="loading_indicator">
+            <div id="loading-indicator">
+                <div class="img_container">
+                    <h4>Loading data...</h4>
+                    <img src="static/img/loading.gif">
+                </div>
+            </div>
+        </script>
+
+        <script type="text/x-handlebars" data-template-name="config">
+
+            <!-- Display a loading indicator -->
+            {{render loading_indicator}}
+
+            <form class="pure-form pure-form-aligned">
+
+                <div id="browse_handle" class="slide_out_handle error_handle">
+                    {{#linkTo index}}<i class="icon-remove"></i>{{/linkTo}}
+                </div>
+
+                <div id="settings_handle" class="slide_out_handle success_handle">
+                    <a title="Save and close" {{action closeSettings model}}><i class="icon-ok"></i></a>
+                </div>
+
+                <div class="settings-main">
+                    <fieldset>
+                        <legend>Client Connection Settings</legend>
+
+                        <p class="no-top-margin">
+                            <small>
+                                These settings are used by the application to connect to the local host PC
+                            </small>
+                        </p>
+
+                        <div class="pure-control-group">
+                            <label for="clientIp">Client IP</label>
+                            {{view Ember.TextField name="clientIp" id="clientIp" valueBinding="content.clientIp"
+                            placeholder="Client IP address"}}
+                        </div>
+
+                        <div class="pure-control-group">
+                            <label for="clientPort">Client Port</label>
+                            {{view Ember.TextField name="clientPort" id="clientPort" valueBinding="content.clientPort"
+                            placeholder="Client Port"}}
+                        </div>
+                    </fieldset>
+                </div>
+
+                <div class="settings-main">
+                    <fieldset>
+                        <legend>Data Logger Settings</legend>
+
+                        <p class="no-top-margin">
+                            <small>
+                                These settings are used to connect to the data logger over a network (wired or
+                                wireless) connection
+                            </small>
+                        </p>
+
+                        <div class="pure-control-group">
+                            <label for="loggerIp">Logger IP</label>
+                            {{view Ember.TextField name="loggerIp" id="loggerIp" valueBinding="content.loggerIp"
+                            placeholder="Client IP address"}}
+                        </div>
+
+                        <div class="pure-control-group">
+                            <label for="loggerPort">Client Port</label>
+                            {{view Ember.TextField name="loggerPort" id="loggerPort" valueBinding="content.loggerPort"
+                            placeholder="Logger Port"}}
+                        </div>
+
+                        <hr>
+
+                        <div class="pure-control-group">
+                            <label for="sampleRate">Logging Rate (Hz)</label>
+                            {{view Ember.TextField name="sampleRate" id="sampleRate" valueBinding="content.sampleRate"
+                            placeholder="Logging sample rate"}}
+                        </div>
+
+                        <div class="pure-control-group">
+                            <label for="clientRefreshRate">Client Refresh Rate (seconds)</label>
+                            {{view Ember.TextField name="clientRefreshRate" id="clientRefreshRate" valueBinding="content.clientRefreshRate"
+                            placeholder="Refresh client rate"}}
+                        </div>
+
+                    </fieldset>
+                </div>
+            </form>
+        </script>
+
+        <script type="text/x-handlebars" data-template-name="category_line">
+            <button {{bindAttr class=":pure-button category.selected:pure-button-variable-list-hide"}}>
+                {{#if category.selected}}Hide{{else}}Show{{/if}}
+            </button>
+            <span class="category-line-name" {{bindAttr id=category.sparkClass}}>{{category.variableName}}</span>
+        </script>
+
+        <script type="text/x-handlebars" data-template-name="sessions">
+
+            {{render loading_indicator}}
+
+            <div id="settings_handle" class="slide_out_handle success_handle">
+                {{#linkTo index title="Return to live data"}}<i class="icon-ok"></i>{{/linkTo}}
+            </div>
+
+            <div id="browse_pane">
+                <ul class="session_list">
+                {{#each sess in model}}
+                    <li>{{#linkTo session sess classBinding="sess.isDownloadable::downloadable"}}Session #{{sess.id}}{{/linkTo}}</li>
+                {{/each}}
+                </ul>
+            </div>
+
+            <div id="session_detail_pane">
+                {{outlet}}
+            </div>
+        </script>
+
+        <script type="text/x-handlebars" data-template-name="session">
+
+            {{#if model.isDownloadable}}
+            <div id="browse_handle" class="slide_out_handle">
+                <a title="Export CSV" {{action downloadCsv}}<i class="icon-laptop"></i></a>
+            </div>
+            {{else}}
+            <div id="browse_handle" class="slide_out_handle primary_handle">
+                <a title="Download from logger" {{action downloadSession model.id}}<i
+                    class="icon-cloud-download"></i></a>
+            </div>
+            {{/if}}
+
+            <h2>Session Detail</h2>
+            <p>
+                <strong>Started Logging:</strong> {{model.timeStarted}} <br/>
+                <strong>Stopped Logging:</strong> {{model.timeStopped}} <br/>
+                <strong>Readings Taken:</strong> {{model.readings}}
+            </p>
+
+            <hr>
+
+            {{#if model.isDownloadable}}
+            <h3>Raw Data</h3>
+            <table class="pure-table">
+                <tr>
+                    <th>Variable Name</th>
+                    <th>Time Logged</th>
+                    <th>Value</th>
+                </tr>
+
+            </table>
+            {{else}}
+            <p>This session has not been downloaded from the data logger</p>
+            <button class="pure-button pure-button-primary" {{action downloadSession model.id}}>Download</button>
+            {{/if}}
+        </script>
+
+        <!-- Add javascript -->
+        <script type="text/javascript" src="static/js/jquery.min.js"></script>
+        <script type="text/javascript" src="static/js/handlebars.js"></script>
+        <script type="text/javascript" src="static/js/ember.min.js"></script>
+        <script charset="utf-8" type="text/javascript" src="static/js/d3.v3.min.js"></script>
+        <script type="text/javascript" src="static/js/moment.min.js"></script>
+        <script type="text/javascript" src="static/js/blitz.chart.js"></script>
+        <script type="text/javascript" src="static/js/blitz.js"></script>
+    </body>
+</html>
