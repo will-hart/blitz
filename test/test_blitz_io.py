@@ -10,7 +10,7 @@ from blitz.data.models import *
 class TestDatabaseClient(unittest.TestCase):
 
     def setUp(self):
-        self.db = DatabaseClient(True)
+        self.db = DatabaseClient()  # pass true to DatabaseClient() to get verbose logging from SQLAlchemy
 
     def test_variables_initialised(self):
         """
