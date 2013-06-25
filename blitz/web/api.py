@@ -15,24 +15,16 @@ class CategoriesHandler(RequestHandler):
     "data": [
         {
             "id": 1,
-            "sessionId": 1,
-            "variableName": "Acceleration",
-            "selected": false
+            "variableName": "Acceleration"
         }, {
             "id": 2,
-            "sessionId": 1,
-            "variableName": "Steering Input",
-            "selected": false
+            "variableName": "Steering Input"
         }, {
             "id": 3,
-            "sessionId": 1,
-            "variableName": "Brake",
-            "selected": false
+            "variableName": "Brake"
         }, {
             "id": 4,
-            "sessionId": 1,
-            "variableName": "Temperature",
-            "selected": false
+            "variableName": "Temperature"
         }
     ]
 }"""

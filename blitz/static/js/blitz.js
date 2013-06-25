@@ -163,6 +163,8 @@ Blitz.Reading.reopenClass({
 
 /* The variable name model for tracking which variables are visible in the chart */
 Blitz.Category = Ember.Object.extend({
+    selected: false,
+
     sparkClass: function () {
         return 'spark-%@'.fmt(this.get('id'));
     }.property('id')
