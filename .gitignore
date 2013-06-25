@@ -1,2 +1,6 @@
 // Ignore files from the editor
 .idea/
+
+*.pyc
+
+log.txt
