@@ -42,7 +42,7 @@ class CategoriesHandler(RequestHandler):
 
 
 class CacheHandler(RequestHandler):
-    def get(self, since):
+    def get(self, since=None):
         """
         handles a GET request to /cache by writing a
         JSON list of the last 50 values for each variable.
@@ -264,7 +264,7 @@ class SessionHandler(RequestHandler):
 
 
 class ConfigHandler(RequestHandler):
-    def get(self, session_id):
+    def get(self):
         """
         handles a GET request to /config and returns
         a complete list of data relating to this session
