@@ -17,7 +17,7 @@ var Blitz = Ember.Application.create({
  *
  * @type {string}
  */
-Blitz.blitz_api_url = "http://willhart.apiary.io/";
+Blitz.blitz_api_url = "http://localhost:8989/";
 
 /**
  * A JSON Handler which uses jQuery to send a JSON request and pushes
