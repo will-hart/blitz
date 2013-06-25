@@ -113,7 +113,7 @@ class Application(object):
         self.http_server = tornado.httpserver.HTTPServer(self.application)
         self.logger.info("Initialised client HTTP server")
 
-    def start(self):
+    def run(self):
         """
         Starts the application
         """
