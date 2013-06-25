@@ -82,7 +82,7 @@ class Application(object):
         """
 
         # create a file logger and set it up for logging to file
-        logging.basicConfig(filename='log.txt', level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
+        logging.basicConfig(filename='log.txt', level=logging.DEBUG, format='[%(asctime)s %(levelname)s]   %(message)s')
         self.logger = logging.getLogger(__name__)
 
         # load configuration
@@ -99,12 +99,13 @@ class Application(object):
         # create an application
         self.application = tornado.web.Application([
             (r'/', blitz_http.IndexHandler),
-            ('r/categories', blitz_api.CategoriesHandler),
-            ('r/cache/(?P<since>[^\/]+)', blitz_api.CacheHandler),
-            ('r/download/(?P<session_id>[^\/]+)', blitz_api.DownloadHandler),
-            ('r/session/(?P<session_id>[^\/]+)', blitz_api.SessionHandler),
-            ('r/sessions', blitz_api.SessionsHandler),
-            ('r/config', blitz_api.ConfigHandler)
+            (r'/categories', blitz_api.CategoriesHandler),
+            (r'/cache', blitz_api.CacheHandler),
+            (r'/cache/(?P<since>[^\/]+)', blitz_api.CacheHandler),
+            (r'/download/(?P<session_id>[^\/]+)', blitz_api.DownloadHandler),
+            (r'/session/(?P<session_id>[^\/]+)', blitz_api.SessionHandler),
+            (r'/sessions', blitz_api.SessionsHandler),
+            (r'/config', blitz_api.ConfigHandler)
         ], **self.config.settings)
         self.logger.debug("Initialised client application")
 
@@ -122,5 +123,10 @@ class Application(object):
         self.logger.info("HTTP server started listening on port " + str(self.config['port']))
 
         # start the IO loop
-        tornado.ioloop.IOLoop.instance().start()
-        self.logger.debug("HTTP server started IO loop")
+        try:
+            tornado.ioloop.IOLoop.instance().start()
+            self.logger.debug("HTTP server started IO loop")
+
+        finally:
+            tornado.ioloop.IOLoop.instance().stop()
+            self.logger.info("Stopped IO loop resources")
