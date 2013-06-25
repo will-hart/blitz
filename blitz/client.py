@@ -30,10 +30,7 @@ class Config(object):
             "template_path": os.path.join(os.path.dirname(__file__), "templates"),
             "static_path": os.path.join(os.path.dirname(__file__), "static"),
             "database_path": os.path.join(os.path.dirname(__file__), "data", "app.db"),
-            #"schema_path": os.path.join(
-            #    os.path.dirname(__file__), "data", "client_schema.sql"),
-            #"settings_path": os.path.join(
-            #    os.path.dirname(__file__), "data", "settings.txt"),
+            "port": 8989,
             "autoescape": None,
             "debug": True
         }
@@ -45,7 +42,7 @@ class Config(object):
         :raises: KeyError if the item doesn't exist
         :returns: A value corresponding to the given key
         """
-        if key in self.settings.keys:
+        if key in self.settings.keys():
             return self.settings[key]
         raise KeyError("Unknown configuration setting - " + key)
 
@@ -85,23 +82,19 @@ class Application(object):
         """
 
         # create a file logger and set it up for logging to file
-        self.logger = logging.getLogger('Application')
-        log_handler = logging.FileHandler(os.path.join(os.path.dirname(__file__), "log.txt"))
-        log_formatter = self.logger.Formatter('%(asctime)s %(levelname)s %(message)s')
-        log_handler.setFormatter(log_formatter)
-        self.logger.addHandler(log_handler)
-        self.logger.setLevel(logging.INFO)
+        logging.basicConfig(filename='log.txt', level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
+        self.logger = logging.getLogger(__name__)
 
         # load configuration
         self.config = Config()
 
         # create a database connection
         self.data = DatabaseClient()
-        self.logger.info("Initialised client database")
+        self.logger.debug("Initialised client database")
 
         # create a TCP connection
         self.socket = TcpClient()
-        self.logger.info("Initialised TCP socket - not connected")
+        self.logger.debug("Initialised TCP socket - not connected")
 
         # create an application
         self.application = tornado.web.Application([
@@ -113,7 +106,7 @@ class Application(object):
             ('r/sessions', blitz_api.SessionsHandler),
             ('r/config', blitz_api.ConfigHandler)
         ], **self.config.settings)
-        self.logger.info("Initialised client application")
+        self.logger.debug("Initialised client application")
 
         # create an HTTP server
         self.http_server = tornado.httpserver.HTTPServer(self.application)
@@ -126,8 +119,8 @@ class Application(object):
 
         # start listening on the configured port and IP
         self.http_server.listen(self.config['port'])
-        self.logger.info("HTTP server started listening on port " + self.config['port'])
+        self.logger.info("HTTP server started listening on port " + str(self.config['port']))
 
         # start the IO loop
-        self.logger.info("HTTP server starting IO loop")
         tornado.ioloop.IOLoop.instance().start()
+        self.logger.debug("HTTP server started IO loop")
