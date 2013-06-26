@@ -26,26 +26,59 @@ class DatabaseClient(object):
         Uses the supplied engine and models to create the required table structure
         """
         #SQL_BASE is defined in blitz.data.models
+        SQL_BASE.metadata.drop_all(self._database)
         SQL_BASE.metadata.create_all(self._database)
 
-    def add_reading(self, session_id, time_logged, variable_id, value):
+    def add(self, items):
         """
-        Creates a new reading in the database with the passed attributes
+        Adds the given items to the database with the passed attributes
 
-        :param session_id: the ID of the session this variable belongs to
-        :param time_logged: the DateTime that this value was logged
-        :param variable_id: the integer ID of the category this variable corresponds to
-        :param value: the value that was logged
-
-        :return: returns the created reading object
+        :param items: A list of items to be added
         """
-
-        new_reading = Reading(sessionId=session_id, timeLogged=time_logged, category=variable_id, value=value)
         sess = self._session()
-        sess.add(new_reading)
+        for r in items:
+            sess.add(r)
         sess.commit()
-        return new_reading
 
+    def get(self, model, query):
+        """
+        Gets a single item from the database (the first that matches the query dict)
+
+        :param model: the model to query
+        :param query: the dict of "field: value" pairs to filter on
+
+        :return: A single model matching the query string
+        """
+        if type(query) == int:
+            # handle filtering by ID
+            use_query = {"id": query}
+        else:
+            use_query = query
+        return self.find(model, use_query).first()
+
+    def all(self, model):
+        """
+        Returns all the records for a given model type
+
+        :param model: The model to return all records for
+
+        :return: A list of all records for a given model
+        """
+
+        sess = self._session()
+        return sess.query(model).all()
+
+    def find(self, model, query):
+        """
+        Returns ALL items which match the given query
+
+        :param model: The model to query on
+        :param query: the dictionary of "field: value" pairs to filter on
+
+        :return: a list of all matching records
+        """
+        sess = self._session()
+        return sess.query(model).filter_by(**query)
 
 class DatabaseServer(object):
     pass
