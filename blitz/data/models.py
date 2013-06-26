@@ -1,7 +1,8 @@
 __author__ = 'mecharius'
 
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, String, Integer, DateTime, Boolean
+from sqlalchemy import Column, String, Integer, DateTime, Boolean, ForeignKey
+from sqlalchemy.orm import relationship, backref
 
 # set up the base model
 SQL_BASE = declarative_base()
@@ -16,8 +17,10 @@ class Reading(SQL_BASE):
     id = Column(Integer, primary_key=True)
     sessionId = Column(Integer)
     timeLogged = Column(DateTime)
-    category = Column(Integer)
+    categoryId = Column(Integer, ForeignKey('category.id'))
     value = Column(String)
+
+    category = relationship("Category", backref=backref('readings', order_by=timeLogged))
 
 
 class Session(SQL_BASE):
@@ -52,3 +55,16 @@ class Category(SQL_BASE):
 
     id = Column(Integer, primary_key=True)
     variableName = Column(String, unique=True)
+
+
+class Cache(SQL_BASE):
+    """
+    A model which is derived from readings and is used for storing temporary (and incomplete)
+    logging data whilst a session is in progress
+    """
+    __tablename__ = 'cache'
+
+    id = Column(Integer, primary_key=True)
+    timeLogged = Column(DateTime)
+    categoryId = Column(Integer)
+    value = Column(String)
