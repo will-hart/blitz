@@ -40,3 +40,14 @@ CONFIG_FIXTURES = [
     {"key": "clientPort", "value": "8988"},
     {"key": "clientIp", "value": "192.168.1.79"}
 ]
+
+
+def generate_objects(model, fixtures):
+    """
+    Generate a list of objects of the provided model type with the data
+    given in the fixtures list of dictionaries
+    """
+    res = []
+    for f in fixtures:
+        res.append(model(**f))
+    return res
