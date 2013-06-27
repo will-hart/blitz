@@ -17,7 +17,7 @@ var Blitz = Ember.Application.create({
  *
  * @type {string}
  */
-Blitz.blitz_api_url = "http://willhart.apiary.io/";
+Blitz.blitz_api_url = "http://localhost:8989/";
 
 /**
  * A JSON Handler which uses jQuery to send a JSON request and pushes
@@ -163,6 +163,8 @@ Blitz.Reading.reopenClass({
 
 /* The variable name model for tracking which variables are visible in the chart */
 Blitz.Category = Ember.Object.extend({
+    selected: false,
+
     sparkClass: function () {
         return 'spark-%@'.fmt(this.get('id'));
     }.property('id')
