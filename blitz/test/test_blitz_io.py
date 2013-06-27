@@ -125,7 +125,7 @@ class TestBasicDatabaseOperations(unittest.TestCase):
 class TestDatabaseHelpers(unittest.TestCase):
     def setUp(self):
         # create a database
-        self.db = DatabaseClient(True) # pass True to DatabaseClient() to get verbose logging from SQLAlchemy
+        self.db = DatabaseClient() # pass True to DatabaseClient() to get verbose logging from SQLAlchemy
         self.db.create_tables(True)
 
         # add the fixtures
