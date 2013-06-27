@@ -76,6 +76,8 @@ class Application(object):
     provided by Tornado
     """
 
+    io_loop = None
+
     def __init__(self):
         """
         Create a new client web application, setting defaults
@@ -124,9 +126,10 @@ class Application(object):
 
         # start the IO loop
         try:
-            tornado.ioloop.IOLoop.instance().start()
+            self.io_loop = tornado.ioloop.IOLoop.instance()
+            self.io_loop.start()
             self.logger.debug("HTTP server started IO loop")
 
         finally:
-            tornado.ioloop.IOLoop.instance().stop()
+            self.io_loop.stop()
             self.logger.info("Stopped IO loop resources")
