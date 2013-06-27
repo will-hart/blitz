@@ -92,6 +92,9 @@ class Application(object):
 
         # create a database connection
         self.data = DatabaseClient()
+        # TODO - database should persist
+        self.data.create_tables()
+        self.data.load_fixtures()
         self.logger.debug("Initialised client database")
 
         # create a TCP connection
@@ -114,6 +117,10 @@ class Application(object):
         # create an HTTP server
         self.http_server = tornado.httpserver.HTTPServer(self.application)
         self.logger.info("Initialised client HTTP server")
+
+        # save variables for later
+        self.application.settings['socket'] = self.socket
+        self.application.settings['data'] = self.data
 
     def run(self):
         """

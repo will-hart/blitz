@@ -1,10 +1,10 @@
 __author__ = 'Will Hart'
 
 from blitz.data.models import *
+from blitz.data.fixtures import *
 
-import datetime, time
+import datetime
 import sqlalchemy as sql
-from sqlalchemy import func
 from sqlalchemy.orm import sessionmaker
 
 # create the models
@@ -66,12 +66,13 @@ class DatabaseClient(object):
 
         :return: A single model matching the query string
         """
-        if type(query) == int:
-            # handle filtering by ID
-            use_query = {"id": query}
-        else:
-            use_query = query
-        return self.find(model, use_query).first()
+        return self.find(model, query).first()
+
+    def get_by_id(self, model, model_id):
+        """
+        Gets an object by ID
+        """
+        return self.get(model, {"id": model_id})
 
     def all(self, model):
         """
@@ -105,10 +106,21 @@ class DatabaseClient(object):
         qry = self._session().query(Category, Reading). \
             filter(Category.id == Reading.categoryId). \
             filter(Reading.sessionId == session_id). \
+            order_by(Reading.id). \
             all()
         for c, r in qry:
             res.add(c)
 
+        return list(res)
+
+    def get_cache_variables(self):
+        """
+        Gets the variables associated with the cache
+        """
+        res = set()
+        qry = self._session().query(Category, Cache).filter(Category.id == Cache.categoryId).order_by(Cache.id).all()
+        for c, r in qry:
+            res.add(c)
         return list(res)
 
     def get_session_readings(self, session_id):
@@ -144,17 +156,26 @@ class DatabaseClient(object):
 
         # loop and build the variables
         for v in cache_vars:
-            lst = []
-
             if since:
                 qry = sess.query(Cache).filter(Cache.categoryId == v.categoryId).filter(
                     Cache.timeLogged >= dt).order_by(Cache.timeLogged.desc())
             else:
                 qry = sess.query(Cache).filter(Cache.categoryId == v.categoryId).order_by(Cache.timeLogged.desc())
 
-            res.append(qry[:50])
+            res += qry[:50]
 
         return res
+
+    def load_fixtures(self):
+        """
+        Loads fixtures from blitz.data.fixtures
+        """
+        self.add_many(generate_objects(Category, CATEGORY_FIXTURES))
+        self.add_many(generate_objects(Cache, CACHE_FIXTURES))
+        self.add_many(generate_objects(Config, CONFIG_FIXTURES))
+        self.add_many(generate_objects(Reading, READING_FIXTURES))
+        self.add_many(generate_objects(Session, SESSION_FIXTURES))
+
 
 class DatabaseServer(object):
     pass

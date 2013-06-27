@@ -1,5 +1,8 @@
 __author__ = 'Will Hart'
 
+from blitz.data.models import *
+from blitz.utilities import to_blitz_date
+import json
 from tornado.web import RequestHandler
 
 
@@ -7,30 +10,23 @@ class CategoriesHandler(RequestHandler):
     def get(self):
         """
         handles a GET request to /categories by writing a
-        JSON list of categories
+        JSON list of categories currently in the cache
         """
 
-        # TODO implement
-        json = """{
-    "data": [
-        {
-            "id": 1,
-            "variableName": "Acceleration"
-        }, {
-            "id": 2,
-            "variableName": "Steering Input"
-        }, {
-            "id": 3,
-            "variableName": "Brake"
-        }, {
-            "id": 4,
-            "variableName": "Temperature"
-        }
-    ]
-}"""
+        data = self.settings['data']
+        result = data.get_cache_variables()
+        json_obj = {}
+        data_objs = []
 
+        for r in result:
+            data_objs.append(r.to_dict())
+
+        # remove the last comma
+        json_obj['data'] = data_objs
+
+        # write the response
         self.content_type = "application/json"
-        self.write(json)
+        self.write(json.dumps(json_obj))
 
 
 class CacheHandler(RequestHandler):
@@ -43,62 +39,22 @@ class CacheHandler(RequestHandler):
         return values since that date. Otherwise return last 50
         """
 
-        # TODO implement
-        if since:
-            json = """{
-    "data": [
-        {
-            "id": 5,
-            "sessionId": 1,
-            "category": 3,
-            "timeLogged": "13/01/2014 12:59:09.47",
-            "value": 3.0
-        },
-        {
-            "id": 6,
-            "sessionId": 1,
-            "category": 1,
-            "timeLogged": "13/01/2014 12:59:12.78",
-            "value": 4.0
-        }
-    ]
-}"""
+        data = self.settings['data']
+        json_objs = {}
+        data_objs = []
+
+        if since is not None:
+            result = data.get_cache(float(since))
         else:
-            json = """{
-    "data": [
-        {
-            "id": 1,
-            "sessionId": 1,
-            "category": 3,
-            "timeLogged": "13/01/2014 12:59:04.325",
-            "value": 9.75
-        },
-        {
-            "id": 2,
-            "sessionId": 1,
-            "category": 3,
-            "timeLogged": "13/01/2014 12:59:06.575",
-            "value": 10.05
-        },
-        {
-            "id": 3,
-            "sessionId": 1,
-            "category": 1,
-            "timeLogged": "13/01/2014 12:59:04.325",
-            "value": 3.25
-        },
-        {
-            "id": 4,
-            "sessionId": 1,
-            "category": 1,
-            "timeLogged": "13/01/2014 12:59:06.575",
-            "value": 11.27
-        }
-    ]
-}"""
+            result = data.get_cache()
+
+        for r in result:
+            data_objs.append(r.to_dict())
+
+        json_objs['data'] = data_objs
 
         self.content_type = "application/json"
-        self.write(json)
+        self.write(json.dumps(json_objs))
 
 
 class DownloadHandler(RequestHandler):
@@ -110,45 +66,23 @@ class DownloadHandler(RequestHandler):
         logging session.
         """
 
-        # TODO implement
-        json = """{
-    "session_id": 1,
-    "timeStarted": "13/01/2014 12:59:06.575",
-    "timeStopped": "13/01/2014 12:59:06.695",
-    "data": [
-        {
-            "id": 1,
-            "sessionId": 1,
-            "category": 3,
-            "timeLogged": "13/01/2014 12:59:04.325",
-            "value": 9.75
-        },
-        {
-            "id": 2,
-            "sessionId": 1,
-            "category": 3,
-            "timeLogged": "13/01/2014 12:59:06.575",
-            "value": 10.05
-        },
-        {
-            "id": 3,
-            "sessionId": 1,
-            "category": 1,
-            "timeLogged": "13/01/2014 12:59:04.325",
-            "value": 3.25
-        },
-        {
-            "id": 4,
-            "sessionId": 1,
-            "category": 1,
-            "timeLogged": "13/01/2014 12:59:06.575",
-            "value": 11.27
-        }
-    ]
-}"""
+        data = self.settings['data']
+        json_objs = {}
+        data_objs = []
+        readings = data.get_session_readings(session_id)
+        session = data.get_by_id(Session, session_id)
+
+        for r in readings:
+            data_objs.append(r.to_dict())
+
+        json_objs['sessionId'] = session_id
+        json_objs['timeStarted'] = to_blitz_date(session.timeStarted)
+        json_objs['timeStopped'] = to_blitz_date(session.timeStopped)
+        json_objs['numberOfReadings'] = len(data_objs)
+        json_objs['data'] = data_objs
 
         self.content_type = "application/json"
-        self.write(json)
+        self.write(json.dumps(json_objs))
 
 
 class SessionsHandler(RequestHandler):
@@ -158,42 +92,17 @@ class SessionsHandler(RequestHandler):
         list of logging sessions that are available for view or download
         """
 
-        # TODO implement
-        json = """{
-    "data": [
-        {
-            "id": 1,
-            "available": true,
-            "timeStarted": "13/01/2014 12:59:00.054",
-            "timeStopped": "13/01/2014 12:59:06.985",
-            "readings": 127
-        },
-        {
-            "id": 2,
-            "available": false,
-            "timeStarted": "13/01/2014 12:59:00.054",
-            "timeStopped": "13/01/2014 12:59:06.985",
-            "readings": 3
-        },
-        {
-            "id": 3,
-            "available": false,
-            "timeStarted": "13/01/2014 12:59:00.054",
-            "timeStopped": "13/01/2014 12:59:06.985",
-            "readings": 77
-        },
-        {
-            "id": 4,
-            "available": false,
-            "timeStarted": "13/01/2014 12:59:00.054",
-            "timeStopped": "13/01/2014 12:59:06.985",
-            "readings": 953
-        }
-    ]
-}"""
+        # TODO work out why this is returning an empty dataset
+        data = self.settings['data']
+        json_objs = {}
+        data_objs = []
+        result = data.all(Session)
+
+        for r in result:
+            data_objs.append(r.to_dict())
 
         self.content_type = "application/json"
-        self.write(json)
+        self.write(json.dumps(json_objs))
 
 
 class SessionHandler(RequestHandler):
@@ -203,56 +112,17 @@ class SessionHandler(RequestHandler):
         a complete list of data relating to this session
         """
 
-        # TODO implement
-        json = """{
-    "data": [
-        {
-            "id": 1,
-            "sessionId": 1,
-            "category": 3,
-            "timeLogged": "13/01/2014 12:59:04.325",
-            "value": 9.75
-        },
-        {
-            "id": 2,
-            "sessionId": 1,
-            "category": 3,
-            "timeLogged": "13/01/2014 12:59:06.575",
-            "value": 10.05
-        },
-        {
-            "id": 3,
-            "sessionId": 1,
-            "category": 1,
-            "timeLogged": "13/01/2014 12:59:04.325",
-            "value": 3.25
-        },
-        {
-            "id": 4,
-            "sessionId": 1,
-            "category": 1,
-            "timeLogged": "13/01/2014 12:59:06.575",
-            "value": 11.27
-        },
-        {
-            "id": 5,
-            "sessionId": 1,
-            "category": 3,
-            "timeLogged": "13/01/2014 12:59:09.47",
-            "value": 3.0
-        },
-        {
-            "id": 6,
-            "sessionId": 1,
-            "category": 1,
-            "timeLogged": "13/01/2014 12:59:12.78",
-            "value": 4.0
-        }
-    ]
-}"""
+        # TODO work out why this is returning an empty dataset
+        data = self.settings['data']
+        json_objs = {}
+        data_objs = []
+        result = data.get_session_readings(session_id)
+
+        for r in result:
+            data_objs.append(r.to_dict())
 
         self.content_type = "application/json"
-        self.write(json)
+        self.write(json.dumps(json_objs))
 
 
 class ConfigHandler(RequestHandler):
@@ -262,19 +132,14 @@ class ConfigHandler(RequestHandler):
         a complete list of data relating to this session
         """
 
-        # TODO implement
-        json = """{
-                "loggerPort": 8988,
-                "loggerIp": "192.168.1.79",
-                "clientPort": 8989,
-                "clientIp": "192.168.1.80",
-                "sampleRate": 60,
-                "clientRefreshRate": 1,
-                "sessionId": -1
-            }"""
+        # TODO work out why this is returning an empty dataset
+        data = self.settings['data']
+        json_objs = {}
+        data_objs = []
+        result = data.all(Config)
 
         self.content_type = "application/json"
-        self.write(json)
+        self.write(json.dumps(json_objs))
 
     def post(self):
         """

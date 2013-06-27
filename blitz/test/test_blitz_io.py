@@ -106,7 +106,7 @@ class TestBasicDatabaseOperations(unittest.TestCase):
         assert (res.value == "8989")
 
     def test_get_session_by_id(self):
-        res = self.db.get(Session, 2)
+        res = self.db.get_by_id(Session, 2)
         assert(type(res) == Session)
         assert(res.id == 2)
 
@@ -135,6 +135,18 @@ class TestDatabaseHelpers(unittest.TestCase):
         assert res[1].variableName in ["Accelerator", "Brake"]
         assert res[0].variableName != res[1].variableName
 
+    def test_get_categories_for_cache(self):
+        """
+        Test retrieving categories for a specific session
+        """
+        res = self.db.get_cache_variables()
+
+        assert len(res) == 2
+        assert res[0].variableName in ["Accelerator", "Brake"]
+        assert res[1].variableName in ["Accelerator", "Brake"]
+        assert res[0].variableName != res[1].variableName
+
+
     def test_get_readings_for_session(self):
         """
         Test retrieving readings for a given session ID
@@ -155,14 +167,11 @@ class TestDatabaseHelpers(unittest.TestCase):
         res = self.db.get_cache()
 
         # check the right number of records was returned
-        assert len(res) == 2
-        assert len(res[0]) == 2
-        assert len(res[1]) == 2
+        assert len(res) == 4
 
         # check the right type of record was returned
         for x in res:
-            for y in x:
-                assert type(y) == Cache
+                assert type(x) == Cache
 
     def test_get_cache_since(self):
         """
@@ -173,16 +182,13 @@ class TestDatabaseHelpers(unittest.TestCase):
         res = self.db.get_cache(time2_timestamp)
 
         # check lengths
-        assert len(res) == 2
-        assert len(res[0]) == 1
-        assert len(res[1]) == 2
+        assert len(res) == 3
 
         # check the types are correct
         # and double check all the dates are in range
         for x in res:
-            for y in x:
-                assert type(y) == Cache
-                assert y.timeLogged >= time2
+                assert type(x) == Cache
+                assert x.timeLogged >= time2
 
 
 

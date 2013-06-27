@@ -1,5 +1,7 @@
 __author__ = 'mecharius'
 
+from blitz.utilities import to_blitz_date
+import json
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, String, Integer, DateTime, Boolean, ForeignKey
 from sqlalchemy.orm import relationship, backref
@@ -22,6 +24,18 @@ class Reading(SQL_BASE):
 
     category = relationship("Category", backref=backref('readings', order_by=timeLogged))
 
+    def to_dict(self):
+        """
+        Returns the object in json format
+        """
+        return {
+            "id": self.id,
+            "sessionId": self.sessionId,
+            "timeLogged": to_blitz_date(self.timeLogged),
+            "categoryId": self.categoryId,
+            "value": self.value
+        }
+
 
 class Session(SQL_BASE):
     """
@@ -35,6 +49,18 @@ class Session(SQL_BASE):
     timeStopped = Column(DateTime)
     numberOfReadings = Column(Integer)
 
+    def to_dict(self):
+        """
+        Returns the object in json format
+        """
+        return {
+            "id": self.id,
+            "available": self.available,
+            "timeStarted": to_blitz_date(self.timeStarted),
+            "timeStopped": to_blitz_date(self.timeStopped),
+            "numberOfReadings": self.numberOfReadings
+        }
+
 
 class Config(SQL_BASE):
     """
@@ -46,6 +72,16 @@ class Config(SQL_BASE):
     key = Column(String)
     value = Column(String)
 
+    def to_dict(self):
+        """
+        Returns the object in json format
+        """
+        return {
+            "id": self.id,
+            "key": self.key,
+            "value": self.value
+        }
+
 
 class Category(SQL_BASE):
     """
@@ -55,6 +91,15 @@ class Category(SQL_BASE):
 
     id = Column(Integer, primary_key=True)
     variableName = Column(String, unique=True)
+
+    def to_dict(self):
+        """
+        Returns the object in json format
+        """
+        return {
+            "id": self.id,
+            "variableName": self.variableName
+        }
 
 
 class Cache(SQL_BASE):
@@ -68,3 +113,15 @@ class Cache(SQL_BASE):
     timeLogged = Column(DateTime)
     categoryId = Column(Integer)
     value = Column(String)
+
+    def to_dict(self):
+        """
+        Returns the object in json format
+        """
+        return {
+            "id": self.id,
+            "timeLogged": to_blitz_date(self.timeLogged),
+            "categoryId": self.categoryId,
+            "value": self.value
+        }
+
