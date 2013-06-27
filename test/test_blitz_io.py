@@ -6,45 +6,8 @@ import time
 import unittest
 
 from blitz.io.database import DatabaseClient
+from blitz.data.fixtures import *
 from blitz.data.models import *
-
-time0 = datetime.datetime.now()
-time1 = datetime.datetime.now() - datetime.timedelta(seconds=1)
-time2 = datetime.datetime.now() - datetime.timedelta(seconds=2)
-time3 = datetime.datetime.now() - datetime.timedelta(seconds=3)
-time4 = datetime.datetime.now() - datetime.timedelta(seconds=4)
-
-READING_FIXTURES = [
-    {"sessionId": 1, "timeLogged": time3, "categoryId": 1, "value": 3.75},
-    {"sessionId": 1, "timeLogged": time2, "categoryId": 1, "value": 9.12},
-    {"sessionId": 1, "timeLogged": time1, "categoryId": 2, "value": 5.2},
-    {"sessionId": 1, "timeLogged": time0, "categoryId": 2, "value": 4.3}
-]
-
-CACHE_FIXTURES = [
-    {"timeLogged": time3, "categoryId": 1, "value": 3.75},
-    {"timeLogged": time2, "categoryId": 1, "value": 9.12},
-    {"timeLogged": time1, "categoryId": 2, "value": 5.2},
-    {"timeLogged": time0, "categoryId": 2, "value": 4.3}
-]
-
-CATEGORY_FIXTURES = [
-    {"variableName": "Accelerator"},
-    {"variableName": "Brake"},
-    {"variableName": "Third"}
-]
-
-SESSION_FIXTURES = [
-    {"available": True,  "timeStarted": time4, "timeStopped": time2, "numberOfReadings": 2},
-    {"available": False, "timeStarted": time2, "timeStopped": time0, "numberOfReadings": 2}
-]
-
-CONFIG_FIXTURES = [
-    {"key": "loggerPort", "value": "8989"},
-    {"key": "loggerIp",   "value": "192.168.1.79"},
-    {"key": "clientPort", "value": "8988"},
-    {"key": "clientIp",   "value": "192.168.1.79"}
-]
 
 
 def generate_objects(model, fixtures):
@@ -162,8 +125,8 @@ class TestBasicDatabaseOperations(unittest.TestCase):
 class TestDatabaseHelpers(unittest.TestCase):
     def setUp(self):
         # create a database
-        self.db = DatabaseClient() # pass true to DatabaseClient() to get verbose logging from SQLAlchemy
-        self.db.create_tables()
+        self.db = DatabaseClient(True) # pass True to DatabaseClient() to get verbose logging from SQLAlchemy
+        self.db.create_tables(True)
 
         # add the fixtures
         self.db.add_many(generate_objects(Cache, CACHE_FIXTURES))
@@ -202,16 +165,35 @@ class TestDatabaseHelpers(unittest.TestCase):
         """
         res = self.db.get_cache()
 
-        assert len(res) == 4
+        # check the right number of records was returned
+        assert len(res) == 2
+        assert len(res[0]) == 2
+        assert len(res[1]) == 2
+
+        # check the right type of record was returned
         for x in res:
-            assert type(x) == Cache
+            for y in x:
+                assert type(y) == Cache
 
     def test_get_cache_since(self):
         """
         Test retrieving cached variables since a given time
         """
-        res = self.db.get_cache(time.mktime(time2.timetuple()) + time2.microsecond / 1000000)
+        print time2
+        time2_timestamp = time.mktime(time2.timetuple()) + (float(time2.microsecond) / 1000000)
+        res = self.db.get_cache(time2_timestamp)
 
-        assert len(res) == 3
+        # check lengths
+        assert len(res) == 2
+        assert len(res[0]) == 1
+        assert len(res[1]) == 2
+
+        # check the types are correct
+        # and double check all the dates are in range
         for x in res:
-            assert type(x) == Cache
+            for y in x:
+                assert type(y) == Cache
+                assert y.timeLogged >= time2
+
+
+

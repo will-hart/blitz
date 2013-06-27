@@ -2,7 +2,7 @@ __author__ = 'Will Hart'
 
 from blitz.data.models import *
 
-import datetime
+import datetime, time
 import sqlalchemy as sql
 from sqlalchemy import func
 from sqlalchemy.orm import sessionmaker
@@ -23,12 +23,13 @@ class DatabaseClient(object):
         self._database = sql.create_engine('sqlite:///:memory:', echo=verbose)
         self._session = sessionmaker(bind=self._database)
 
-    def create_tables(self):
+    def create_tables(self, force_drop=False):
         """
         Uses the supplied engine and models to create the required table structure
         """
         #SQL_BASE is defined in blitz.data.models
-        SQL_BASE.metadata.drop_all(self._database)
+        if force_drop:
+            SQL_BASE.metadata.drop_all(self._database)
         SQL_BASE.metadata.create_all(self._database)
 
     def add(self, item):
@@ -144,10 +145,12 @@ class DatabaseClient(object):
         # loop and build the variables
         for v in cache_vars:
             lst = []
-            qry = sess.query(Cache).filter(Cache.categoryId == v.categoryId).order_by(Cache.timeLogged.desc())
 
             if since:
-                qry.filter(Cache.timeLogged >= dt)
+                qry = sess.query(Cache).filter(Cache.categoryId == v.categoryId).filter(
+                    Cache.timeLogged >= dt).order_by(Cache.timeLogged.desc())
+            else:
+                qry = sess.query(Cache).filter(Cache.categoryId == v.categoryId).order_by(Cache.timeLogged.desc())
 
             res.append(qry[:50])
 
