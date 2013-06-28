@@ -176,6 +176,24 @@ class DatabaseClient(object):
         self.add_many(generate_objects(Reading, READING_FIXTURES))
         self.add_many(generate_objects(Session, SESSION_FIXTURES))
 
+    def get_config(self, key):
+        """
+        Gets a config value from the database from the given key
+        """
+        return self.get(Config, {"key": key})
+
+    def set_config(self, key, value):
+        """
+        Sets a config value in the database, adding or
+        """
+
+        config = self.get_config(key)
+
+        if config is None:
+            self.add(Config(key=key, value=value))
+        else:
+            config.value = value
+            self._session().commit()
 
 class DatabaseServer(object):
     pass

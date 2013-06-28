@@ -36,6 +36,8 @@ class Reading(SQL_BASE):
             "value": self.value
         }
 
+    def __str__(self):
+        return json.dumps(self.to_dict())
 
 class Session(SQL_BASE):
     """
@@ -61,6 +63,9 @@ class Session(SQL_BASE):
             "numberOfReadings": self.numberOfReadings
         }
 
+    def __str__(self):
+        return json.dumps(self.to_dict())
+
 
 class Config(SQL_BASE):
     """
@@ -82,6 +87,9 @@ class Config(SQL_BASE):
             "value": self.value
         }
 
+    def __str__(self):
+        return json.dumps(self.to_dict())
+
 
 class Category(SQL_BASE):
     """
@@ -100,6 +108,9 @@ class Category(SQL_BASE):
             "id": self.id,
             "variableName": self.variableName
         }
+
+    def __str__(self):
+        return json.dumps(self.to_dict())
 
 
 class Cache(SQL_BASE):
@@ -125,3 +136,5 @@ class Cache(SQL_BASE):
             "value": self.value
         }
 
+    def __str__(self):
+        return json.dumps(self.to_dict())

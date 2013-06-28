@@ -63,6 +63,8 @@ class TestBasicDatabaseOperations(unittest.TestCase):
     def test_find_all_readings(self):
         res = self.db.all(Reading)
         assert(len(res) == len(READING_FIXTURES))
+        for x in res:
+            assert type(x) == Reading
 
     def test_find_one_reading(self):
         res = self.db.get(Reading, {"id": 1})
@@ -74,10 +76,14 @@ class TestBasicDatabaseOperations(unittest.TestCase):
         assert(res.count() == 2)
         assert(res[0].id in [3,4])
         assert(res[1].id in [3,4])
+        for x in res:
+            assert type(x) == Reading
 
     def test_find_all_categories(self):
         res = self.db.all(Category)
         assert len(res) == len(CATEGORY_FIXTURES)
+        for x in res:
+            assert type(x) == Category
 
     def test_find_one_category(self):
         res = self.db.get(Category, {"variableName": "Accelerator"})
@@ -87,6 +93,8 @@ class TestBasicDatabaseOperations(unittest.TestCase):
     def test_find_all_sessions(self):
         res = self.db.all(Session)
         assert len(res) == len(SESSION_FIXTURES)
+        for x in res:
+            assert type(x) == Session
 
     def test_find_one_session(self):
         res = self.db.get(Session, {"available": True})
@@ -97,10 +105,14 @@ class TestBasicDatabaseOperations(unittest.TestCase):
         res = self.db.find(Session, {"available": False})
         assert (res.count() == 1)
         assert (res[0].id == 2)
+        for x in res:
+            assert type(x) == Session
 
     def test_find_all_configs(self):
         res = self.db.all(Config)
         assert len(res) == len(CONFIG_FIXTURES)
+        for x in res:
+            assert type(x) == Config
 
     def test_find_one_config(self):
         res = self.db.get(Config, {"key": "loggerPort"})
@@ -111,6 +123,18 @@ class TestBasicDatabaseOperations(unittest.TestCase):
         res = self.db.get_by_id(Session, 2)
         assert(type(res) == Session)
         assert(res.id == 2)
+
+    def test_empty_get_query_result(self):
+        """Should return None"""
+        res = self.db.get_by_id(Session, 100)
+        assert res is None
+
+        res = self.db.get(Session, {"id": 100})
+        assert res is None
+
+    def test_empty_find_query_result(self):
+        res = self.db.find(Reading, {"sessionId": 4000})
+        assert res.count() == 0
 
 
 class TestDatabaseHelpers(unittest.TestCase):
@@ -147,7 +171,6 @@ class TestDatabaseHelpers(unittest.TestCase):
         assert res[0].variableName in ["Accelerator", "Brake"]
         assert res[1].variableName in ["Accelerator", "Brake"]
         assert res[0].variableName != res[1].variableName
-
 
     def test_get_readings_for_session(self):
         """
@@ -191,6 +214,26 @@ class TestDatabaseHelpers(unittest.TestCase):
         for x in res:
                 assert type(x) == Cache
                 assert x.timeLogged >= time2
+
+    def test_config_get(self):
+        res = self.db.get_config("loggerPort")
+        assert res.value == "8989"
+
+    def test_config_set(self):
+        """
+        Tests setting a new config item and ensure when an item
+        is updated the length doesn't increase
+        """
+        configs = self.db.all(Config)
+        assert len(configs) == len(CONFIG_FIXTURES)
+
+        self.db.set_config("a new key", "a val")
+        configs = self.db.all(Config)
+        assert len(configs) == len(CONFIG_FIXTURES) + 1
+
+        self.db.set_config("a new key", "another val")
+        configs = self.db.all(Config)
+        assert len(configs) == len(CONFIG_FIXTURES) + 1
 
 
 class TestWebApi(unittest.TestCase):
