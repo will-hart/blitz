@@ -152,10 +152,12 @@ class ConfigHandler(RequestHandler):
         """
 
         # get the response body as a dict
+        data = self.settings['data']
         config_json = self.get_argument('config', "{}")
         config = json.loads(config_json)
 
+        for k in config.keys():
+            data.set_config(k, config[k])
 
-        # TODO implement
         self.content_type = "application/json"
         self.write("{'response': 'ok'}")

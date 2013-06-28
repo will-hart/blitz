@@ -263,6 +263,9 @@ class TestWebApi(unittest.TestCase):
     def test_get_config(self):
         assert False
 
+    def test_post_config(self):
+        assert False
+
     def test_download(self):
         assert False
 

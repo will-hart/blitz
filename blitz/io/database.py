@@ -195,5 +195,6 @@ class DatabaseClient(object):
             config.value = value
             self._session().commit()
 
+
 class DatabaseServer(object):
     pass
