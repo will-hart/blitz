@@ -38,7 +38,9 @@ CONFIG_FIXTURES = [
     {"key": "loggerPort", "value": "8989"},
     {"key": "loggerIp", "value": "192.168.1.79"},
     {"key": "clientPort", "value": "8988"},
-    {"key": "clientIp", "value": "192.168.1.79"}
+    {"key": "clientIp", "value": "192.168.1.79"},
+    {"key": "sampleRate", "value": "50"},
+    {"key": "clientRefreshRate", "value": "2"}
 ]
 
 
