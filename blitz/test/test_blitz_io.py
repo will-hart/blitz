@@ -3,11 +3,13 @@ __author__ = 'mecharius'
 import datetime
 import sqlalchemy
 import time
+from tornado.testing import AsyncHTTPClient, AsyncHTTPTestCase
 import unittest
 
-from blitz.io.database import DatabaseClient
+from blitz.client import Application
 from blitz.data.fixtures import *
 from blitz.data.models import *
+from blitz.io.database import DatabaseClient
 
 
 class TestDatabaseClientSetup(unittest.TestCase):
@@ -191,4 +193,39 @@ class TestDatabaseHelpers(unittest.TestCase):
                 assert x.timeLogged >= time2
 
 
+class TestWebApi(unittest.TestCase):
+
+    #def __init__(self, arg):
+    #    """
+    #     Set up the application
+    #     """
+    #
+    #     # create an application and wait for it to start up
+    #     self.app = Application()
+    #     self.app.run()
+    #     time.sleep(2)
+    #
+    #     # call the base class init
+    #     super(TestWebApi, self).__init__(arg)
+    #
+    #def get_app(self):
+    #    return self.app
+
+    def test_get_sessions(self):
+        assert False
+
+    def test_get_session(self):
+        assert False
+
+    def test_get_config(self):
+        assert False
+
+    def test_download(self):
+        assert False
+
+    def test_cache(self):
+        assert False
+
+    def test_cache_since(self):
+        assert False
 
