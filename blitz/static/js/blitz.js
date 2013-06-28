@@ -14,7 +14,7 @@ var Blitz = Ember.Application.create({
 
 /**
  * The base URL for api requests
- *
+ * TODO: get this from config
  * @type {string}
  */
 Blitz.blitz_api_url = "http://localhost:8989/";
@@ -185,7 +185,7 @@ Blitz.Config = Ember.Object.extend({
      * A property to determine if the data logger is currently logging
      */
     isLogging: function () {
-        return !this.get('sessionId') === -1;
+        return this.get('sessionId') !== -1;
     }.property('sessionId'),
 
     /**
@@ -385,7 +385,7 @@ Blitz.IndexController = Ember.ArrayController.extend({
             momentDate = moment(timestamp);//, "DD-MM-YYYY HH:m:s.SSS");
 
             // convert to unix timestamp
-            theDate = momentDate.valueOf();
+            theDate = momentDate.valueOf() / 1000;
         }
         this.set('lastUpdated', theDate);
     }.observes('content.length'),
