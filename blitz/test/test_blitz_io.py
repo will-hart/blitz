@@ -1,4 +1,4 @@
-__author__ = 'mecharius'
+__author__ = 'Will Hart'
 
 import datetime
 import sqlalchemy

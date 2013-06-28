@@ -134,13 +134,10 @@ class ConfigHandler(RequestHandler):
 
         data = self.settings['data']
         json_objs = {}
-        data_objs = []
         result = data.all(Config)
 
         for r in result:
-            data_objs.append(r.to_dict())
-
-        json_objs['data'] = data_objs
+            json_objs[r.key] = r.value
 
         self.content_type = "application/json"
         self.write(json.dumps(json_objs))
