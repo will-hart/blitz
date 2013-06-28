@@ -91,8 +91,6 @@ class SessionsHandler(RequestHandler):
         handles a GET request to /sessions and returns a complete
         list of logging sessions that are available for view or download
         """
-
-        # TODO work out why this is returning an empty dataset
         data = self.settings['data']
         json_objs = {}
         data_objs = []
@@ -100,6 +98,8 @@ class SessionsHandler(RequestHandler):
 
         for r in result:
             data_objs.append(r.to_dict())
+
+        json_objs['data'] = data_objs
 
         self.content_type = "application/json"
         self.write(json.dumps(json_objs))
@@ -112,7 +112,6 @@ class SessionHandler(RequestHandler):
         a complete list of data relating to this session
         """
 
-        # TODO work out why this is returning an empty dataset
         data = self.settings['data']
         json_objs = {}
         data_objs = []
@@ -121,6 +120,7 @@ class SessionHandler(RequestHandler):
         for r in result:
             data_objs.append(r.to_dict())
 
+        json_objs['data'] = data_objs
         self.content_type = "application/json"
         self.write(json.dumps(json_objs))
 
@@ -132,11 +132,15 @@ class ConfigHandler(RequestHandler):
         a complete list of data relating to this session
         """
 
-        # TODO work out why this is returning an empty dataset
         data = self.settings['data']
         json_objs = {}
         data_objs = []
         result = data.all(Config)
+
+        for r in result:
+            data_objs.append(r.to_dict())
+
+        json_objs['data'] = data_objs
 
         self.content_type = "application/json"
         self.write(json.dumps(json_objs))
@@ -146,6 +150,11 @@ class ConfigHandler(RequestHandler):
         handles a POST request to /config and saves
         updated configuration information to the data logger
         """
+
+        # get the response body as a dict
+        config_json = self.get_argument('config', "{}")
+        config = json.loads(config_json)
+
 
         # TODO implement
         self.content_type = "application/json"
