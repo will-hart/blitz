@@ -68,6 +68,80 @@ class TestDatabaseClientSetup(unittest.TestCase):
         assert len(self.db.all(Reading)) == len(READING_FIXTURES)
         assert len(self.db.all(Session)) == len(SESSION_FIXTURES)
 
+    def test_cache_model_serialisation(self):
+        fixture = CACHE_FIXTURES[0]
+        r = Cache(**fixture)
+        r_dict = r.to_dict()
+
+        expected = fixture.copy()
+        expected['id'] = None
+        expected['timeLogged'] = to_blitz_date(fixture['timeLogged'])
+
+        for k in expected.keys():
+            assert k in r_dict.keys()
+            assert r_dict[k] == expected[k]
+
+        assert str(r) == json.dumps(r_dict)
+
+    def test_category_model_serialisation(self):
+        fixture = CATEGORY_FIXTURES[0]
+        r = Category(**fixture)
+        r_dict = r.to_dict()
+
+        expected = fixture.copy()
+        expected['id'] = None
+
+        for k in expected.keys():
+            assert k in r_dict.keys()
+            assert r_dict[k] == expected[k]
+
+        assert str(r) == json.dumps(r_dict)
+
+    def test_config_model_serialisation(self):
+        fixture = CONFIG_FIXTURES[0]
+        r = Config(**fixture)
+        r_dict = r.to_dict()
+
+        expected = fixture.copy()
+        expected['id'] = None
+
+        for k in expected.keys():
+            assert k in r_dict.keys()
+            assert r_dict[k] == expected[k]
+
+        assert str(r) == json.dumps(r_dict)
+
+    def test_reading_model_serialisation(self):
+        fixture = READING_FIXTURES[0]
+        r = Reading(**fixture)
+        r_dict = r.to_dict()
+
+        expected = fixture.copy()
+        expected['id'] = None
+        expected['timeLogged'] = to_blitz_date(fixture['timeLogged'])
+
+        for k in expected.keys():
+            assert k in r_dict.keys()
+            assert r_dict[k] == expected[k]
+
+        assert str(r) == json.dumps(r_dict)
+
+    def test_session_model_serialisation(self):
+        fixture = SESSION_FIXTURES[0]
+        r = Session(**fixture)
+        r_dict = r.to_dict()
+
+        expected = fixture.copy()
+        expected['id'] = None
+        expected['timeStarted'] = to_blitz_date(fixture['timeStarted'])
+        expected['timeStopped'] = to_blitz_date(fixture['timeStopped'])
+
+        for k in expected.keys():
+            assert k in r_dict.keys()
+            assert r_dict[k] == expected[k]
+
+        assert str(r) == json.dumps(r_dict)
+
 
 class TestBasicDatabaseOperations(unittest.TestCase):
     """
