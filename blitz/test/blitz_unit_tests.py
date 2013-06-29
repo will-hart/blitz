@@ -369,12 +369,14 @@ class TestTcpServerStateMachine(unittest.TestCase):
         self.tcp = TcpServer(8990)
 
     def tearDown(self):
-        self.tcp.shutdown()
+        if self.tcp:
+            self.tcp.shutdown()
 
     def test_enter_idle_state_on_load(self):
         assert type(self.tcp.current_state) == ServerIdleState
-        self.tcp.stop()
+        self.tcp.shutdown()
         assert type(self.tcp.current_state) == ServerClosedState
+        self.tcp = None  # avoid duplicate shutdown calls on self.tearDown
 
     def test_enter_logging_state_on_start(self):
         assert type(self.tcp.current_state) == ServerIdleState

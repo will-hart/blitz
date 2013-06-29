@@ -75,13 +75,20 @@ class TcpServer(tornadoTCP):
 
     def shutdown(self):
         """Registers a callback that shuts down the tornado server"""
+
+        # register the shutdown handler with the IO loop
         loop = IOLoop.instance()
         loop.add_callback(self._do_shutdown)
+
+        # set the correct shutdown state
+        self.current_state = self.current_state.go_to_state(self, ServerClosedState)
+
 
     def _do_shutdown(self):
         """The callback which does the shutting down"""
         loop = IOLoop.instance()
         loop.blitz_tcp_server.stop()
+
 
     def unregister_client(self, client):
         print"[SERVER] > Client disconnected..."

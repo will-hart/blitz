@@ -88,6 +88,7 @@ class ClientStartingState(BaseState):
     def enter_state(self, tcp, state):
         print "Calling starting.enter_state: " + state.__name__
         tcp._send("START")
+        return self
 
     def process_message(self, tcp, msg):
         print "Calling starting.process_message: " + msg
@@ -129,6 +130,7 @@ class ClientStoppingState(BaseState):
     def enter_state(self, tcp, state):
         print "Calling stopping.send_message: " + state.__name__
         tcp._send("STOP")
+        return self
 
     def process_message(self, tcp, msg):
         print "Calling stopping.process_message: " + msg
