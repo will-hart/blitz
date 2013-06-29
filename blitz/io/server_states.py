@@ -18,7 +18,7 @@ def validate_command(tcp, msg, commands):
 class ServerIdleState(BaseState):
 
     def enter_state(self, tcp, state):
-        print "Calling ServerIdleState.enter_state: " + state.__name__
+        self.logger.debug("Calling ServerIdleState.enter_state: " + state.__name__)
         tcp._send("READY")
         return self
 
@@ -27,7 +27,7 @@ class ServerIdleState(BaseState):
         Handle the various requests from the client including to start and stop logging
         """
 
-        print "Calling ServerIdleState.process_message: " + msg
+        self.logger.debug("Calling ServerIdleState.process_message: " + msg)
         # check if it is a command which causes a change of state
         if msg == "START":
             tcp._send("ACK")
@@ -47,26 +47,26 @@ class ServerIdleState(BaseState):
 class ServerLoggingState(BaseState):
 
     def enter_state(self, tcp, state):
-        print "Calling ServerLoggingState.enter_state: " + state.__name__
+        self.logger.debug("Calling ServerLoggingState.enter_state: " + state.__name__)
 
         # TODO raise signal to start logging
-        print "[SIGNAL] Start logging"
+        self.logger.debug("[SIGNAL] Start logging")
 
         return self
 
     def process_message(self, tcp, msg):
-        print "Calling ServerLoggingState.process_message: " + msg
+        self.logger.debug("Calling ServerLoggingState.process_message: " + msg)
 
         if msg == "STOP":
 
             # TODO raise signal to stop logging
-            print "[SIGNAL] Stop logging"
+            self.logger.debug("[SIGNAL] Stop logging")
             tcp._send("ACK")
             return self.go_to_state(tcp, ServerIdleState)
 
         if msg == "STATUS":
             # TODO raise signal to send status
-            print "[SIGNAL] send status"
+            self.logger.debug("[SIGNAL] send status")
 
         else:
             validate_command(tcp, msg, VALID_SERVER_COMMANDS)
@@ -76,7 +76,7 @@ class ServerLoggingState(BaseState):
 
 class ServerDownloadingState(BaseState):
     def download_complete(self, tcp):
-        print "Calling ServerLoggingState.download_complete"
+        self.logger.debug("Calling ServerLoggingState.download_complete")
         return self.go_to_state(tcp, ServerIdleState)
 
     def process_message(self, tcp, msg):
@@ -86,9 +86,9 @@ class ServerDownloadingState(BaseState):
 
 class ServerClosedState(BaseState):
     def process_message(self, tcp, msg):
-        print "Calling ServerClosedState.process_message" + msg
+        self.logger.debug("Calling ServerClosedState.process_message" + msg)
         raise Exception("Attempted to receive message on closed server" + msg)
 
     def send_message(self, tcp, msg):
-        print "Calling ServerClosedState.send_message" + msg
+        self.logger.debug("Calling ServerClosedState.send_message" + msg)
         raise Exception("Attempted to send message on closed server" + msg)
