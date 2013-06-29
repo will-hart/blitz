@@ -108,6 +108,13 @@ class TcpServer(tornadoTCP):
         for c in self._clients:
             c.send(message)
 
+    def download_complete(self):
+        """
+        Called when the server has finished downloading to return to normal state
+        """
+        if type(self.current_state) is ServerDownloadingState:
+            self.current_state = self.current_state.download_complete(self)
+
 
 class TcpClient(object):
     """

@@ -24,6 +24,16 @@ logger = logging.getLogger(__name__)
 logger.addHandler(ch)
 
 
+class TestBlitzUtilities(unittest.TestCase):
+    def test_date_formatting(self):
+        """Test a date is correctly formatted and output to string"""
+        expected = "14-07-2011 15:05:27.517"
+        initial = datetime.datetime(2011, 07, 14, 15, 05, 27, 517000)
+        parsed = to_blitz_date(initial)
+
+        assert parsed == expected
+
+
 class TestDatabaseClientSetup(unittest.TestCase):
 
     def setUp(self):
@@ -381,12 +391,97 @@ class TestTcpServerStateMachine(unittest.TestCase):
         if self.tcp:
             self.tcp.shutdown()
 
+    def test_validate_valid_commands(self):
+        """test that all valid commands return ERROR 1"""
+        valid_commands = ["START", "STOP", "DOWNLOAD 1", "STATUS", "BOARD 17 MOVE1", "LOGGING"]
+        for cmd in valid_commands:
+            assert validate_command(cmd, VALID_SERVER_COMMANDS) == "ERROR 1"
+
+    def test_validate_invalid_commands(self):
+        """tests that invalid commands return ERROR 2"""
+        invalid_commands = ["ASDF", "STAP", "DL 1"]
+        for cmd in invalid_commands:
+            assert validate_command(cmd, VALID_SERVER_COMMANDS) == "ERROR 2"
+
     def test_enter_idle_state_on_load(self):
         assert type(self.tcp.current_state) == ServerIdleState
         self.tcp.shutdown()
         assert type(self.tcp.current_state) == ServerClosedState
+
+        # check that trying to send raises and exception
+        with self.assertRaises(Exception):
+            self.tcp.process_message("ANY")
+
+        with self.assertRaises(Exception):
+            self.tcp.send_message("ANY")
+
         self.tcp = None  # avoid duplicate shutdown calls on self.tearDown
 
     def test_enter_logging_state_on_start(self):
         assert type(self.tcp.current_state) == ServerIdleState
+
+    def test_enter_logging_state_on_idle_start(self):
+        assert type(self.tcp.current_state) == ServerIdleState
+        self.tcp.process_message("START")
+        assert type(self.tcp.current_state) == ServerLoggingState
+
+    def test_stay_in_idle_when_stop_or_status(self):
+        assert type(self.tcp.current_state) == ServerIdleState
+        self.tcp.process_message("STOP")
+        assert type(self.tcp.current_state) == ServerIdleState
+        self.tcp.process_message("STATUS")
+        assert type(self.tcp.current_state) == ServerIdleState
+
+    def test_stay_in_idle_on_unknown_command(self):
+        assert type(self.tcp.current_state) == ServerIdleState
+        self.tcp.process_message("ASDF")
+        assert type(self.tcp.current_state) == ServerIdleState
+
+    def test_stop_logging_on_stop_command(self):
+        assert type(self.tcp.current_state) == ServerIdleState
+        self.tcp.process_message("START")
+        assert type(self.tcp.current_state) == ServerLoggingState
+        self.tcp.process_message("STOP")
+        assert type(self.tcp.current_state) == ServerIdleState
+
+    def test_stay_in_logging_on_status(self):
+        assert type(self.tcp.current_state) == ServerIdleState
+        self.tcp.process_message("START")
+        assert type(self.tcp.current_state) == ServerLoggingState
+        self.tcp.process_message("STATUS")
+        assert type(self.tcp.current_state) == ServerLoggingState
+
+    def test_in_logging_on_unknown_command(self):
+        assert type(self.tcp.current_state) == ServerIdleState
+        self.tcp.process_message("START")
+        assert type(self.tcp.current_state) == ServerLoggingState
+        self.tcp.process_message("ASDF")
+        assert type(self.tcp.current_state) == ServerLoggingState
+
+    def test_download_lifecycle(self):
+        assert type(self.tcp.current_state) == ServerIdleState
+
+        # enter downloading state
+        self.tcp.process_message("DOWNLOAD 1")
+        assert type(self.tcp.current_state) == ServerDownloadingState
+
+        # Stay in idle state on unknown command
+        self.tcp.process_message("ASDF")
+        assert type(self.tcp.current_state) == ServerDownloadingState
+
+        # leave when download complete
+        self.tcp.download_complete()
+        assert type(self.tcp.current_state) == ServerIdleState
+
+
+
+
+
+
+
+
+
+
+
+
 

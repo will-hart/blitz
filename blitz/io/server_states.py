@@ -4,15 +4,15 @@ from blitz.constants import *
 from blitz.io.client_states import BaseState
 
 
-def validate_command(tcp, msg, commands):
+def validate_command(msg, commands):
     """
     Helper function which checks to see if a message is in the list of valid commands
     and sends an appropriate response over the TCP network
     """
-    if msg.split(' ')[0] not in commands:
-        tcp._send("ERROR 2")
+    if msg.split(' ')[0] in commands:
+        return "ERROR 1"
     else:
-        tcp._send("ERROR 1")
+        return "ERROR 2"
 
 
 class ServerIdleState(BaseState):
@@ -39,7 +39,7 @@ class ServerIdleState(BaseState):
             # huh? We are not logging!?
             tcp._send("NOSESSION")
         else:
-            validate_command(tcp, msg, VALID_SERVER_COMMANDS)
+            tcp._send(validate_command(msg, VALID_SERVER_COMMANDS))
 
         return self
 
@@ -69,7 +69,7 @@ class ServerLoggingState(BaseState):
             self.logger.debug("[SIGNAL] send status")
 
         else:
-            validate_command(tcp, msg, VALID_SERVER_COMMANDS)
+            tcp._send(validate_command(msg, VALID_SERVER_COMMANDS))
 
         return self
 
@@ -80,7 +80,7 @@ class ServerDownloadingState(BaseState):
         return self.go_to_state(tcp, ServerIdleState)
 
     def process_message(self, tcp, msg):
-        validate_command(tcp, msg, VALID_SERVER_COMMANDS)
+        tcp._send(validate_command(msg, VALID_SERVER_COMMANDS))
         return self
 
 
