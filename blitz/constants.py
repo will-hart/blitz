@@ -1,0 +1,4 @@
+__author__ = 'Will Hart'
+
+COMMAND_MESSAGE_BYTES = 8
+SHORT_COMMAND_MESSAGE_BYTES = 2
