@@ -24,7 +24,7 @@ class BaseState(object):
         Send the passed message over TCP and return the current state
         """
         print "Calling base.send_message: " + msg
-        tcp.send(msg)
+        tcp._send(msg)
         return self
 
     def go_to_state(self, tcp, state):
@@ -75,10 +75,10 @@ class ClientIdleState(BaseState):
     def send_message(self, tcp, msg):
         print "Calling idle.send_message: " + msg
         if msg == "START":
-            tcp.send(msg)
+            tcp._send(msg)
             return self.go_to_state(tcp, ClientStartingState)
         elif msg[0:8] == "DOWNLOAD":
-            tcp.send(msg)
+            tcp._send(msg)
             return self.go_to_state(tcp, ClientDownloadingState)
         else:
             raise Exception("Unknown message for IDLE state - " + msg)
@@ -101,18 +101,18 @@ class ClientLoggingState(BaseState):
 
         # check if we have requested logging to stop
         if msg == "STOP":
-            tcp.send("STOP")
+            tcp._send("STOP")
             return self.go_to_state(tcp, ClientStoppingState)
 
         # if not, are we requesting a status?
         if msg == "STATUS":
-            tcp.send("STATUS")
+            tcp._send("STATUS")
         elif len(msg) == COMMAND_MESSAGE_BYTES or len(msg) == SHORT_COMMAND_MESSAGE_BYTES:
             # this is likely to be a data message
             tcp.parse_reading(msg)
         else:
             # otherwise we just send the message and let the server sort it out
-            tcp.send(msg)
+            tcp._send(msg)
         return self
 
 
@@ -145,6 +145,6 @@ class ClientDownloadingState(BaseState):
     def go_to_state(self, tcp, state):
         print "Calling downloading.go_to_state >> " + state.__name__
         if type(state) == ClientIdleState:
-            tcp.send("ACK") # acknowledge end of download recieved
+            tcp._send("ACK") # acknowledge end of download recieved
 
         return super(ClientDownloadingState, self).go_to_state(tcp, state)

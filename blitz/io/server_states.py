@@ -10,16 +10,16 @@ def validate_command(tcp, msg, commands):
     and sends an appropriate response over the TCP network
     """
     if msg.split(' ')[0] not in commands:
-        tcp.send("ERROR 2")
+        tcp._send("ERROR 2")
     else:
-        tcp.send("ERROR 1")
+        tcp._send("ERROR 1")
 
 
 class ServerIdleState(BaseState):
 
     def enter_state(self, tcp, state):
         print "Calling ServerIdleState.enter_state: " + state.__name__
-        tcp.send("READY")
+        tcp._send("READY")
         return self
 
     def process_message(self, tcp, msg):
@@ -30,14 +30,14 @@ class ServerIdleState(BaseState):
         print "Calling ServerIdleState.process_message: " + msg
         # check if it is a command which causes a change of state
         if msg == "START":
-            tcp.send("ACK")
+            tcp._send("ACK")
             return self.go_to_state(tcp, ServerLoggingState)
         elif msg[0:8] == "DOWNLOAD":
             return self.go_to_state(tcp, ServerDownloadingState)
 
         if msg == "STOP" or msg == "STATUS":
             # huh? We are not logging!?
-            tcp.send("NOSESSION")
+            tcp._send("NOSESSION")
         else:
             validate_command(tcp, msg, VALID_SERVER_COMMANDS)
 
@@ -61,7 +61,7 @@ class ServerLoggingState(BaseState):
 
             # TODO raise signal to stop logging
             print "[SIGNAL] Stop logging"
-            tcp.send("ACK")
+            tcp._send("ACK")
             return self.go_to_state(tcp, ServerIdleState)
 
         if msg == "STATUS":

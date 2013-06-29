@@ -13,10 +13,18 @@ class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
     A class for handling TCP requests
     """
 
+    def setup(self):
+        print "Registering handler with server"
+        TcpServer.handlers.append(self)
+        SocketServer.BaseRequestHandler.setup(self)
+
     def handle(self):
         """
         Handle the request - in this case just echo the result
         """
+
+        print "Launching handler"
+
         while True:
             data = self.request.recv(1024)
 
@@ -26,33 +34,59 @@ class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
             cur_thread = threading.current_thread()
 
             response = "{}: {}".format(cur_thread.name, data)
+            print " > " + response
 
-            # echo the response back to the server
-            self.request.sendall(response)
+    def finish(self):
+        print "Unregistering handler with server"
+        TcpServer.handlers.remove(self)
+        SocketServer.BaseRequestHandler.finish(self)
 
 
 class TcpServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 
     current_state = None
+    handlers = []
+
+    def _send(self, msg):
+        """
+        Send a message to clients - only called by the ServerState
+        """
+        print "Server sending message"
+        for h in TcpServer.handlers:
+            print "    > to one handler"
+            h.request.sendall(msg)
 
     def send(self, msg):
         """
-        Send a message to clients
+        Triggers message sending via the current ServerState object
+        and updates the current state depending on the message contents
         """
-        #todo errrr....
-        print "[SERVER_SEND] " + msg
+        self.current_state = self.current_state.send_message(self, msg)
 
-    def shutdown(self):
-        self.current_state = self.current_state.go_to_state(self, ServerClosedState)
-        SocketServer.TCPServer.shutdown(self)
-
-
-    def __init__(self, address):
+    def __init__(self, address, handler_class=ThreadedTCPRequestHandler):
         """
         Creates a new TCP server
         """
+        print "Creating new socket server"
         SocketServer.TCPServer.__init__(self, address, ThreadedTCPRequestHandler)
         self.current_state = BaseState().go_to_state(self, ServerIdleState)
+
+    def start(self):
+        """
+        Starts the server, listening for new connections on a separate thread
+        """
+        self._server_thread = threading.Thread(target=self.serve_forever)
+        self._server_thread.daemon = True
+        self._server_thread.start()
+
+    def stop(self):
+        """
+        Attempts to stop the server thread
+        """
+        self.current_state = self.current_state.go_to_state(self, ServerClosedState)
+        SocketServer.TCPServer.server_close(self)
+
+        self._server_thread.join()
 
 
 class TcpClient(object):
@@ -76,6 +110,12 @@ class TcpClient(object):
 
     def send(self, message):
         """
+        Send the message via the current ClientState
+        """
+        self.current_state = self.current_state.send_message(self, message)
+
+    def _send(self, message):
+        """
         Send the given message and read the echoed response
         """
 
@@ -85,8 +125,8 @@ class TcpClient(object):
         try:
             print "Sending: {}".format(message)
             self._socket.sendall(message)
-            response = self._socket.recv(1024)
-            print "Received: {}".format(response)
+            #response = self._socket.recv(1024)
+            #print "Received: {}".format(response)
         except Exception as e:
             print "An error occurred - {}".format(e)
             print " >> Closing the socket"
@@ -146,20 +186,12 @@ class TcpClient(object):
 
 
 # EXAMPLE USAGE:
-
+#
 # from blitz.io.tcp import TcpServer, TcpClient
-# ip = "localhost"
-# port = 8989
-# addr = (ip, port)
-#
 # import threading
-# server = TcpServer(addr)
-# server_thread = threading.Thread(target=server.serve_forever)
-# server_thread.daemon = True
-# server_thread.start()
 #
-# client = TcpClient(addr)
-# client.send("Hello World 1")
-# client.send("Hello World 2")
-# client.send("Hello World 3")
-
+# server = TcpServer(('', 8999))
+# server.start()
+#
+# client = TcpClient(("127.0.0.1", 8999))
+# client.send("From Client")
