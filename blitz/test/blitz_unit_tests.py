@@ -1,9 +1,11 @@
 __author__ = 'Will Hart'
 
 import datetime
-import sqlalchemy
 import time
 import unittest
+
+import sqlalchemy
+from sqlalchemy import orm
 
 from blitz.io.client_states import *
 from blitz.io.server_states import *
@@ -23,7 +25,7 @@ class TestDatabaseClientSetup(unittest.TestCase):
         Test that when we initialise the client a database connection is created
         """
         assert type(self.db._database) is sqlalchemy.engine.base.Engine
-        assert type(self.db._session) is sqlalchemy.orm.session.sessionmaker
+        assert type(self.db._session) is orm.session.sessionmaker
 
     def test_database_created(self):
         """
@@ -288,21 +290,20 @@ class TestDatabaseHelpers(unittest.TestCase):
 #         assert False
 
 
-class TestTcpStateMachine(unittest.TestCase):
+class TestTcpClientStateMachine(unittest.TestCase):
     """
     Tests that the TCP state machine on the client side enters and exits the
     correct states
     """
 
     # set up a TCP server
-    tcpServer = TcpServer(('', 8999))
+    tcpServer = TcpServer(8999)
 
     # set up a tcp client
-    tcp = TcpClientMock(("127.0.0.1", 8999))
+    tcp = TcpClientMock("127.0.0.1", 8999)
 
     def setUp(self):
         # simulate starting a new connection by entering the init state
-        self.tcp = TestTcpStateMachine.tcp
         self.tcp.current_state = BaseState().enter_state(self.tcp, ClientInitState)
 
     def test_enter_init_state_on_load(self):
@@ -365,11 +366,14 @@ class TestTcpServerStateMachine(unittest.TestCase):
     """
 
     def setUp(self):
-        self.tcp = TcpServer(('localhost', 8990))
+        self.tcp = TcpServer(8990)
+
+    def tearDown(self):
+        self.tcp.shutdown()
 
     def test_enter_idle_state_on_load(self):
         assert type(self.tcp.current_state) == ServerIdleState
-        self.tcp.socket.close()
+        self.tcp.stop()
         assert type(self.tcp.current_state) == ServerClosedState
 
     def test_enter_logging_state_on_start(self):
