@@ -3,10 +3,10 @@ __author__ = 'Will Hart'
 import datetime
 import sqlalchemy
 import time
-from tornado.ioloop import IOLoop
 import unittest
 
 from blitz.io.client_states import *
+from blitz.io.server_states import *
 from blitz.data.fixtures import *
 from blitz.data.models import *
 from blitz.io.database import DatabaseClient
@@ -247,45 +247,45 @@ class TestDatabaseHelpers(unittest.TestCase):
         configs = self.db.all(Config)
         assert len(configs) == len(CONFIG_FIXTURES) + 1
 
-
-class TestWebApi(unittest.TestCase):
-
-    #def __init__(self, arg):
-    #    """
-    #     Set up the application
-    #     """
-    #
-    #     # create an application and wait for it to start up
-    #     self.app = Application()
-    #     self.app.run()
-    #     time.sleep(2)
-    #
-    #     # call the base class init
-    #     super(TestWebApi, self).__init__(arg)
-    #
-    #def get_app(self):
-    #    return self.app
-
-    def test_get_sessions(self):
-        assert False
-
-    def test_get_session(self):
-        assert False
-
-    def test_get_config(self):
-        assert False
-
-    def test_post_config(self):
-        assert False
-
-    def test_download(self):
-        assert False
-
-    def test_cache(self):
-        assert False
-
-    def test_cache_since(self):
-        assert False
+#
+# class TestWebApi(unittest.TestCase):
+#
+#     #def __init__(self, arg):
+#     #    """
+#     #     Set up the application
+#     #     """
+#     #
+#     #     # create an application and wait for it to start up
+#     #     self.app = Application()
+#     #     self.app.run()
+#     #     time.sleep(2)
+#     #
+#     #     # call the base class init
+#     #     super(TestWebApi, self).__init__(arg)
+#     #
+#     #def get_app(self):
+#     #    return self.app
+#
+#     def test_get_sessions(self):
+#         assert False
+#
+#     def test_get_session(self):
+#         assert False
+#
+#     def test_get_config(self):
+#         assert False
+#
+#     def test_post_config(self):
+#         assert False
+#
+#     def test_download(self):
+#         assert False
+#
+#     def test_cache(self):
+#         assert False
+#
+#     def test_cache_since(self):
+#         assert False
 
 
 class TestTcpStateMachine(unittest.TestCase):
@@ -295,7 +295,7 @@ class TestTcpStateMachine(unittest.TestCase):
     """
 
     # set up a TCP server
-    tcpServer = TcpServer(('', 8999))
+    tcpServer = TcpServer('', 8999)
 
     # set up a tcp client
     tcp = TcpClientMock(("127.0.0.1", 8999))
@@ -303,57 +303,72 @@ class TestTcpStateMachine(unittest.TestCase):
     def setUp(self):
         # simulate starting a new connection by entering the init state
         self.tcp = TestTcpStateMachine.tcp
-        self.tcp.current_state = BaseState().enter_state(self.tcp, InitState)
+        self.tcp.current_state = BaseState().enter_state(self.tcp, ClientInitState)
 
     def test_enter_init_state_on_load(self):
-        assert type(self.tcp.current_state) == InitState
+        assert type(self.tcp.current_state) == ClientInitState
 
     def test_enter_logging_state_after_init_ack(self):
         self.tcp.process_message("ACK")
-        assert type(self.tcp.current_state) == LoggingState
+        assert type(self.tcp.current_state) == ClientLoggingState
 
     def test_enter_idle_state_from_logging_stop(self):
         self.tcp.process_message("ACK") # enter logging state
-        assert type(self.tcp.current_state) == LoggingState
+        assert type(self.tcp.current_state) == ClientLoggingState
 
         self.tcp.request_stop() # enter stopping state
-        assert type(self.tcp.current_state) == StoppingState
+        assert type(self.tcp.current_state) == ClientStoppingState
 
         self.tcp.process_message("ACK") # enter idle state
-        assert type(self.tcp.current_state) == IdleState
+        assert type(self.tcp.current_state) == ClientIdleState
 
     def test_enter_idle_state_after_init_nack(self):
         self.tcp.process_message("NACK")
-        assert type(self.tcp.current_state) == IdleState
+        assert type(self.tcp.current_state) == ClientIdleState
 
     def test_enter_logging_state_after_idle_start(self):
         self.tcp.process_message("NACK") # enter idle state
-        assert type(self.tcp.current_state) == IdleState
+        assert type(self.tcp.current_state) == ClientIdleState
 
         self.tcp.request_start()
-        assert type(self.tcp.current_state) == StartingState
+        assert type(self.tcp.current_state) == ClientStartingState
 
         self.tcp.process_message("ACK")
-        assert type(self.tcp.current_state) == LoggingState
+        assert type(self.tcp.current_state) == ClientLoggingState
 
     def test_enter_downloading_state_from_idle(self):
         self.tcp.process_message("NACK") # enter idle state
-        assert type(self.tcp.current_state) == IdleState
+        assert type(self.tcp.current_state) == ClientIdleState
 
         self.tcp.request_download(1)
-        assert type(self.tcp.current_state) == DownloadingState
+        assert type(self.tcp.current_state) == ClientDownloadingState
 
         self.tcp.process_message("asdfasdf")
         self.tcp.process_message("12345678")
         self.tcp.process_message("87654321")
-        assert type(self.tcp.current_state) == DownloadingState
+        assert type(self.tcp.current_state) == ClientDownloadingState
 
         self.tcp.process_message("NACK")
-        assert type(self.tcp.current_state) == IdleState
+        assert type(self.tcp.current_state) == ClientIdleState
 
     def test_receive_insession_on_start_during_logging(self):
         self.tcp.process_message("ACK") # enter idle state
-        assert type(self.tcp.current_state) == LoggingState
+        assert type(self.tcp.current_state) == ClientLoggingState
 
         self.tcp.request_start()
-        assert type(self.tcp.current_state) == LoggingState
+        assert type(self.tcp.current_state) == ClientLoggingState
+
+
+class TestTcpServerStateMachine(unittest.TestCase):
+    """
+    Tests whether the state machine for the TcpServer follows the expected process
+    """
+
+    def setUp(self):
+        self.tcp = TcpServer('localhost', 8990)
+
+    def tearDown(self):
+        self.tcp.stop()
+
+    def test_enter_idle_state_on_load(self):
+        assert type(self.tcp.current_state) == ServerIdleState
