@@ -39,7 +39,7 @@ class BaseState(object):
     def __str__(self):
         return "<" + __name__ + ">"
 
-class InitState(BaseState):
+class ClientInitState(BaseState):
     """
     Handles the client starting up - sends a "logging" query
     to the logger and waits for the response
@@ -54,16 +54,16 @@ class InitState(BaseState):
         print "Calling init.process_message: " + msg
         if msg == "ACK":
             # logger is logging, transition to LOGGING state
-            return self.go_to_state(tcp, LoggingState)
+            return self.go_to_state(tcp, ClientLoggingState)
         elif msg == "NACK":
             # logger is not logging, go to idle
-            return self.go_to_state(tcp, IdleState)
+            return self.go_to_state(tcp, ClientIdleState)
         else:
             # no other messages are acceptable in this state
             raise Exception("Unable to process the given message from InitState: " + msg)
 
 
-class IdleState(BaseState):
+class ClientIdleState(BaseState):
     """
     Handles the client idling, waiting for further commands
     """
@@ -76,23 +76,23 @@ class IdleState(BaseState):
         print "Calling idle.send_message: " + msg
         if msg == "START":
             tcp.send(msg)
-            return self.go_to_state(tcp, StartingState)
+            return self.go_to_state(tcp, ClientStartingState)
         elif msg[0:8] == "DOWNLOAD":
             tcp.send(msg)
-            return self.go_to_state(tcp, DownloadingState)
+            return self.go_to_state(tcp, ClientDownloadingState)
         else:
             raise Exception("Unknown message for IDLE state - " + msg)
 
 
-class StartingState(BaseState):
+class ClientStartingState(BaseState):
     """Handles logging starting - waits for ACK from server"""
     def process_message(self, tcp, msg):
         print "Calling starting.process_message: " + msg
         if msg == "ACK":
-            return self.go_to_state(tcp, LoggingState)
+            return self.go_to_state(tcp, ClientLoggingState)
 
 
-class LoggingState(BaseState):
+class ClientLoggingState(BaseState):
     """
     Handles the client in logging state - sends periodic status updates
     """
@@ -102,7 +102,7 @@ class LoggingState(BaseState):
         # check if we have requested logging to stop
         if msg == "STOP":
             tcp.send("STOP")
-            return self.go_to_state(tcp, StoppingState)
+            return self.go_to_state(tcp, ClientStoppingState)
 
         # if not, are we requesting a status?
         if msg == "STATUS":
@@ -116,18 +116,18 @@ class LoggingState(BaseState):
         return self
 
 
-class StoppingState(BaseState):
+class ClientStoppingState(BaseState):
     """
     Handles waiting for acknowledgement from a client before entering IDLE state
     """
     def process_message(self, tcp, msg):
         print "Calling stopping.process_message: " + msg
         if msg == "ACK":
-            return self.go_to_state(tcp, IdleState)
+            return self.go_to_state(tcp, ClientIdleState)
         return self
 
 
-class DownloadingState(BaseState):
+class ClientDownloadingState(BaseState):
     """
     Handles the client in logging state - sends periodic status updates
     """
@@ -136,7 +136,7 @@ class DownloadingState(BaseState):
         if msg == "NACK":
             # the data has been received
             self.send_message(tcp, "ACK")
-            return self.go_to_state(tcp, IdleState)
+            return self.go_to_state(tcp, ClientIdleState)
 
         # otherwise we save the data row for processing
         tcp.parse_reading(msg)
@@ -144,7 +144,7 @@ class DownloadingState(BaseState):
 
     def go_to_state(self, tcp, state):
         print "Calling downloading.go_to_state >> " + state.__name__
-        if type(state) == IdleState:
+        if type(state) == ClientIdleState:
             tcp.send("ACK") # acknowledge end of download recieved
 
-        return super(DownloadingState, self).go_to_state(tcp, state)
+        return super(ClientDownloadingState, self).go_to_state(tcp, state)
