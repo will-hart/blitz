@@ -295,7 +295,7 @@ class TestTcpStateMachine(unittest.TestCase):
     """
 
     # set up a TCP server
-    tcpServer = TcpServer('', 8999)
+    tcpServer = TcpServer(('', 8999))
 
     # set up a tcp client
     tcp = TcpClientMock(("127.0.0.1", 8999))
@@ -365,10 +365,13 @@ class TestTcpServerStateMachine(unittest.TestCase):
     """
 
     def setUp(self):
-        self.tcp = TcpServer('localhost', 8990)
-
-    def tearDown(self):
-        self.tcp.stop()
+        self.tcp = TcpServer(('localhost', 8990))
 
     def test_enter_idle_state_on_load(self):
         assert type(self.tcp.current_state) == ServerIdleState
+        self.tcp.socket.close()
+        assert type(self.tcp.current_state) == ServerClosedState
+
+    def test_enter_logging_state_on_start(self):
+        assert type(self.tcp.current_state) == ServerIdleState
+
