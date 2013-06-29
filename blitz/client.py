@@ -84,7 +84,7 @@ class Application(object):
         """
 
         # create a file logger and set it up for logging to file
-        logging.basicConfig(filename='log.txt', level=logging.DEBUG, format='[%(asctime)s %(levelname)s]   %(message)s')
+        logging.basicConfig(filename='log.txt', level=logging.DEBUG, format='[%(asctime)s %(levelname)s %(threadName)-10s]:    %(message)s')
         self.logger = logging.getLogger(__name__)
 
         # load configuration
