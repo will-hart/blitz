@@ -5,6 +5,7 @@ import threading
 import SocketServer
 
 from blitz.io.client_states import *
+from blitz.io.server_states import *
 
 
 class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
@@ -31,11 +32,27 @@ class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
 
 
 class TcpServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
+
+    current_state = None
+
+    def send(self, msg):
+        """
+        Send a message to clients
+        """
+        #todo errrr....
+        print "[SERVER_SEND] " + msg
+
+    def shutdown(self):
+        self.current_state = self.current_state.go_to_state(self, ServerClosedState)
+        SocketServer.TCPServer.shutdown(self)
+
+
     def __init__(self, address):
         """
         Creates a new TCP server
         """
         SocketServer.TCPServer.__init__(self, address, ThreadedTCPRequestHandler)
+        self.current_state = BaseState().go_to_state(self, ServerIdleState)
 
 
 class TcpClient(object):
