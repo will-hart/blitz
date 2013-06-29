@@ -123,6 +123,7 @@ class TcpClient(object):
         self._stop_event = threading.Event()
         self._outbox_lock = threading.RLock()
         self._client_thread = threading.Thread(target=self.listen, args=[self._stop_event])
+        self._client_thread.daemon = True
         print "[CLIENT] > Launching listen thread"
         self._client_thread.start()
 
