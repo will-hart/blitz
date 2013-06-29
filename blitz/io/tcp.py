@@ -103,7 +103,9 @@ class TcpClient(object):
         """
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._socket.connect(address)
+        self._socket.settimeout(0.5)
         self.connected = True
+        self._outbox = []
 
         # start up the state machine
         self.current_state = BaseState().enter_state(self, ClientInitState)
@@ -116,8 +118,9 @@ class TcpClient(object):
 
     def _send(self, message):
         """
-        Send the given message and read the echoed response
+        Queues the given message and read the echoed response
         """
+        self._outbox.append(message)
 
         if not self.connected:
             raise Exception("Attempted to send data on a closed socket!")
@@ -125,8 +128,9 @@ class TcpClient(object):
         try:
             print "Sending: {}".format(message)
             self._socket.sendall(message)
-            #response = self._socket.recv(1024)
-            #print "Received: {}".format(response)
+            response = self._socket.recv(1024)
+            print "Received: {}".format(response)
+            self.process_message(response)
         except Exception as e:
             print "An error occurred - {}".format(e)
             print " >> Closing the socket"
