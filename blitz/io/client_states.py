@@ -86,7 +86,7 @@ class ClientIdleState(BaseState):
 class ClientStartingState(BaseState):
     """Handles logging starting - waits for ACK from server"""
     def enter_state(self, tcp, state):
-        print "Calling starting.send_message: " + state.__name__
+        print "Calling starting.enter_state: " + state.__name__
         tcp._send("START")
 
     def process_message(self, tcp, msg):
