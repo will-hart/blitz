@@ -1,6 +1,7 @@
 __author__ = 'Will Hart'
 
 import datetime
+import logging
 import time
 import unittest
 
@@ -13,6 +14,14 @@ from blitz.data.fixtures import *
 from blitz.data.models import *
 from blitz.io.database import DatabaseClient
 from blitz.io.tcp import TcpServer
+
+# set up logging globally for tests
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+formatter = logging.Formatter('[%(asctime)s %(levelname)s %(threadName)-10s]:    %(message)s')
+ch.setFormatter(formatter)
+logger = logging.getLogger(__name__)
+logger.addHandler(ch)
 
 
 class TestDatabaseClientSetup(unittest.TestCase):
