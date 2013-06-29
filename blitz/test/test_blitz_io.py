@@ -3,13 +3,14 @@ __author__ = 'Will Hart'
 import datetime
 import sqlalchemy
 import time
-from tornado.testing import AsyncHTTPClient, AsyncHTTPTestCase
+from tornado.ioloop import IOLoop
 import unittest
 
-from blitz.client import Application
+from blitz.io.client_states import *
 from blitz.data.fixtures import *
 from blitz.data.models import *
 from blitz.io.database import DatabaseClient
+from blitz.io.tcp import TcpServer
 
 
 class TestDatabaseClientSetup(unittest.TestCase):
@@ -34,6 +35,17 @@ class TestDatabaseClientSetup(unittest.TestCase):
 
         # check we have the right number of tables and the correct table names
         assert(set(SQL_BASE.metadata.tables.keys()) == {"cache", "reading","category", "config", "session"})
+
+    def test_load_fixtures(self):
+
+        self.db.create_tables(True)
+        self.db.load_fixtures()
+
+        assert len(self.db.all(Cache)) == len(CACHE_FIXTURES)
+        assert len(self.db.all(Category)) == len(CATEGORY_FIXTURES)
+        assert len(self.db.all(Config)) == len(CONFIG_FIXTURES)
+        assert len(self.db.all(Reading)) == len(READING_FIXTURES)
+        assert len(self.db.all(Session)) == len(SESSION_FIXTURES)
 
 
 class TestBasicDatabaseOperations(unittest.TestCase):
@@ -275,3 +287,73 @@ class TestWebApi(unittest.TestCase):
     def test_cache_since(self):
         assert False
 
+
+class TestTcpStateMachine(unittest.TestCase):
+    """
+    Tests that the TCP state machine on the client side enters and exits the
+    correct states
+    """
+
+    # set up a TCP server
+    tcpServer = TcpServer(('', 8999))
+
+    # set up a tcp client
+    tcp = TcpClientMock(("127.0.0.1", 8999))
+
+    def setUp(self):
+        # simulate starting a new connection by entering the init state
+        self.tcp = TestTcpStateMachine.tcp
+        self.tcp.current_state = BaseState().enter_state(self.tcp, InitState)
+
+    def test_enter_init_state_on_load(self):
+        assert type(self.tcp.current_state) == InitState
+
+    def test_enter_logging_state_after_init_ack(self):
+        self.tcp.process_message("ACK")
+        assert type(self.tcp.current_state) == LoggingState
+
+    def test_enter_idle_state_from_logging_stop(self):
+        self.tcp.process_message("ACK") # enter logging state
+        assert type(self.tcp.current_state) == LoggingState
+
+        self.tcp.request_stop() # enter stopping state
+        assert type(self.tcp.current_state) == StoppingState
+
+        self.tcp.process_message("ACK") # enter idle state
+        assert type(self.tcp.current_state) == IdleState
+
+    def test_enter_idle_state_after_init_nack(self):
+        self.tcp.process_message("NACK")
+        assert type(self.tcp.current_state) == IdleState
+
+    def test_enter_logging_state_after_idle_start(self):
+        self.tcp.process_message("NACK") # enter idle state
+        assert type(self.tcp.current_state) == IdleState
+
+        self.tcp.request_start()
+        assert type(self.tcp.current_state) == StartingState
+
+        self.tcp.process_message("ACK")
+        assert type(self.tcp.current_state) == LoggingState
+
+    def test_enter_downloading_state_from_idle(self):
+        self.tcp.process_message("NACK") # enter idle state
+        assert type(self.tcp.current_state) == IdleState
+
+        self.tcp.request_download(1)
+        assert type(self.tcp.current_state) == DownloadingState
+
+        self.tcp.process_message("asdfasdf")
+        self.tcp.process_message("12345678")
+        self.tcp.process_message("87654321")
+        assert type(self.tcp.current_state) == DownloadingState
+
+        self.tcp.process_message("NACK")
+        assert type(self.tcp.current_state) == IdleState
+
+    def test_receive_insession_on_start_during_logging(self):
+        self.tcp.process_message("ACK") # enter idle state
+        assert type(self.tcp.current_state) == LoggingState
+
+        self.tcp.request_start()
+        assert type(self.tcp.current_state) == LoggingState

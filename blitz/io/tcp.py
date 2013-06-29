@@ -55,7 +55,7 @@ class TcpClient(object):
         self.connected = True
 
         # start up the state machine
-        self.current_state = InitState().enter_state(self)
+        self.current_state = BaseState().enter_state(self, InitState)
 
     def send(self, message):
         """
@@ -83,7 +83,13 @@ class TcpClient(object):
         self._socket.close()
         self.connected = False
 
-    def parse_reading(self):
+    def process_message(self, msg):
+        """
+        Process a message received via TCP by using the state machine
+        """
+        self.current_state = self.current_state.process_message(self, msg)
+
+    def parse_reading(self, msg):
         """
         Parses a reading received from a state machine using ExpansionBoard
         classes.
