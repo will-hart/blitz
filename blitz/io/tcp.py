@@ -55,7 +55,7 @@ class TcpClient(object):
         self.connected = True
 
         # start up the state machine
-        self.current_state = BaseState().enter_state(self, InitState)
+        self.current_state = BaseState().enter_state(self, ClientInitState)
 
     def send(self, message):
         """
@@ -125,7 +125,7 @@ class TcpClient(object):
         """
         Asks the server if it is currently logging
         """
-        self.current_state = self.current_state.go_to_state(self, InitState)
+        self.current_state = self.current_state.go_to_state(self, ClientInitState)
 
 
 # EXAMPLE USAGE:
