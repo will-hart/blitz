@@ -2,6 +2,8 @@ __author__ = 'Will Hart'
 
 import datetime
 
+from blitz.io.tcp import TcpClient
+
 time0 = datetime.datetime.now()
 time1 = datetime.datetime.now() - datetime.timedelta(seconds=1)
 time2 = datetime.datetime.now() - datetime.timedelta(seconds=2)
@@ -53,3 +55,22 @@ def generate_objects(model, fixtures):
     for f in fixtures:
         res.append(model(**f))
     return res
+
+
+class TcpClientMock(TcpClient):
+    """
+    A class for mocking TCP operations (client side) during unit testing
+    """
+    def send(self, msg):
+        """Mocks sending a TCP message by printing to stdout"""
+        print "[SEND] ", msg
+
+    def parse_reading(self, msg):
+        """Mocks processing a data message by printing message to stdout, then pass to super class"""
+        print "[PARSE] ", msg
+        super(TcpClientMock, self).parse_reading(msg)
+
+    def process_message(self, msg):
+        """Log then process the message using the super class"""
+        print "[RECEIVE] ", msg
+        super(TcpClientMock, self).process_message(msg)
