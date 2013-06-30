@@ -1,11 +1,12 @@
 __author__ = 'Will Hart'
 
+import logging
+
 from blitz.io.database import DatabaseClient
 from blitz.io.tcp import TcpClient
 import blitz.web.api as blitz_api
 import blitz.web.http as blitz_http
 
-import logging
 
 #import json
 import os.path
@@ -84,8 +85,10 @@ class Application(object):
         """
 
         # create a file logger and set it up for logging to file
-        logging.basicConfig(filename='log.txt', level=logging.DEBUG, format='[%(asctime)s %(levelname)s %(threadName)-10s]:    %(message)s')
+        logging.basicConfig(filename='log.txt', level=logging.DEBUG, format='[%(asctime)s %(levelname)-10s %(threadName)-10s]:    %(message)s')
+        ch = logging.StreamHandler()
         self.logger = logging.getLogger(__name__)
+        self.logger.addHandler(ch)
 
         # load configuration
         self.config = Config()
@@ -98,7 +101,7 @@ class Application(object):
         self.logger.debug("Initialised client database")
 
         # create a TCP connection
-        self.socket = TcpClient()
+        self.socket = TcpClient("localhost", 8999)  # TODO - get from config
         self.logger.debug("Initialised TCP socket - not connected")
 
         # create an application

@@ -19,7 +19,7 @@ from blitz.io.tcp import TcpServer
 # set up logging globally for tests
 ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
-formatter = logging.Formatter('[%(asctime)s %(levelname)s %(threadName)-10s]:    %(message)s')
+formatter = logging.Formatter('[%(asctime)s %(levelname)-10s %(threadName)-10s]:    %(message)s')
 ch.setFormatter(formatter)
 logger = logging.getLogger(__name__)
 logger.addHandler(ch)
