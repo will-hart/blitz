@@ -82,8 +82,7 @@ class TcpServer(tornadoTCP):
         """Registers a callback that shuts down the tornado server"""
 
         # register the shutdown handler with the IO loop
-        loop = IOLoop.instance()
-        loop.add_callback(self._do_shutdown)
+        IOLoop.instance().add_callback(self._do_shutdown)
 
         # set the correct shutdown state
         self.current_state = self.current_state.go_to_state(self, ServerClosedState)
