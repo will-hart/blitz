@@ -2,6 +2,7 @@ __author__ = 'Will Hart'
 
 import datetime
 
+from blitz.io.boards import BaseExpansionBoard
 from blitz.io.tcp import TcpClient
 
 time0 = datetime.datetime.now()
@@ -74,3 +75,28 @@ class TcpClientMock(TcpClient):
         """Log then process the message using the super class"""
         print "[RECEIVE] ", msg
         super(TcpClientMock, self).process_message(msg)
+
+
+class ExpansionBoardMock(BaseExpansionBoard):
+    """
+    Test the parsing abilities of expansion boards
+    """
+    def identify_board(self):
+        self.id = 0
+        self.description = "Expansion Board Mock For Testing"
+
+    def get_variables(self):
+        return {
+            "flag_one": self.get_flag(0),
+            "flag_two": self.get_flag(1),
+            "flag_three": self.get_flag(2),
+            "flag_four": self.get_flag(3),
+            "flag_five": self.get_flag(4),
+
+            "type": self.get_type(),
+
+            "full_payload": self.get_raw_payload(),
+
+            "variable_a": self.get_number(0, 16),
+            "variable_b": self.get_number(12, 16)
+        }

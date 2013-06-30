@@ -548,14 +548,26 @@ class TestTcpServerStateMachine(unittest.TestCase):
         assert type(self.tcp.current_state) == ServerIdleState
 
 
+class TestExpansionBoardParsing(unittest.TestCase):
+    """
+    A test case to ensure that expansion boards are initalising correctly
+    and are parsing data correctly
+    """
 
+    def test_expansion_board_parses_valid_message(self):
+        message = "\0xE3\0x28\0x2F\0x19\0x57\0x20\0x76\0xAC"
+        board = ExpansionBoardMock()
+        board.parse_message(message)
 
+        result = board.get_variables()
 
-
-
-
-
-
-
-
+        # TODO - check these results by hand
+        assert result['full_payload'] == 7877176
+        assert result['flag_one'] == True
+        assert result['flag_two'] == True
+        assert result['flag_three'] == False
+        assert result['flag_four'] == False
+        assert result['flag_five'] == False
+        assert result['variable_a'] == 30770
+        assert result['variable_b'] == 568
 
