@@ -25,7 +25,7 @@ class ClientConnection(object):
         self.close = False
         self.do_read()
 
-    def _stream_closed(self, *args, **kwargs):
+    def _stream_closed(self):  # , *args, **kwargs):
         """A callback that triggers when the stream is closed"""
         self.logger.debug("[SERVER] > Closing client stream")
         self._server.unregister_client(self)
@@ -37,7 +37,7 @@ class ClientConnection(object):
 
     def _on_read(self, line):
         """Handle a read message"""
-        self._server.process_message(line.replace("\n",""))
+        self._server.process_message(line.replace("\n", ""))
 
     def send(self, message):
         """Writes a message to the socket"""
@@ -88,12 +88,10 @@ class TcpServer(tornadoTCP):
         # set the correct shutdown state
         self.current_state = self.current_state.go_to_state(self, ServerClosedState)
 
-
     def _do_shutdown(self):
         """The callback which does the shutting down"""
         loop = IOLoop.instance()
         loop.blitz_tcp_server.stop()
-
 
     def unregister_client(self, client):
         self.logger.debug("[SERVER] > Client disconnected...")
@@ -207,7 +205,7 @@ class TcpClient(object):
         Parses a reading received from a state machine using ExpansionBoard
         classes.
         """
-        # TODO
+        # TODO - pass to a BoardManager for parsing and storage in the database
         pass
 
     def request_status(self):

@@ -1,9 +1,10 @@
 __author__ = 'Will Hart'
 
 from bitstring import BitArray
-from construct import Struct, UBInt8, UBInt16, UBInt32, BitStruct, BitField, Flag
+from construct import Struct, UBInt8, UBInt16, UBInt32, BitStruct, BitField, Flag, FieldError
 
 from blitz.io.signals import data_line_received, data_line_processed, registering_boards
+
 
 class BaseExpansionBoard(object):
     """
@@ -51,7 +52,13 @@ class BaseExpansionBoard(object):
         data_line_received.send(raw_message)
 
         # parse the message
-        self._generated = self._mapping_struct.parse(raw_message)
+        try:
+            self._generated = self._mapping_struct.parse(raw_message)
+        except FieldError as f:
+            raise Exception(
+                "Unable to parse message [%s]- expected 8 bytes, found %s" % (
+                    raw_message, len(raw_message))
+            )
 
         # get the payload into a bit_array
         self._payload_array = BitArray(hex(self._generated.payload))
@@ -78,9 +85,12 @@ class BaseExpansionBoard(object):
     def get_number(self, start_bit, length):
         """
         Get a number from the payload, breaking out bits between 'start_bit' and 'length'.
+        Note that the bits are 1 indexed - e.g. the first bit is bit #1
         This method SHOULD NOT be overridden by derived classes
         """
-        return self._payload_array[start_bit:start_bit + length].int
+        start = start_bit - 1
+        end = start + length
+        return self._payload_array[start:end].int
 
     def get_type(self):
         """
@@ -104,6 +114,13 @@ class BaseExpansionBoard(object):
         This method SHOULD NOT be overridden by derived classes
         """
         return self._generated.payload
+
+    def get_timestamp(self):
+        """
+        Returns the timestamp (UNIX TIMESTAMP format) from the message
+        This method SHOULD NOT be overridden by derived classes
+        """
+        return self._generated.timestamp
 
     def identify_board(self):
         """
@@ -133,7 +150,7 @@ class BlitzBasicExpansionBoard(BaseExpansionBoard):
 
     def get_variables(self):
         return {
-            "adc_channel_one": self.get_number(0, 10),
-            "adc_channel_two": self.get_number(10, 10),
-            "adc_channel_three": self.get_number(20, 10)
+            "adc_channel_one": self.get_number(1, 10),
+            "adc_channel_two": self.get_number(11, 10),
+            "adc_channel_three": self.get_number(21, 10)
         }

@@ -8,11 +8,12 @@ import unittest
 import sqlalchemy
 from sqlalchemy import orm
 
-from blitz.io.client_states import *
-from blitz.io.server_states import *
 from blitz.data.fixtures import *
 from blitz.data.models import *
+from blitz.io.boards import BlitzBasicExpansionBoard
+from blitz.io.client_states import *
 from blitz.io.database import DatabaseClient
+from blitz.io.server_states import *
 from blitz.io.tcp import TcpServer
 
 # set up logging globally for tests
@@ -570,4 +571,33 @@ class TestExpansionBoardParsing(unittest.TestCase):
         assert result['flag_five'] == False
         assert result['variable_a'] == 30770
         assert result['variable_b'] == 568
+
+    def test_blitz_basic_expansion_board(self):
+        board = BlitzBasicExpansionBoard()
+        board.parse_message("\0x05\0x75\0x55\0x55\0xcc\0xcc\0xcc\0xcc")
+        result = board.get_variables()
+
+        expected = {
+            "adc_channel_one": -205,
+            "adc_channel_two": 204,
+            "adc_channel_three": -205
+        }
+
+        # check get variables
+        assert set(result.keys()) == set(expected.keys())
+        for k in expected:
+            logger.debug("%s: %s = %s?" % (k, result[k], expected[k]))
+            assert result[k] == expected[k]
+
+        # check other parsed variables
+        assert board.id == 5
+        assert board.get_type() == 3
+        assert board._flags == [True, False, True, False, True]
+        assert board.get_timestamp() == 21845
+
+    def test_short_length_raises_exception(self):
+        board = BlitzBasicExpansionBoard()
+        with(self.assertRaises(Exception)):
+            board.parse_message("cc")
+
 
