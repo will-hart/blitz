@@ -35,13 +35,20 @@ class BoardManager(object):
         the board is already registered
         """
         if board_id in self.boards.keys():
+            self.logger.error("Failed to register board [%s: %s]" % (board_id, board.description))
             raise Exception("Attempted to register a board against an existing ID: %s" % board_id)
 
+        self.logger.info("Registered expansion board [%s: %s]" % (board_id, board.description))
         self.boards[board_id] = board
 
     def parse_message(self, message, board_id, session_id=None):
         """
         Gets a variable dictionary from a board and save to database
+        :rtype : bool
+        :return: True if successfully parsed, False if unable to parse
+        :param message: The raw message to parse
+        :param board_id: The id of the board to parse the message
+        :param session_id: The session ID of the message (ignore if getting cached variables)
         """
 
         try:
@@ -66,6 +73,8 @@ class BoardManager(object):
             else:
                 # adding to cache
                 self.data.add_cache(timeLogged, category_id, result[key])
+
+        return True
 
 
 class BaseExpansionBoard(object):
