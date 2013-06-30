@@ -20,10 +20,12 @@ logger_connected = signal('logger_connected')
 # fired when a server TCP connection is closed
 logger_disconnected = signal('logger_disconnected')
 
-# fired when the client receives a data row for processing
+# fired when the expansion board receives a data row for processing
+# allows pre-processing of data
 data_line_received = signal('data_line_received')
 
 # fired when a variable is ready for entry into the database
+# allows post processing of data
 data_variable_decoded = signal('data_variable_decoded')
 
 # fired when a board has finished processing a data line
@@ -31,3 +33,6 @@ data_line_processed = signal('data_line_processed')
 
 # called when an expansion board is registered
 expansion_board_registered = signal('expansion_board_registered')
+
+# called when expansion boards should be registered with the board manager
+registering_boards = signal('registering_boards')
