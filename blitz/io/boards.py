@@ -1,9 +1,71 @@
 __author__ = 'Will Hart'
 
+import datetime
+import logging
+
 from bitstring import BitArray
 from construct import Struct, UBInt8, UBInt16, UBInt32, BitStruct, BitField, Flag, FieldError
 
 from blitz.io.signals import data_line_received, data_line_processed, registering_boards
+
+
+class BoardManager(object):
+    """
+    A BoardManager registers expansion boards and handles parsing
+    of raw messages and insertion into the database
+    """
+
+    boards = {}
+    logger = logging.getLogger(__name__)
+
+    def __init__(self, database):
+        """
+        Register boards by ID
+        """
+
+        # save a reference to the database
+        self.data = database
+
+        # send the signal to register boards
+        registering_boards.send(self)
+
+    def register_board(self, board_id, board):
+        """
+        Register a board against the given ID, throwing an error if
+        the board is already registered
+        """
+        if board_id in self.boards.keys():
+            raise Exception("Attempted to register a board against an existing ID: %s" % board_id)
+
+        self.boards[board_id] = board
+
+    def parse_message(self, message, board_id, session_id=None):
+        """
+        Gets a variable dictionary from a board and save to database
+        """
+
+        try:
+            board = self.boards[board_id]
+        except KeyError:
+            self.logger.debug("Ignoring message (%s) for unknown board id - %s" % (message, board_id))
+            return False
+
+        # use the board to parse the message
+        board.parse_message(message)
+        result = board.get_variables()
+
+        # get session metadata
+        timeLogged = datetime.datetime.from_timestamp(board.get_timestamp())
+
+        # write the variables to the database
+        for key in result.keys():
+            category_id = self.data.get_or_create_category(key)
+            if session_id:
+                # adding a reading
+                self.data.add_reading(session_id, timeLogged, category_id, result[key])
+            else:
+                # adding to cache
+                self.data.add_cache(timeLogged, category_id, result[key])
 
 
 class BaseExpansionBoard(object):
@@ -38,7 +100,6 @@ class BaseExpansionBoard(object):
         # subscribe to the registering_boards signal
         registering_boards.connect(self.register_board)
 
-
     def parse_message(self, raw_message):
         """
         Takes a raw binary message received from an expansion board and breaks
@@ -54,7 +115,7 @@ class BaseExpansionBoard(object):
         # parse the message
         try:
             self._generated = self._mapping_struct.parse(raw_message)
-        except FieldError as f:
+        except FieldError:
             raise Exception(
                 "Unable to parse message [%s]- expected 8 bytes, found %s" % (
                     raw_message, len(raw_message))
