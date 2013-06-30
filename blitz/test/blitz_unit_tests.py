@@ -56,7 +56,7 @@ class TestDatabaseClientSetup(unittest.TestCase):
         self.db.create_tables()
 
         # check we have the right number of tables and the correct table names
-        assert(set(SQL_BASE.metadata.tables.keys()) == {"cache", "reading","category", "config", "session"})
+        assert(set(SQL_BASE.metadata.tables.keys()) == {"cache", "reading", "category", "config", "session"})
 
     def test_load_fixtures(self):
 
@@ -152,7 +152,7 @@ class TestBasicDatabaseOperations(unittest.TestCase):
     def setUp(self):
 
         # create a database
-        self.db = DatabaseClient() # pass true to DatabaseClient() to get verbose logging from SQLAlchemy
+        self.db = DatabaseClient()  # pass true to DatabaseClient() to get verbose logging from SQLAlchemy
         self.db.create_tables()
 
         # add the fixtures
@@ -182,8 +182,8 @@ class TestBasicDatabaseOperations(unittest.TestCase):
     def test_filter_readings(self):
         res = self.db.find(Reading, {"categoryId": 2})
         assert(res.count() == 2)
-        assert(res[0].id in [3,4])
-        assert(res[1].id in [3,4])
+        assert(res[0].id in [3, 4])
+        assert(res[1].id in [3, 4])
         for x in res:
             assert type(x) == Reading
 
@@ -248,7 +248,7 @@ class TestBasicDatabaseOperations(unittest.TestCase):
 class TestDatabaseHelpers(unittest.TestCase):
     def setUp(self):
         # create a database
-        self.db = DatabaseClient() # pass True to DatabaseClient() to get verbose logging from SQLAlchemy
+        self.db = DatabaseClient()  # pass True to DatabaseClient() to get verbose logging from SQLAlchemy
         self.db.create_tables(True)
 
         # add the fixtures
@@ -441,13 +441,13 @@ class TestTcpClientStateMachine(unittest.TestCase):
         assert type(self.tcp.current_state) == ClientLoggingState
 
     def test_enter_idle_state_from_logging_stop(self):
-        self.tcp.process_message("ACK") # enter logging state
+        self.tcp.process_message("ACK")  # enter logging state
         assert type(self.tcp.current_state) == ClientLoggingState
 
-        self.tcp.request_stop() # enter stopping state
+        self.tcp.request_stop()  # enter stopping state
         assert type(self.tcp.current_state) == ClientStoppingState
 
-        self.tcp.process_message("ACK") # enter idle state
+        self.tcp.process_message("ACK")  # enter idle state
         assert type(self.tcp.current_state) == ClientIdleState
 
     def test_enter_idle_state_after_init_nack(self):
@@ -455,7 +455,7 @@ class TestTcpClientStateMachine(unittest.TestCase):
         assert type(self.tcp.current_state) == ClientIdleState
 
     def test_enter_logging_state_after_idle_start(self):
-        self.tcp.process_message("NACK") # enter idle state
+        self.tcp.process_message("NACK")  # enter idle state
         assert type(self.tcp.current_state) == ClientIdleState
 
         self.tcp.request_start()
@@ -465,7 +465,7 @@ class TestTcpClientStateMachine(unittest.TestCase):
         assert type(self.tcp.current_state) == ClientLoggingState
 
     def test_enter_downloading_state_from_idle(self):
-        self.tcp.process_message("NACK") # enter idle state
+        self.tcp.process_message("NACK")  # enter idle state
         assert type(self.tcp.current_state) == ClientIdleState
 
         self.tcp.request_download(1)
@@ -480,7 +480,7 @@ class TestTcpClientStateMachine(unittest.TestCase):
         assert type(self.tcp.current_state) == ClientIdleState
 
     def test_receive_insession_on_start_during_logging(self):
-        self.tcp.process_message("ACK") # enter idle state
+        self.tcp.process_message("ACK")  # enter idle state
         assert type(self.tcp.current_state) == ClientLoggingState
 
         self.tcp.request_start()
@@ -589,48 +589,50 @@ class TestExpansionBoardParsing(unittest.TestCase):
     """
 
     def test_expansion_board_parses_valid_message(self):
-        message = "\0xE3\0x28\0x2F\0x19\0x57\0x20\0x76\0xAC"
+        message = "e3282f19572076ac"  # random message
         board = ExpansionBoardMock()
         board.parse_message(message)
 
         result = board.get_variables()
 
-        # TODO - check these results by hand
-        assert result['full_payload'] == 7877176
-        assert result['flag_one'] == True
-        assert result['flag_two'] == True
-        assert result['flag_three'] == False
-        assert result['flag_four'] == False
-        assert result['flag_five'] == False
-        assert result['variable_a'] == 30770
-        assert result['variable_b'] == 568
+        assert result['full_payload'] == 1461745324L
+        assert result['flag_one'] is False
+        assert result['flag_two'] is True
+        assert result['flag_three'] is False
+        assert result['flag_four'] is False
+        assert result['flag_five'] is False
+        assert result['variable_a'] == 22304
+        assert result['variable_b'] == 30380
+
+        assert board['type'] == 1
+        assert board['timestamp'] == 12057
+
 
     def test_blitz_basic_expansion_board(self):
         board = BlitzBasicExpansionBoard()
-        board.parse_message("\0x05\0x75\0x55\0x55\0xcc\0xcc\0xcc\0xcc")
+        board.parse_message("05755555cccccccc")
         result = board.get_variables()
 
         expected = {
-            "adc_channel_one": -205,
+            "adc_channel_one": 819,
             "adc_channel_two": 204,
-            "adc_channel_three": -205
+            "adc_channel_three": 819
         }
 
         # check get variables
         assert set(result.keys()) == set(expected.keys())
-        for k in expected:
+        for k in expected.keys():
             logger.debug("%s: %s = %s?" % (k, result[k], expected[k]))
             assert result[k] == expected[k]
 
         # check other parsed variables
-        assert board.id == 5
-        assert board.get_type() == 3
-        assert board._flags == [True, False, True, False, True]
-        assert board.get_timestamp() == 21845
+        assert board['id'] == 1
+        assert board['sender'] == 5
+        assert board['type'] == 3
+        assert board['flags'] == [True, False, True, False, True]
+        assert board['timestamp'] == 21845
 
     def test_short_length_raises_exception(self):
         board = BlitzBasicExpansionBoard()
         with(self.assertRaises(Exception)):
             board.parse_message("cc")
-
-

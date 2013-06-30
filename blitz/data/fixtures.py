@@ -82,8 +82,8 @@ class ExpansionBoardMock(BaseExpansionBoard):
     Test the parsing abilities of expansion boards
     """
     def identify_board(self):
-        self.id = 0
-        self.description = "Expansion Board Mock For Testing"
+        self['id'] = 0
+        self['description'] = "Expansion Board Mock For Testing"
 
     def get_variables(self):
         return {
@@ -93,10 +93,10 @@ class ExpansionBoardMock(BaseExpansionBoard):
             "flag_four": self.get_flag(3),
             "flag_five": self.get_flag(4),
 
-            "type": self.get_type(),
+            "type": self['type'],
 
             "full_payload": self.get_raw_payload(),
 
             "variable_a": self.get_number(0, 16),
-            "variable_b": self.get_number(12, 16)
+            "variable_b": self.get_number(16, 16)
         }

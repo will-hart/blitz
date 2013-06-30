@@ -4,7 +4,6 @@ import datetime
 import logging
 
 from bitstring import BitArray
-from construct import Struct, UBInt8, UBInt16, UBInt32, BitStruct, BitField, Flag, FieldError
 
 from blitz.io.signals import data_line_received, data_line_processed, registering_boards
 
@@ -86,28 +85,44 @@ class BaseExpansionBoard(object):
     This provides basic functionality such as parsing of raw logger messages
     """
 
+    logger = logging.getLogger(__name__)
+
     def __init__(self):
         """
         Initialises the Expansion Board
         """
-        self._mapping_struct = Struct("mapping",
-                                      UBInt8("sender"),
-                                      BitStruct("meta",
-                                                BitField("type", 3),
-                                                Flag("flag_one"),
-                                                Flag("flag_two"),
-                                                Flag("flag_three"),
-                                                Flag("flag_four"),
-                                                Flag("flag_five")),
-                                      UBInt16("timestamp"),
-                                      UBInt32("payload"))
-        self._generated = None
+
+        self.__message = None
+        self.__attributes = {}
+
+        self.__mapping = {
+            "sender": {"start": 0, "end": 8},
+            "type": {"start": 8, "end": 11},
+            "flag1": {"start": 11},
+            "flag2": {"start": 12},
+            "flag3": {"start": 13},
+            "flag4": {"start": 14},
+            "flag5": {"start": 15},
+            "timestamp": {"start": 16, "end": 32},
+            "payload": {"start": 32, "end": 64}
+        }
 
         # ensure this board has an ID (should be unique, 0-255)
         self.identify_board()
 
         # subscribe to the registering_boards signal
         registering_boards.connect(self.register_board)
+
+    def __getitem__(self, item):
+        """Override get item to provide access to attributes"""
+        if item in self.__attributes.keys():
+            return self.__attributes[item]
+        else:
+            raise KeyError("Attempted to get variable from the board which doesn't exist: %s" % item)
+
+    def __setitem__(self, key, value):
+        """Override set item to provide access to attributes"""
+        self.__attributes[key] = value
 
     def parse_message(self, raw_message):
         """
@@ -122,83 +137,77 @@ class BaseExpansionBoard(object):
         data_line_received.send(raw_message)
 
         # parse the message
-        try:
-            self._generated = self._mapping_struct.parse(raw_message)
-        except FieldError:
+        if len(raw_message) != 16:
             raise Exception(
-                "Unable to parse message [%s]- expected 8 bytes, found %s" % (
+                "Unable to parse message [%s]- expected 16 bytes, found %s" % (
                     raw_message, len(raw_message))
             )
 
+        self.__message = BitArray(hex="0x" + raw_message)
+
+        # parse all the variables to match the mapping
+        for key in self.__mapping.keys():
+            if "end" in self.__mapping[key]:
+                self[key] = self.__message[self.__mapping[key]["start"]:self.__mapping[key]["end"]].uint
+            else:
+                self[key] = self.__message[self.__mapping[key]["start"]]
+
         # get the payload into a bit_array
-        self._payload_array = BitArray(hex(self._generated.payload))
+        self._payload_array = BitArray(uint=self["payload"], length=32)
 
         # create a flags array
-        self._flags = [
-            self._generated.meta.flag_one,
-            self._generated.meta.flag_two,
-            self._generated.meta.flag_three,
-            self._generated.meta.flag_four,
-            self._generated.meta.flag_five
+        self['flags'] = [
+            self["flag1"],
+            self["flag2"],
+            self["flag3"],
+            self["flag4"],
+            self["flag5"],
         ]
 
         # raise the finished event
-        data_line_processed.send(raw_message)
+        data_line_processed.send(self)
 
     def register_board(self, manager):
         """
         Registers this board (by ID) with the board manager.  This method SHOULD NOT
         be overridden by derived classes
         """
-        manager.register_board(self.id, self)
+        self.logger.debug("Board [%s:%s] requesting registration" % (self['id'], self['description']))
+        manager.register_board(self['id'], self)
 
     def get_number(self, start_bit, length):
         """
         Get a number from the payload, breaking out bits between 'start_bit' and 'length'.
-        Note that the bits are 1 indexed - e.g. the first bit is bit #1
+        Note that the bits are 0 indexed - e.g. the first bit is bit #0, the second is #1, etc.
         This method SHOULD NOT be overridden by derived classes
         """
-        start = start_bit - 1
+        start = start_bit
         end = start + length
-        return self._payload_array[start:end].int
+        return self._payload_array[start:end].uint
 
-    def get_type(self):
-        """
-        Gets the type of message (3 bit identifier as an integer)
-        This method SHOULD NOT be overridden by derived classes
-        """
-        return self._generated.meta.type
-
-    def get_flag(self, bit_number):
+    def get_flag(self, flag_number):
         """
         Returns the flag defined at the given bit number.
         This method SHOULD NOT be overridden by derived classes
         """
-        if bit_number > len(self._flags) or bit_number < 0:
-            raise Exception("Invalid flag number %s, should be between 0 and 4 (inclusive)" % bit_number)
-        return self._flags[bit_number]
+        if flag_number > len(self['flags']) or flag_number < 0:
+            raise Exception("Invalid flag number %s, should be between 0 and 4 (inclusive)" % flag_number)
+        return self['flags'][flag_number]
 
     def get_raw_payload(self):
         """
         Get the raw payload (an unsigned, big endian, 32 bit number)
         This method SHOULD NOT be overridden by derived classes
         """
-        return self._generated.payload
-
-    def get_timestamp(self):
-        """
-        Returns the timestamp (UNIX TIMESTAMP format) from the message
-        This method SHOULD NOT be overridden by derived classes
-        """
-        return self._generated.timestamp
+        return self['payload']
 
     def identify_board(self):
         """
         Sets the ID of this board (0-255).
-        This method MUST be overriden by derived classes
+        This method MUST be overridden by derived classes
         """
-        self.id = -1
-        self.description = "Base Expansion Board"
+        self['id'] = -1
+        self['description'] = "Base Expansion Board"
 
     def get_variables(self):
         """
@@ -215,12 +224,12 @@ class BlitzBasicExpansionBoard(BaseExpansionBoard):
     """
 
     def identify_board(self):
-        self.id = 1
-        self.description = "Blitz Basic Expansion Board"
+        self['id'] = 1
+        self['description'] = "Blitz Basic Expansion Board"
 
     def get_variables(self):
         return {
-            "adc_channel_one": self.get_number(1, 10),
-            "adc_channel_two": self.get_number(11, 10),
-            "adc_channel_three": self.get_number(21, 10)
+            "adc_channel_one": self.get_number(0, 10),
+            "adc_channel_two": self.get_number(10, 10),
+            "adc_channel_three": self.get_number(20, 10)
         }
