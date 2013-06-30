@@ -343,6 +343,39 @@ class TestDatabaseHelpers(unittest.TestCase):
         configs = self.db.all(Config)
         assert len(configs) == len(CONFIG_FIXTURES) + 1
 
+    def test_get_or_create_category(self):
+        id1 = self.db.get_or_create_category("fourth")
+        assert id1 == 4
+
+        id2 = self.db.get_or_create_category("fourth")
+        assert id1 == id2
+
+    def test_add_reading(self):
+        session_id = 1
+        timeLogged = datetime.datetime.now()
+        category_id = 1
+        value = 5.2
+        reading = self.db.add_reading(session_id, timeLogged, category_id, value)
+
+        result = self.db.get_by_id(Reading, reading.id)
+
+        assert result.sessionId == session_id
+        assert result.timeLogged == timeLogged
+        assert result.categoryId == category_id
+        assert result.value == str(value)
+
+    def test_add_cache(self):
+        timeLogged = datetime.datetime.now()
+        category_id = 1
+        value = 5.2
+        cache = self.db.add_cache(timeLogged, category_id, value)
+
+        result = self.db.get_by_id(Cache, cache.id)
+
+        assert result.timeLogged == timeLogged
+        assert result.categoryId == category_id
+        assert result.value == str(value)
+
 #
 # class TestWebApi(unittest.TestCase):
 #

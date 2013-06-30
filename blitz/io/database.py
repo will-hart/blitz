@@ -1,11 +1,13 @@
 __author__ = 'Will Hart'
 
+import datetime
+
+import sqlalchemy as sql
+from sqlalchemy.orm import sessionmaker
+
 from blitz.data.models import *
 from blitz.data.fixtures import *
 
-import datetime
-import sqlalchemy as sql
-from sqlalchemy.orm import sessionmaker
 
 # create the models
 
@@ -194,6 +196,44 @@ class DatabaseClient(object):
         else:
             config.value = value
             self._session().commit()
+
+    def get_or_create_category(self, key):
+        """
+        Gets the id of a category, or if none is found, create it
+        and return the ID of the created object
+        """
+        category = self.get(Category, {"variableName": key})
+        if category:
+            return category.id
+        else:
+            new_category = Category(variableName=key)
+            self.add(new_category)
+        return new_category.id
+
+    def add_reading(self, session_id, time_logged, category_id, value):
+        """
+        Quick helper to add a reading record to the database
+        """
+        reading = Reading(
+            sessionId=session_id,
+            timeLogged=time_logged,
+            categoryId=category_id,
+            value=value
+        )
+        self.add(reading)
+        return reading
+
+    def add_cache(self, time_logged, category_id, value):
+        """
+        Quick helper to add a cache record to the database
+        """
+        cache = Cache(
+            timeLogged=time_logged,
+            categoryId=category_id,
+            value=value
+        )
+        self.add(cache)
+        return cache
 
 
 class DatabaseServer(object):
