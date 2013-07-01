@@ -3,7 +3,6 @@ __author__ = 'Will Hart'
 import logging
 
 from blitz.io.database import DatabaseClient
-from blitz.io.tcp import TcpClient
 import blitz.web.api as blitz_api
 import blitz.web.http as blitz_http
 
@@ -100,10 +99,6 @@ class Application(object):
         self.data.load_fixtures()
         self.logger.debug("Initialised client database")
 
-        # create a TCP connection
-        self.socket = None
-        self.logger.debug("Initialised TCP socket - not connected")
-
         # create an application
         self.application = tornado.web.Application([
             (r'/', blitz_http.IndexHandler),
@@ -113,7 +108,8 @@ class Application(object):
             (r'/download/(?P<session_id>[^\/]+)', blitz_api.DownloadHandler),
             (r'/session/(?P<session_id>[^\/]+)', blitz_api.SessionHandler),
             (r'/sessions', blitz_api.SessionsHandler),
-            (r'/config', blitz_api.ConfigHandler)
+            (r'/config', blitz_api.ConfigHandler),
+            (r'/connect', blitz_http.ConnectHandler)
         ], **self.config.settings)
         self.logger.debug("Initialised client application")
 
@@ -122,7 +118,7 @@ class Application(object):
         self.logger.info("Initialised client HTTP server")
 
         # save variables for later
-        self.application.settings['socket'] = self.socket
+        self.application.settings['socket'] = None
         self.application.settings['data'] = self.data
 
     def run(self):
