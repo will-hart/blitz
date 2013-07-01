@@ -450,6 +450,42 @@ Blitz.IndexController = Ember.ArrayController.extend({
         Blitz.HandleJsonRaw("connect", function (response) {
             self.set("connected", response.connected);
         });
+    },
+
+    /**
+     * Starts logging, or marks as disconnected if logging was unable to start
+     */
+    startLogging: function startLogging() {
+
+        // check f we are currently logging
+        if (this.get("logging")) {
+            console.log("Unable to start logging - logging is already underway!");
+            return;
+        }
+
+        var self = this;
+        Blitz.HandleJsonRaw("start", function (response) {
+            self.set("logging", response.logging);
+            self.set("connected", response.connected);
+        });
+    },
+
+    /**
+     * Stops the current logging session
+     */
+    stopLogging: function stopLogging() {
+        // check f we are currently logging
+        if (!this.get("logging")) {
+            console.log("Unable to stop logging - logging is not underway");
+            this.set("logging", false);
+            return;
+        }
+
+        var self = this;
+        Blitz.HandleJsonRaw("stop", function (response) {
+            self.set("logging", response.logging);
+            self.set("connected", response.connected);
+        });
     }
 });
 

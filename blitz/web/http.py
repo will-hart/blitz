@@ -33,3 +33,49 @@ class ConnectHandler(RequestHandler):
 
         self.content_type = "application/json"
         self.write(json.dumps(response))
+
+
+class StartHandler(RequestHandler):
+    def get(self):
+        """Attempts to start logging"""
+        tcp = self.application.settings['socket']
+
+        if tcp is None:
+            response = {'logging': False, 'connected': False}
+
+        else:
+            tcp.request_start()
+            response = {'logging': True, 'connected': True}
+
+        self.content_type = "application/json"
+        self.write(json.dumps(response))
+
+
+class StopHandler(RequestHandler):
+    def get(self):
+        """Attempts to start logging"""
+        tcp = self.application.settings['socket']
+
+        if tcp is None:
+            response = {'logging': False, 'connected': False}
+
+        else:
+            tcp.request_stop()
+            response = {'logging': False, 'connected': True}
+
+        self.content_type = "application/json"
+        self.write(json.dumps(response))
+
+
+class StatusHandler(RequestHandler):
+    def get(self):
+        """Get the current system status"""
+        tcp = self.application.settings['socket']
+        response = {
+            "logging": False if tcp is None else tcp.is_logging(),
+            "connected": tcp is None
+        }
+
+        self.content_type = "application/json"
+        self.write(json.dumps(response))
+

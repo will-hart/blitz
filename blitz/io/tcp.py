@@ -128,6 +128,7 @@ class TcpClient(object):
         """
         self._address = (host, port)
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # allow reuse
         self._socket.connect(self._address)
         self._socket.settimeout(0.5)
         self._outbox = []
@@ -237,22 +238,8 @@ class TcpClient(object):
         """
         self.current_state = self.current_state.go_to_state(self, ClientInitState)
 
-
-# EXAMPLE USAGE:
-#
-#
-# from blitz.io.tcp import TcpClient, TcpServer
-# import time
-#
-# # set up objects
-# server = TcpServer(8999)
-# client = TcpClient("127.0.0.1", 8999)
-# self.logger.debug(""
-#
-# # wait then send ACK from server
-# time.sleep(1)
-# server._send("NACK")
-# self.logger.debug(""
-#
-# time.sleep(2)
-# client.request_start()
+    def is_logging(self):
+        """
+        Returns True if the client is currently in logging state
+        """
+        return self.current_state is type(ClientLoggingState)

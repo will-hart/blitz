@@ -20,7 +20,7 @@
 
             {{#if controller.connected}}
                 {{#if controller.logging}}
-                <div id="control_handle" class="slide_out_handle stop_handle"><a {{action stopLogging}}<i class="icon-signal"></i></a></div>
+                <div id="control_handle" class="slide_out_handle stop_handle"><a {{action stopLogging}}<i class="icon-stop"></i></a></div>
                 {{else}}
                 <div id="control_handle" class="slide_out_handle success_handle"><a {{action startLogging}}<i class="icon-play"></i></a></div>
                 {{/if}}

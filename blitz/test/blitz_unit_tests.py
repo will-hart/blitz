@@ -485,11 +485,20 @@ class TestTcpClientStateMachine(unittest.TestCase):
         assert type(self.tcp.current_state) == ClientIdleState
 
     def test_receive_insession_on_start_during_logging(self):
-        self.tcp.process_message("ACK")  # enter idle state
+        self.tcp.process_message("ACK")  # enter logging state
         assert type(self.tcp.current_state) == ClientLoggingState
 
         self.tcp.request_start()
         assert type(self.tcp.current_state) == ClientLoggingState
+
+    def test_is_logging_flag(self):
+        self.tcp.process_message("ACK")  # enter logging state
+        assert type(self.tcp.current_state) == ClientLoggingState
+        assert self.tcp.is_logging() is True
+
+        self.tcp.request_stop()
+        assert type(self.tcp.current_state) == ClientIdleState
+        assert self.tcp.is_logging() is False
 
 
 class TestTcpServerStateMachine(unittest.TestCase):

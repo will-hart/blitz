@@ -109,7 +109,9 @@ class Application(object):
             (r'/session/(?P<session_id>[^\/]+)', blitz_api.SessionHandler),
             (r'/sessions', blitz_api.SessionsHandler),
             (r'/config', blitz_api.ConfigHandler),
-            (r'/connect', blitz_http.ConnectHandler)
+            (r'/connect', blitz_http.ConnectHandler),
+            (r'/start', blitz_http.StartHandler),
+            (r'/stop', blitz_http.StopHandler)
         ], **self.config.settings)
         self.logger.debug("Initialised client application")
 
@@ -137,5 +139,9 @@ class Application(object):
             self.logger.debug("HTTP server started IO loop")
 
         finally:
+            tcp = self.application.settings['socket']
+            if tcp is not None:
+                tcp.disconnect()
+
             self.io_loop.stop()
             self.logger.info("Stopped IO loop resources")
