@@ -327,7 +327,7 @@ Blitz.IndexController = Ember.ArrayController.extend({
     labels: [],
     chartContent: [],
     chartVars: [],
-    lastUpdate: null,
+    lastUpdated: null,
     chartDataDirty: false,
     chartDirty: false,
     needs: ['category', 'config'],
@@ -503,7 +503,7 @@ Blitz.IndexController = Ember.ArrayController.extend({
             self = this;
 
         // request updates
-        Blitz.Reading.findUpdated(this.lastUpdate, function () {
+        Blitz.Reading.findUpdated(this.get('lastUpdated'), function () {
             self.updateLastUpdatedTime();
             self.set("chartDataDirty", true);
         }, this.get('content'));
