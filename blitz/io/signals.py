@@ -36,3 +36,6 @@ expansion_board_registered = signal('expansion_board_registered')
 
 # called when expansion boards should be registered with the board manager
 registering_boards = signal('registering_boards')
+
+# called when plugins are loaded
+plugin_loaded = signal('plugin_loaded')
