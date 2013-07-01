@@ -96,6 +96,23 @@ Blitz.HandleJsonSingle = function (url, model, callback) {
 };
 
 /**
+ * Performs a GET request to the given URL and returns the JSON result
+ * @param url  The URL to request from
+ * @param callback The callback function, passed the result of the AJAX request
+ */
+Blitz.HandleJsonRaw = function (url, callback) {
+    $.ajax({
+        url: Blitz.blitz_api_url + url,
+        type: "GET",
+        dataType: "json"
+    }).success(function (response) {
+        if (callback !== undefined) {
+            callback(response);
+        }
+    });
+};
+
+/**
  * Performs an asynchronous post request to the given URL and sends the supplied JSON data
  *
  * @param url the API endpoint to send to (e.g. "categories" will request from "{{api_url}}/categories"
@@ -429,7 +446,10 @@ Blitz.IndexController = Ember.ArrayController.extend({
      * Handles the connection/disconnection of the TCP socket
      */
     connectToLogger: function connectToLogger() {
-        console.log("Attempting to connect to client");
+        var self = this;
+        Blitz.HandleJsonRaw("connect", function (response) {
+            self.set("connected", response.connected);
+        });
     }
 });
 
