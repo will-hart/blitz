@@ -4,8 +4,10 @@ __doc__= """
 A simple script for debugging the TCP client / server
 """
 
-from blitz.io.tcp import TcpClient, TcpServer
 import time
+
+from blitz.io.tcp import TcpClient, TcpServer
+
 
 # set up objects
 server = TcpServer(8999)
