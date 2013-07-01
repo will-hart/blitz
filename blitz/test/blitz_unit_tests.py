@@ -660,5 +660,3 @@ class TestBoardManager(unittest.TestCase):
         # the BlitzBasic board should be registered as ID 1, no other boards currently registered
         assert len(self.bm.boards) == 1
         assert type(self.bm.boards[1]) == BlitzBasicExpansionBoard
-
-

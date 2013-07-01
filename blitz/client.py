@@ -111,7 +111,8 @@ class Application(object):
             (r'/config', blitz_api.ConfigHandler),
             (r'/connect', blitz_http.ConnectHandler),
             (r'/start', blitz_http.StartHandler),
-            (r'/stop', blitz_http.StopHandler)
+            (r'/stop', blitz_http.StopHandler),
+            (r'/status', blitz_http.StatusHandler)
         ], **self.config.settings)
         self.logger.debug("Initialised client application")
 

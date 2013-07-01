@@ -467,6 +467,10 @@ Blitz.IndexController = Ember.ArrayController.extend({
         Blitz.HandleJsonRaw("start", function (response) {
             self.set("logging", response.logging);
             self.set("connected", response.connected);
+
+            // set a logging update timeout
+            // TODO grab timeout from console
+            setTimeout(function () { self.getUpdates(); }, 2000);
         });
     },
 
@@ -486,6 +490,30 @@ Blitz.IndexController = Ember.ArrayController.extend({
             self.set("logging", response.logging);
             self.set("connected", response.connected);
         });
+    },
+
+    /**
+     * Gets updated logging information from the server. Whilst "this.logging"
+     *  is TRUE, then it repeats this call on a timeout loop
+     */
+    getUpdates: function getUpdates() {
+
+        // find out when the updates are required
+        var since = moment(),
+            self = this;
+
+        // request updates
+        Blitz.Reading.findUpdated(this.lastUpdate, function () {
+            self.updateLastUpdatedTime();
+            self.set("chartDataDirty", true);
+        }, this.get('content'));
+
+        // reset the timeout
+        if (this.get("logging")) {
+            setTimeout(function () {
+                self.getUpdates();
+            }, 2000);
+        }
     }
 });
 
