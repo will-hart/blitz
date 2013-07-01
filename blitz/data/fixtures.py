@@ -2,7 +2,9 @@ from random import random
 
 __author__ = 'Will Hart'
 
+from bitstring import BitArray
 import datetime
+import time
 
 from blitz.io.boards import BaseExpansionBoard
 from blitz.io.tcp import TcpClient
@@ -105,19 +107,25 @@ class ExpansionBoardMock(BaseExpansionBoard):
         }
 
 
-class TcpServerFixtureGenerator(object):
-    """Generates random dictionary of fixtures for the TCP server to send as updates"""
+def generate_tcp_server_fixtures():
+        """Generate a random reading at the given datetime for a BlitzBasic board"""
 
-    @classmethod
-    def generate_cache(cls, categories):
-        """Generate one random reading (between 0 and 10) for each given category"""
+        # build the message preamble (first 48 bits)
+        sender = BitArray(bin="0b00000001")
+        msg_type = BitArray(bin="0b00000000")
+        timestamp = BitArray(int=int(time.mktime(datetime.datetime.now().timetuple())), length=32)
+        preamble = sender + msg_type + timestamp
+        zero = BitArray(bin="0b00")
 
-        readings = []
+        # generate reading
+        # create the blitz basic variables
+        part_one = BitArray(uint=int(random()*1024), length=10)
+        part_two = BitArray(uint=int(random()*1024), length=10)
+        part_three = BitArray(uint=int(random()*1024), length=10)
+        payload = part_one + part_two + part_three + zero
 
-        # generate readings
-        for cat in categories:
-            readings.append(
-                {"sessionId": 1, "timeLogged": datetime.datetime.now(), "categoryId": cat, "value": random() * 10})
+        # build the final message
+        message = preamble + payload
 
         # add the readings to the database
-        return readings
+        return message
