@@ -17,7 +17,17 @@
 
             <!-- Show the slide out buttons for variables and settings -->
             <div id="alert_handle" class="slide_out_handle error_handle"><a {{action showAlerts}}><i class="icon-exclamation"></i></a></div>
-            <div id="control_handle" class="slide_out_handle primary_handle"><a {{action connectToLogger}}<i class="icon-signal"></i></a></div>
+
+            {{#if controller.connected}}
+                {{#if controller.logging}}
+                    <div id="control_handle" class="slide_out_handle success_handle"><a {{action startLogging}}<i class="icon-play"></i></a></div>
+                {{else}}
+                    <div id="control_handle" class="slide_out_handle stop_handle"><a {{action stopLogging}}<i class="icon-signal"></i></a></div>
+                {{/if}}
+            {{else}}
+                <div id="control_handle" class="slide_out_handle primary_handle"><a {{action connectToLogger}}<i class="icon-signal"></i></a></div>
+            {{/if}}
+
             <div id="variables_handle" class="slide_out_handle"><a id="variable_link" title="Variables" href="#variable_pane"><i class="icon-list"></i></a></div>
             <div id="settings_handle" class="slide_out_handle">{{#linkTo config title="Config"}}<i class="icon-cog"></i>{{/linkTo}}</div>
             <div id="browse_handle" class="slide_out_handle">{{#linkTo sessions title="Session History"}}<i class="icon-folder-open"></i>{{/linkTo}}</div>

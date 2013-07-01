@@ -4,7 +4,7 @@ html, body, p {
 }
 
 #chart {
-    position: fixed; // change to "relative" to slide graph left when variable pane opens
+    position: fixed;
     top: 0;
     bottom: 0;
     left: 0;
@@ -194,6 +194,10 @@ ul.variable_list li svg, .float-right { float: right; }
 
 .pure-button-secondary, .primary_handle {
     background: rgb(66, 184, 221); /* this is a light blue */
+}
+
+.stop_handle {
+    background: rgb(143, 17, 185);
 }
 
 .settings-container {

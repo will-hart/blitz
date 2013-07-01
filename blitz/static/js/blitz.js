@@ -315,6 +315,12 @@ Blitz.IndexController = Ember.ArrayController.extend({
     chartDirty: false,
     needs: ['category', 'config'],
 
+    /* true if we are connected to the logger via TCP */
+    connected: false,
+
+    /* true if the client is currently logging */
+    logging: false,
+
     /**
      * Returns the chart content - which is results form variables
      * that have been selected in the CategoryView.
@@ -417,7 +423,14 @@ Blitz.IndexController = Ember.ArrayController.extend({
 
         // unset the render chart flag
         this.set('chartDirty', false);
-    }.observes('chartDirty')
+    }.observes('chartDirty'),
+
+    /**
+     * Handles the connection/disconnection of the TCP socket
+     */
+    connectToLogger: function connectToLogger() {
+        console.log("Attempting to connect to client");
+    }
 });
 
 Blitz.SessionsController = Ember.ArrayController.extend({});
