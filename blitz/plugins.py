@@ -6,10 +6,16 @@ import blitz.io.signals as signals
 
 
 class PluginMount(type):
+    """
+    A plugin mount point derived from:
+        http://djangosnippets.org/snippets/542/
+    """
 
     logger = logging.getLogger(__name__)
 
     def __init__(cls, name, bases, attrs):
+        super(PluginMount, cls).__init__(name, bases, attrs)
+
         if not hasattr(cls, 'plugins'):
             # This branch only executes when processing the mount point itself.
             # So, since this is a new plugin type, not an implementation, this
@@ -22,7 +28,6 @@ class PluginMount(type):
             # track of it later.
             cls.register_plugin(cls)
 
-        # super(PluginMount, cls).__init__(name, bases, attrs)
 
     def register_plugin(cls, plugin):
         """
@@ -40,16 +45,20 @@ class PluginMount(type):
 
         try:
             instance.register_signals()
+            cls.logger.debug("Registered signals for plugin %s" % instance.description)
         except AttributeError:
-            pass
+            cls.logger.debug("No signals to register for plugin %s" % instance.description)
 
         # fire the connected signal
-        signals.plugin_loaded(instance)
-
-        cls.logger.debug("Loaded plugin: %s" % instance.description)
+        signals.plugin_loaded.send(instance)
+        cls.logger.debug("Finished loading plugin: %s" % instance.description)
 
 
 class Plugin(object):
+    """
+    All plugins (e.g. Expansion Boards or handlers) must be derived from this class
+    They can be registered against blitz.signals by providing a register_signals function
+    """
     __metaclass__ = PluginMount
 
     def __init__(self, description):

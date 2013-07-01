@@ -648,8 +648,8 @@ class TestBoardManager(unittest.TestCase):
         self.bm = BoardManager(self.data)
 
     def test_registering_boards(self):
-        # the BlitzBasic board should be registered
-        print self.bm.boards
-        assert False
+        # the BlitzBasic board should be registered as ID 1, no other boards currently registered
+        assert len(self.bm.boards) == 1
+        assert type(self.bm.boards[1]) == BlitzBasicExpansionBoard
 
 

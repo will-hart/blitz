@@ -34,7 +34,7 @@ class BoardManager(object):
         Register a board against the given ID, throwing an error if
         the board is already registered
         """
-        print "Registering board"
+
         if board_id in self.boards.keys():
             self.logger.error("Failed to register board [%s: %s]" % (board_id, board.description))
             raise Exception("Attempted to register a board against an existing ID: %s" % board_id)
@@ -89,17 +89,17 @@ class BaseExpansionBoard(Plugin):
 
     logger = logging.getLogger(__name__)
     board_id = -1
-    do_not_register = False  # prevent registration of this board in the plugins list
+    do_not_register = True  # prevent registration of this board in the plugins list
 
     def __init__(self, description="Base Expansion Board"):
         """
         Initialises the Expansion Board
         """
-
-        self.do_not_register = True
+        Plugin.__init__(self, description)
+        self.description = description
+        self.id = -1
         self.__message = None
         self.__attributes = {}
-
         self.__mapping = {
             "sender": {"start": 0, "end": 8},
             "type": {"start": 8, "end": 11},
@@ -112,10 +112,17 @@ class BaseExpansionBoard(Plugin):
             "payload": {"start": 32, "end": 64}
         }
 
-        super(BaseExpansionBoard, self).__init__(description)
-
     def __getitem__(self, item):
         """Override get item to provide access to attributes"""
+
+        # handle board descriptive attributes
+        # this is not necessary but provides a common interface
+        if item == "id":
+            return self.id
+        elif item == "description":
+            return self.description
+
+        # otherwise return an item from the __attributes dictionary
         if item in self.__attributes.keys():
             return self.__attributes[item]
         else:
@@ -174,7 +181,7 @@ class BaseExpansionBoard(Plugin):
         be overridden by derived classes
         """
         manager.register_board(self['id'], self)
-        self.logger.debug("Board [%s:%s] self registered" % (self['id'], self['description']))
+        self.logger.debug("Board [%s:%s] subscribed to board manager" % (self['id'], self['description']))
 
     def get_number(self, start_bit, length):
         """
@@ -218,13 +225,14 @@ class BlitzBasicExpansionBoard(BaseExpansionBoard):
 
     def __init__(self, description="Blitz Basic Expansion Board"):
         """load the correct description for the board"""
-        self['id'] = 1
-        self['description'] = self.description  # not strictly necessary but provides a common interface
-        super(BlitzBasicExpansionBoard, self).__init__(description)
+        BaseExpansionBoard.__init__(self, description)
+        self.do_not_register = False
+        self.id = 1
+        self.description = description
 
     def register_signals(self):
         """Connect to the board loading signal"""
-        self.logger("Board [%s:%s] now listening for registering_boards signal" % (self['id'], self['description']))
+        self.logger.debug("Board [%s:%s] now listening for registering_boards signal" % (self['id'], self['description']))
         registering_boards.connect(self.register_board)
 
     def get_variables(self):
@@ -234,7 +242,3 @@ class BlitzBasicExpansionBoard(BaseExpansionBoard):
             "adc_channel_three": self.get_number(20, 10)
         }
 
-
-# Subscribe the BlitzBasic board to the register event
-print "Connecting Board"
-registering_boards.connect(BlitzBasicExpansionBoard().register_board)
