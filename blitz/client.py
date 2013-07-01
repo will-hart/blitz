@@ -101,7 +101,7 @@ class Application(object):
         self.logger.debug("Initialised client database")
 
         # create a TCP connection
-        self.socket = TcpClient("localhost", 8999)  # TODO - get from config
+        self.socket = None
         self.logger.debug("Initialised TCP socket - not connected")
 
         # create an application

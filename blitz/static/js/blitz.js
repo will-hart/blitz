@@ -351,7 +351,7 @@ Blitz.IndexController = Ember.ArrayController.extend({
 
         // for each chartVar, add a filtered list to the chartContent
         chartVars.forEach(function (d) {
-            var cc = content.filterProperty('category', d);
+            var cc = content.filterProperty('categoryId', d);
             chartContent.push(cc);
             labels.push(categories.findProperty('id', d).get('variableName'));
         });
@@ -479,7 +479,7 @@ Blitz.CategoryController = Ember.ArrayController.extend({
             content = indexController.get('content');
 
         // console.log("getting sparkline data for " + category_id);
-        return content.filterProperty('category', category_id);
+        return content.filterProperty('categoryId', category_id);
     }
 });
 
