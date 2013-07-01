@@ -10,7 +10,7 @@ from sqlalchemy import orm
 
 from blitz.data.fixtures import *
 from blitz.data.models import *
-from blitz.io.boards import BlitzBasicExpansionBoard
+from blitz.io.boards import *
 from blitz.io.client_states import *
 from blitz.io.database import DatabaseClient
 from blitz.io.server_states import *
@@ -424,14 +424,19 @@ class TestTcpClientStateMachine(unittest.TestCase):
     """
 
     # set up a TCP server
-    tcpServer = TcpServer(8999)
+    tcpServer = None
 
     # set up a tcp client
-    tcp = TcpClientMock("127.0.0.1", 8999)
+    tcp = None
 
     def setUp(self):
         # simulate starting a new connection by entering the init state
-        self.tcp.current_state = BaseState().enter_state(self.tcp, ClientInitState)
+        self.tcpServer = TcpServer(8999)
+        self.tcp = TcpClientMock("127.0.0.1", 8999)
+
+    def tearDown(self):
+        self.tcp.disconnect()
+        self.tcpServer.shutdown()
 
     def test_enter_init_state_on_load(self):
         assert type(self.tcp.current_state) == ClientInitState
@@ -607,7 +612,6 @@ class TestExpansionBoardParsing(unittest.TestCase):
         assert board['type'] == 1
         assert board['timestamp'] == 12057
 
-
     def test_blitz_basic_expansion_board(self):
         board = BlitzBasicExpansionBoard()
         board.parse_message("05755555cccccccc")
@@ -622,7 +626,6 @@ class TestExpansionBoardParsing(unittest.TestCase):
         # check get variables
         assert set(result.keys()) == set(expected.keys())
         for k in expected.keys():
-            logger.debug("%s: %s = %s?" % (k, result[k], expected[k]))
             assert result[k] == expected[k]
 
         # check other parsed variables
@@ -636,3 +639,17 @@ class TestExpansionBoardParsing(unittest.TestCase):
         board = BlitzBasicExpansionBoard()
         with(self.assertRaises(Exception)):
             board.parse_message("cc")
+
+
+class TestBoardManager(unittest.TestCase):
+
+    def setUp(self):
+        self.data = DatabaseClient()
+        self.bm = BoardManager(self.data)
+
+    def test_registering_boards(self):
+        # the BlitzBasic board should be registered
+        print self.bm.boards
+        assert False
+
+
