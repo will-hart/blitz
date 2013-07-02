@@ -527,6 +527,8 @@ class TestTcpServerStateMachine(unittest.TestCase):
 
     def test_enter_idle_state_on_load(self):
         assert type(self.tcp.current_state) == ServerIdleState
+
+    def test_throw_on_sending_from_closed(self):
         self.tcp.shutdown()
         assert type(self.tcp.current_state) == ServerClosedState
 
@@ -539,9 +541,6 @@ class TestTcpServerStateMachine(unittest.TestCase):
 
         self.tcp = None  # avoid duplicate shutdown calls on self.tearDown
 
-    def test_enter_logging_state_on_start(self):
-        assert type(self.tcp.current_state) == ServerIdleState
-
     def test_enter_logging_state_on_idle_start(self):
         assert type(self.tcp.current_state) == ServerIdleState
         self.tcp.process_message("START")
@@ -550,19 +549,23 @@ class TestTcpServerStateMachine(unittest.TestCase):
     def test_stay_in_idle_when_stop_or_status(self):
         assert type(self.tcp.current_state) == ServerIdleState
         self.tcp.process_message("STOP")
+        assert self.tcp.last_sent == "NOSESSION"
         assert type(self.tcp.current_state) == ServerIdleState
         self.tcp.process_message("STATUS")
         assert type(self.tcp.current_state) == ServerIdleState
 
     def test_stay_in_idle_on_unknown_command(self):
         assert type(self.tcp.current_state) == ServerIdleState
+
         self.tcp.process_message("ASDF")
+        assert self.tcp.last_sent == "ERROR 2"
         assert type(self.tcp.current_state) == ServerIdleState
 
     def test_stop_logging_on_stop_command(self):
         assert type(self.tcp.current_state) == ServerIdleState
         self.tcp.process_message("START")
         assert type(self.tcp.current_state) == ServerLoggingState
+        assert self.tcp.last_sent == "ACK"
         self.tcp.process_message("STOP")
         assert type(self.tcp.current_state) == ServerIdleState
 
@@ -578,6 +581,9 @@ class TestTcpServerStateMachine(unittest.TestCase):
         self.tcp.process_message("START")
         assert type(self.tcp.current_state) == ServerLoggingState
         self.tcp.process_message("ASDF")
+        assert self.tcp.last_sent == "ERROR 2"
+        self.tcp.process_message("DOWNLOAD 3")
+        assert self.tcp.last_sent == "ERROR 1"
         assert type(self.tcp.current_state) == ServerLoggingState
 
     def test_download_lifecycle(self):
@@ -587,12 +593,30 @@ class TestTcpServerStateMachine(unittest.TestCase):
         self.tcp.process_message("DOWNLOAD 1")
         assert type(self.tcp.current_state) == ServerDownloadingState
 
-        # Stay in idle state on unknown command
+        # Stay in downloading state on unknown command
         self.tcp.process_message("ASDF")
+        assert self.tcp.last_sent == "ERROR 2"
         assert type(self.tcp.current_state) == ServerDownloadingState
 
         # leave when download complete
         self.tcp.download_complete()
+        assert type(self.tcp.current_state) == ServerIdleState
+
+    def test_insession_message_on_logging_start(self):
+        assert type(self.tcp.current_state) == ServerIdleState
+
+        self.tcp.process_message("START")
+        assert type(self.tcp.current_state) == ServerLoggingState
+
+        self.tcp.process_message("START")
+        assert self.tcp.last_sent == "INSESSION"
+        assert type(self.tcp.current_state) == ServerLoggingState
+
+    def test_nosession_message_on_logging_stop(self):
+        assert type(self.tcp.current_state) == ServerIdleState
+
+        self.tcp.process_message("STOP")
+        assert self.tcp.last_sent == "NOSESSION"
         assert type(self.tcp.current_state) == ServerIdleState
 
 
