@@ -102,9 +102,9 @@ class TcpServer(tornadoTCP):
         self.current_state = self.current_state.process_message(self, message)
 
     def _send(self, message):
-        self.last_sent = message
+        self.last_sent = message.upper()
         for c in self._clients:
-            c.send(message)
+            c.send(self.last_sent)
 
     def download_complete(self):
         """
@@ -178,8 +178,8 @@ class TcpClient(object):
         Queues the given message and read the echoed response
         """
         with self._outbox_lock:
-            self.last_sent = message
-            self._outbox.append(message)
+            self.last_sent = message.upper()
+            self._outbox.append(self.last_sent)
 
     def disconnect(self):
         """
