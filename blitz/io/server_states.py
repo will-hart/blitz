@@ -2,6 +2,7 @@ __author__ = 'Will Hart'
 
 from blitz.constants import *
 from blitz.io.client_states import BaseState
+from blitz.utilities import generate_tcp_server_fixtures
 
 
 def validate_command(msg, commands):
@@ -66,6 +67,11 @@ class ServerLoggingState(BaseState):
         if msg == "STATUS":
             # TODO raise signal to send status
             self.logger.debug("[SIGNAL] send status")
+
+            # TODO replace with REAL data :)
+            fixture = generate_tcp_server_fixtures()
+            tcp._send(fixture.hex)
+
         elif msg == "START":
             tcp._send("INSESSION")
         else:
