@@ -11,16 +11,16 @@ def validate_command(msg, commands):
     and sends an appropriate response over the TCP network
     """
     if msg.split(' ')[0] in commands:
-        return "ERROR 1"
+        return CommunicationCodes.composite(CommunicationCodes.Error, 1)
     else:
-        return "ERROR 2"
+        return CommunicationCodes.composite(CommunicationCodes.Error, 2)
 
 
 class ServerIdleState(BaseState):
 
     def enter_state(self, tcp, state):
         self.logger.debug("Calling ServerIdleState.enter_state: " + state.__name__)
-        tcp._send("READY")
+        tcp._send(CommunicationCodes.Ready)
         return self
 
     def process_message(self, tcp, msg):
@@ -30,15 +30,15 @@ class ServerIdleState(BaseState):
 
         self.logger.debug("Calling ServerIdleState.process_message: " + msg)
         # check if it is a command which causes a change of state
-        if msg == "START":
-            tcp._send("ACK")
+        if msg == CommunicationCodes.Start:
+            tcp._send(CommunicationCodes.Acknowledge)
             return self.go_to_state(tcp, ServerLoggingState)
-        elif msg[0:8] == "DOWNLOAD":
+        elif msg[0:8] == CommunicationCodes.Download:
             return self.go_to_state(tcp, ServerDownloadingState)
 
-        if msg == "STOP" or msg == "STATUS":
+        if msg == CommunicationCodes.Stop or msg == CommunicationCodes.Update:
             # huh? We are not logging!?
-            tcp._send("NOSESSION")
+            tcp._send(CommunicationCodes.NoSession)
         else:
             tcp._send(validate_command(msg, VALID_SERVER_COMMANDS))
 
@@ -58,13 +58,13 @@ class ServerLoggingState(BaseState):
     def process_message(self, tcp, msg):
         self.logger.debug("Calling ServerLoggingState.process_message: " + msg)
 
-        if msg == "STOP":
+        if msg == CommunicationCodes.Stop:
             # TODO raise signal to stop logging
             self.logger.debug("[SIGNAL] Stop logging")
-            tcp._send("ACK")
+            tcp._send(CommunicationCodes.Acknowledge)
             return self.go_to_state(tcp, ServerIdleState)
 
-        if msg == "STATUS":
+        if msg == CommunicationCodes.Update:
             # TODO raise signal to send status
             self.logger.debug("[SIGNAL] send status")
 
@@ -72,8 +72,8 @@ class ServerLoggingState(BaseState):
             fixture = generate_tcp_server_fixtures()
             tcp._send(fixture.hex)
 
-        elif msg == "START":
-            tcp._send("INSESSION")
+        elif msg == CommunicationCodes.Start:
+            tcp._send(CommunicationCodes.InSession)
         else:
             tcp._send(validate_command(msg, VALID_SERVER_COMMANDS))
 

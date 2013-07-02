@@ -36,7 +36,6 @@ class TestBlitzUtilities(unittest.TestCase):
 
 
 class TestDatabaseClientSetup(unittest.TestCase):
-
     def setUp(self):
         self.db = DatabaseClient()  # pass true to DatabaseClient() to get verbose logging from SQLAlchemy
 
@@ -56,7 +55,7 @@ class TestDatabaseClientSetup(unittest.TestCase):
         self.db.create_tables()
 
         # check we have the right number of tables and the correct table names
-        assert(set(SQL_BASE.metadata.tables.keys()) == {"cache", "reading", "category", "config", "session"})
+        assert (set(SQL_BASE.metadata.tables.keys()) == {"cache", "reading", "category", "config", "session"})
 
     def test_load_fixtures(self):
 
@@ -170,20 +169,20 @@ class TestBasicDatabaseOperations(unittest.TestCase):
 
     def test_find_all_readings(self):
         res = self.db.all(Reading)
-        assert(len(res) == len(READING_FIXTURES))
+        assert (len(res) == len(READING_FIXTURES))
         for x in res:
             assert type(x) == Reading
 
     def test_find_one_reading(self):
         res = self.db.get(Reading, {"id": 1})
-        assert(type(res) == Reading)
-        assert(res.id == 1)
+        assert (type(res) == Reading)
+        assert (res.id == 1)
 
     def test_filter_readings(self):
         res = self.db.find(Reading, {"categoryId": 2})
-        assert(res.count() == 2)
-        assert(res[0].id in [3, 4])
-        assert(res[1].id in [3, 4])
+        assert (res.count() == 2)
+        assert (res[0].id in [3, 4])
+        assert (res[1].id in [3, 4])
         for x in res:
             assert type(x) == Reading
 
@@ -229,8 +228,8 @@ class TestBasicDatabaseOperations(unittest.TestCase):
 
     def test_get_session_by_id(self):
         res = self.db.get_by_id(Session, 2)
-        assert(type(res) == Session)
-        assert(res.id == 2)
+        assert (type(res) == Session)
+        assert (res.id == 2)
 
     def test_empty_get_query_result(self):
         """Should return None"""
@@ -304,7 +303,7 @@ class TestDatabaseHelpers(unittest.TestCase):
 
         # check the right type of record was returned
         for x in res:
-                assert type(x) == Cache
+            assert type(x) == Cache
 
     def test_get_cache_since(self):
         """
@@ -320,8 +319,8 @@ class TestDatabaseHelpers(unittest.TestCase):
         # check the types are correct
         # and double check all the dates are in range
         for x in res:
-                assert type(x) == Cache
-                assert x.timeLogged >= time2
+            assert type(x) == Cache
+            assert x.timeLogged >= time2
 
     def test_config_get(self):
         res = self.db.get_config("loggerPort")
@@ -442,35 +441,35 @@ class TestTcpClientStateMachine(unittest.TestCase):
         assert type(self.tcp.current_state) == ClientInitState
 
     def test_enter_logging_state_after_init_ack(self):
-        self.tcp.process_message("ACK")
+        self.tcp.process_message(CommunicationCodes.Acknowledge)
         assert type(self.tcp.current_state) == ClientLoggingState
 
     def test_enter_idle_state_from_logging_stop(self):
-        self.tcp.process_message("ACK")  # enter logging state
+        self.tcp.process_message(CommunicationCodes.Acknowledge)  # enter logging state
         assert type(self.tcp.current_state) == ClientLoggingState
 
         self.tcp.request_stop()  # enter stopping state
         assert type(self.tcp.current_state) == ClientStoppingState
 
-        self.tcp.process_message("ACK")  # enter idle state
+        self.tcp.process_message(CommunicationCodes.Acknowledge)  # enter idle state
         assert type(self.tcp.current_state) == ClientIdleState
 
     def test_enter_idle_state_after_init_nack(self):
-        self.tcp.process_message("NACK")
+        self.tcp.process_message(CommunicationCodes.Negative)
         assert type(self.tcp.current_state) == ClientIdleState
 
     def test_enter_logging_state_after_idle_start(self):
-        self.tcp.process_message("NACK")  # enter idle state
+        self.tcp.process_message(CommunicationCodes.Negative)  # enter idle state
         assert type(self.tcp.current_state) == ClientIdleState
 
         self.tcp.request_start()
         assert type(self.tcp.current_state) == ClientStartingState
 
-        self.tcp.process_message("ACK")
+        self.tcp.process_message(CommunicationCodes.Acknowledge)
         assert type(self.tcp.current_state) == ClientLoggingState
 
     def test_enter_downloading_state_from_idle(self):
-        self.tcp.process_message("NACK")  # enter idle state
+        self.tcp.process_message(CommunicationCodes.Negative)  # enter idle state
         assert type(self.tcp.current_state) == ClientIdleState
 
         self.tcp.request_download(1)
@@ -481,18 +480,18 @@ class TestTcpClientStateMachine(unittest.TestCase):
         self.tcp.process_message("87654321")
         assert type(self.tcp.current_state) == ClientDownloadingState
 
-        self.tcp.process_message("NACK")
+        self.tcp.process_message(CommunicationCodes.Negative)
         assert type(self.tcp.current_state) == ClientIdleState
 
     def test_receive_insession_on_start_during_logging(self):
-        self.tcp.process_message("ACK")  # enter logging state
+        self.tcp.process_message(CommunicationCodes.Acknowledge)  # enter logging state
         assert type(self.tcp.current_state) == ClientLoggingState
 
         self.tcp.request_start()
         assert type(self.tcp.current_state) == ClientLoggingState
 
     def test_is_logging_flag(self):
-        self.tcp.process_message("ACK")  # enter logging state
+        self.tcp.process_message(CommunicationCodes.Acknowledge)  # enter logging state
         assert type(self.tcp.current_state) == ClientLoggingState
         assert self.tcp.is_logging()
 
@@ -500,9 +499,8 @@ class TestTcpClientStateMachine(unittest.TestCase):
         assert type(self.tcp.current_state) == ClientStoppingState
         assert not self.tcp.is_logging()
 
-        self.tcp.process_message("ACK")
+        self.tcp.process_message(CommunicationCodes.Acknowledge)
         assert type(self.tcp.current_state) == ClientIdleState
-        assert not self.tcp.is_logging()
 
 
 class TestTcpServerStateMachine(unittest.TestCase):
@@ -519,15 +517,17 @@ class TestTcpServerStateMachine(unittest.TestCase):
 
     def test_validate_valid_commands(self):
         """test that all valid commands return ERROR 1"""
-        valid_commands = ["START", "STOP", "DOWNLOAD 1", "STATUS", "BOARD 17 MOVE1", "LOGGING"]
+        valid_commands = ["START", "STOP", "DOWNLOAD 1", "UPDATE", "BOARD 17 MOVE1"]
         for cmd in valid_commands:
-            assert validate_command(cmd, VALID_SERVER_COMMANDS) == "ERROR 1"
+            assert validate_command(cmd, VALID_SERVER_COMMANDS) == CommunicationCodes.composite(
+                CommunicationCodes.Error, 1)
 
     def test_validate_invalid_commands(self):
         """tests that invalid commands return ERROR 2"""
         invalid_commands = ["ASDF", "STAP", "DL 1"]
         for cmd in invalid_commands:
-            assert validate_command(cmd, VALID_SERVER_COMMANDS) == "ERROR 2"
+            assert validate_command(cmd, VALID_SERVER_COMMANDS) == CommunicationCodes.composite(
+                CommunicationCodes.Error, 2)
 
     def test_enter_idle_state_on_load(self):
         assert type(self.tcp.current_state) == ServerIdleState
@@ -547,59 +547,60 @@ class TestTcpServerStateMachine(unittest.TestCase):
 
     def test_enter_logging_state_on_idle_start(self):
         assert type(self.tcp.current_state) == ServerIdleState
-        self.tcp.process_message("START")
+        self.tcp.process_message(CommunicationCodes.Start)
         assert type(self.tcp.current_state) == ServerLoggingState
 
     def test_stay_in_idle_when_stop_or_status(self):
         assert type(self.tcp.current_state) == ServerIdleState
-        self.tcp.process_message("STOP")
-        assert self.tcp.last_sent == "NOSESSION"
+        self.tcp.process_message(CommunicationCodes.Stop)
+        assert self.tcp.last_sent == CommunicationCodes.NoSession
         assert type(self.tcp.current_state) == ServerIdleState
-        self.tcp.process_message("STATUS")
+        self.tcp.process_message(CommunicationCodes.Update)
         assert type(self.tcp.current_state) == ServerIdleState
 
     def test_stay_in_idle_on_unknown_command(self):
         assert type(self.tcp.current_state) == ServerIdleState
 
         self.tcp.process_message("ASDF")
-        assert self.tcp.last_sent == "ERROR 2"
+        assert self.tcp.last_sent == CommunicationCodes.composite(CommunicationCodes.Error, 2)
         assert type(self.tcp.current_state) == ServerIdleState
 
     def test_stop_logging_on_stop_command(self):
         assert type(self.tcp.current_state) == ServerIdleState
-        self.tcp.process_message("START")
+        self.tcp.process_message(CommunicationCodes.Start)
         assert type(self.tcp.current_state) == ServerLoggingState
-        assert self.tcp.last_sent == "ACK"
-        self.tcp.process_message("STOP")
+        assert self.tcp.last_sent == CommunicationCodes.Acknowledge
+        self.tcp.process_message(CommunicationCodes.Stop)
         assert type(self.tcp.current_state) == ServerIdleState
 
     def test_stay_in_logging_on_status(self):
         assert type(self.tcp.current_state) == ServerIdleState
-        self.tcp.process_message("START")
+        self.tcp.process_message(CommunicationCodes.Start)
         assert type(self.tcp.current_state) == ServerLoggingState
-        self.tcp.process_message("STATUS")
+        self.tcp.process_message(CommunicationCodes.Update)
         assert type(self.tcp.current_state) == ServerLoggingState
 
     def test_in_logging_on_unknown_command(self):
         assert type(self.tcp.current_state) == ServerIdleState
-        self.tcp.process_message("START")
+        self.tcp.process_message(CommunicationCodes.Start)
         assert type(self.tcp.current_state) == ServerLoggingState
         self.tcp.process_message("ASDF")
-        assert self.tcp.last_sent == "ERROR 2"
-        self.tcp.process_message("DOWNLOAD 3")
-        assert self.tcp.last_sent == "ERROR 1"
+        assert self.tcp.last_sent == CommunicationCodes.composite(CommunicationCodes.Error, 2)
+
+        self.tcp.process_message(CommunicationCodes.composite(CommunicationCodes.Download, 3))
+        assert self.tcp.last_sent == CommunicationCodes.composite(CommunicationCodes.Error, 1)
         assert type(self.tcp.current_state) == ServerLoggingState
 
     def test_download_lifecycle(self):
         assert type(self.tcp.current_state) == ServerIdleState
 
         # enter downloading state
-        self.tcp.process_message("DOWNLOAD 1")
+        self.tcp.process_message(CommunicationCodes.composite(CommunicationCodes.Download, 1))
         assert type(self.tcp.current_state) == ServerDownloadingState
 
         # Stay in downloading state on unknown command
         self.tcp.process_message("ASDF")
-        assert self.tcp.last_sent == "ERROR 2"
+        assert self.tcp.last_sent == CommunicationCodes.composite(CommunicationCodes.Error, 2)
         assert type(self.tcp.current_state) == ServerDownloadingState
 
         # leave when download complete
@@ -609,18 +610,18 @@ class TestTcpServerStateMachine(unittest.TestCase):
     def test_insession_message_on_logging_start(self):
         assert type(self.tcp.current_state) == ServerIdleState
 
-        self.tcp.process_message("START")
+        self.tcp.process_message(CommunicationCodes.Start)
         assert type(self.tcp.current_state) == ServerLoggingState
 
-        self.tcp.process_message("START")
-        assert self.tcp.last_sent == "INSESSION"
+        self.tcp.process_message(CommunicationCodes.Start)
+        assert self.tcp.last_sent == CommunicationCodes.InSession
         assert type(self.tcp.current_state) == ServerLoggingState
 
     def test_nosession_message_on_logging_stop(self):
         assert type(self.tcp.current_state) == ServerIdleState
 
-        self.tcp.process_message("STOP")
-        assert self.tcp.last_sent == "NOSESSION"
+        self.tcp.process_message(CommunicationCodes.Stop)
+        assert self.tcp.last_sent == CommunicationCodes.NoSession
         assert type(self.tcp.current_state) == ServerIdleState
 
 
@@ -681,7 +682,6 @@ class TestExpansionBoardParsing(unittest.TestCase):
 
 
 class TestBoardManager(unittest.TestCase):
-
     def setUp(self):
         self.data = DatabaseClient()
         self.bm = BoardManager(self.data)

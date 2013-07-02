@@ -3,30 +3,50 @@ __author__ = 'Will Hart'
 COMMAND_MESSAGE_BYTES = 8
 SHORT_COMMAND_MESSAGE_BYTES = 2
 
+
+class CommunicationCodes(object):
+
+    Acknowledge = "ACK"
+    Negative = "NACK"
+    Start = "START"
+    Stop = "STOP"
+    Update = "UPDATE"
+    InSession = "INSESSION"
+    NoSession = "NOSESSION"
+    Download = "DOWNLOAD"
+    Error = "ERROR"
+    Board = "BOARD"
+    BoardError = "BOARDERROR"
+    NoBoard = "NOBOARD"
+    Ready = "READY"
+
+    @classmethod
+    def composite(cls, base_code, code_id):
+        return base_code + " " + str(code_id)
+
+
 # commands that are valid to send TO the server
 # note only the command up to the space (if there is one) is included
 VALID_SERVER_COMMANDS = [
-    "START",
-    "STOP",
-    "STATUS",
-    "DOWNLOAD",
-    "BOARD",
-    "LOGGING"
+    CommunicationCodes.Start,
+    CommunicationCodes.Stop,
+    CommunicationCodes.Update,
+    CommunicationCodes.Download,
+    CommunicationCodes.Board
 ]
 
 # commands that are valid to send TO the client
 # note only the command up to the space (if there is one) is included
 VALID_CLIENT_COMMANDS = [
-    "ACK",
-    "NACK",
-    "INSESSION",
-    "NOSESSION",
-    "BOARDERROR",
-    "NOBOARD",
-    "ERROR",
-    "READY"
+    CommunicationCodes.Acknowledge,
+    CommunicationCodes.Negative,
+    CommunicationCodes.InSession,
+    CommunicationCodes.NoSession,
+    CommunicationCodes.BoardError,
+    CommunicationCodes.NoBoard,
+    CommunicationCodes.Error,
+    CommunicationCodes.Ready
 ]
-
 
 MAX_MESSAGE_LENGTH = 112  # max length of message in bits
 PAYLOAD_LENGTH = 64  # min length of payload in bits

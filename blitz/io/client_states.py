@@ -57,10 +57,10 @@ class ClientInitState(BaseState):
 
     def process_message(self, tcp, msg):
         self.logger.debug("Calling init.process_message: " + msg)
-        if msg == "ACK":
+        if msg == CommunicationCodes.Acknowledge:
             # logger is logging, transition to LOGGING state
             return self.go_to_state(tcp, ClientLoggingState)
-        elif msg == "NACK":
+        elif msg == CommunicationCodes.Negative:
             # logger is not logging, go to idle
             return self.go_to_state(tcp, ClientIdleState)
         else:
@@ -79,9 +79,9 @@ class ClientIdleState(BaseState):
 
     def send_message(self, tcp, msg):
         self.logger.debug("Calling idle.send_message: " + msg)
-        if msg == "START":
+        if msg == CommunicationCodes.Start:
             return self.go_to_state(tcp, ClientStartingState)
-        elif msg[0:8] == "DOWNLOAD":
+        elif msg[0:8] == CommunicationCodes.Download:
             tcp._send(msg)
             return self.go_to_state(tcp, ClientDownloadingState)
         else:
@@ -92,14 +92,14 @@ class ClientStartingState(BaseState):
     """Handles logging starting - waits for ACK from server"""
     def enter_state(self, tcp, state):
         self.logger.debug("Calling starting.enter_state: " + state.__name__)
-        tcp._send("START")
+        tcp._send(CommunicationCodes.Start)
         return self
 
     def process_message(self, tcp, msg):
         self.logger.debug("Calling starting.process_message: " + msg)
-        if msg == "ACK":
+        if msg == CommunicationCodes.Acknowledge:
             return self.go_to_state(tcp, ClientLoggingState)
-        elif msg == "INSESSION":
+        elif msg == CommunicationCodes.InSession:
             return self.go_to_state(tcp, ClientLoggingState)
 
         return self.go_to_state(tcp, ClientIdleState)
@@ -113,12 +113,12 @@ class ClientLoggingState(BaseState):
         self.logger.debug("Calling logging.send_message: " + msg)
 
         # check if we have requested logging to stop
-        if msg == "STOP":
+        if msg == CommunicationCodes.Stop:
             return self.go_to_state(tcp, ClientStoppingState)
 
         # if not, are we requesting a status?
-        if msg == "STATUS":
-            tcp._send("STATUS")
+        if msg == CommunicationCodes.Update:
+            tcp._send(CommunicationCodes.Update)
         elif len(msg) == COMMAND_MESSAGE_BYTES or len(msg) == SHORT_COMMAND_MESSAGE_BYTES:
             # this is likely to be a data message
             tcp.parse_reading(msg)
@@ -134,12 +134,12 @@ class ClientStoppingState(BaseState):
     """
     def enter_state(self, tcp, state):
         self.logger.debug("Calling stopping.enter_state: " + state.__name__)
-        tcp._send("STOP")
+        tcp._send(CommunicationCodes.Stop)
         return self
 
     def process_message(self, tcp, msg):
         self.logger.debug("Calling stopping.process_message: " + msg)
-        if msg == "ACK":
+        if msg == CommunicationCodes.Acknowledge:
             return self.go_to_state(tcp, ClientIdleState)
         return self
 
@@ -150,9 +150,9 @@ class ClientDownloadingState(BaseState):
     """
     def process_message(self, tcp, msg):
         self.logger.debug("Calling downloading.process_message: " + msg)
-        if msg == "NACK":
+        if msg == CommunicationCodes.Negative:
             # the data has been received
-            self.send_message(tcp, "ACK")
+            self.send_message(tcp, CommunicationCodes.Acknowledge)
             return self.go_to_state(tcp, ClientIdleState)
 
         # otherwise we save the data row for processing
@@ -162,6 +162,6 @@ class ClientDownloadingState(BaseState):
     def go_to_state(self, tcp, state):
         self.logger.debug("Calling downloading.go_to_state >> " + state.__name__)
         if type(state) == ClientIdleState:
-            tcp._send("ACK") # acknowledge end of download recieved
+            tcp._send(CommunicationCodes.Acknowledge) # acknowledge end of download recieved
 
         return super(ClientDownloadingState, self).go_to_state(tcp, state)

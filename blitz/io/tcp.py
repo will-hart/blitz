@@ -214,25 +214,26 @@ class TcpClient(object):
         """
         Request a status update from the data logger
         """
-        self.current_state = self.current_state.send_message(self, "STATUS")
+        self.current_state = self.current_state.send_message(self, CommunicationCodes.Update)
 
     def request_download(self, session_id):
         """
         Request download of a session of data from the data logger
         """
-        self.current_state = self.current_state.send_message(self, "DOWNLOAD " + str(session_id))
+        self.current_state = self.current_state.send_message(self, CommunicationCodes.composite(
+            CommunicationCodes.Download, session_id))
 
     def request_start(self):
         """
         Requests logging to start
         """
-        self.current_state = self.current_state.send_message(self, "START")
+        self.current_state = self.current_state.send_message(self, CommunicationCodes.Start)
 
     def request_stop(self):
         """
         Requests logging to stop
         """
-        self.current_state = self.current_state.send_message(self, "STOP")
+        self.current_state = self.current_state.send_message(self, CommunicationCodes.Stop)
 
     def request_is_logging(self):
         """
