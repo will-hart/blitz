@@ -28,3 +28,15 @@ VALID_CLIENT_COMMANDS = [
 ]
 
 MAX_MESSAGE_LENGTH = 64
+
+BOARD_MESSAGE_MAPPING = {
+    "sender": {"start": 0, "end": 8},
+    "type": {"start": 8, "end": 11},
+    "flag1": {"start": 11},
+    "flag2": {"start": 12},
+    "flag3": {"start": 13},
+    "flag4": {"start": 14},
+    "flag5": {"start": 15},
+    "timestamp": {"start": 16, "end": 32},
+    "payload": {"start": 32, "end": 64}
+}

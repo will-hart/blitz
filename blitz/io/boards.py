@@ -5,6 +5,7 @@ import logging
 
 from bitstring import BitArray
 
+from blitz.constants import BOARD_MESSAGE_MAPPING
 from blitz.io.signals import data_line_received, data_line_processed, registering_boards
 from blitz.plugins import Plugin
 
@@ -100,17 +101,7 @@ class BaseExpansionBoard(Plugin):
         self.id = -1
         self.__message = None
         self.__attributes = {}
-        self.__mapping = {
-            "sender": {"start": 0, "end": 8},
-            "type": {"start": 8, "end": 11},
-            "flag1": {"start": 11},
-            "flag2": {"start": 12},
-            "flag3": {"start": 13},
-            "flag4": {"start": 14},
-            "flag5": {"start": 15},
-            "timestamp": {"start": 16, "end": 32},
-            "payload": {"start": 32, "end": 64}
-        }
+        self.__mapping = BOARD_MESSAGE_MAPPING
 
     def __getitem__(self, item):
         """Override get item to provide access to attributes"""
@@ -232,7 +223,8 @@ class BlitzBasicExpansionBoard(BaseExpansionBoard):
 
     def register_signals(self):
         """Connect to the board loading signal"""
-        self.logger.debug("Board [%s:%s] now listening for registering_boards signal" % (self['id'], self['description']))
+        self.logger.debug(
+            "Board [%s:%s] now listening for registering_boards signal" % (self['id'], self['description']))
         registering_boards.connect(self.register_board)
 
     def get_variables(self):
@@ -241,4 +233,3 @@ class BlitzBasicExpansionBoard(BaseExpansionBoard):
             "adc_channel_two": self.get_number(10, 10),
             "adc_channel_three": self.get_number(20, 10)
         }
-
