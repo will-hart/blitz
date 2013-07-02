@@ -3,6 +3,7 @@ __author__ = 'Will Hart'
 import logging
 
 from blitz.data.database import DatabaseClient
+from blitz.io.serial import SerialManager
 import blitz.web.api as blitz_api
 import blitz.web.http as blitz_http
 
@@ -106,6 +107,9 @@ class Application(object):
         # create a board manager
         self.board_manager = BoardManager(self.data)
 
+        # create a serial manager
+        self.serial_manager = SerialManager.Instance()
+
         # create an application
         self.application = tornado.web.Application([
                                                    (r'/', blitz_http.IndexHandler),
@@ -131,6 +135,7 @@ class Application(object):
         self.application.settings['socket'] = None
         self.application.settings['data'] = self.data
         self.application.settings['board_manager'] = self.board_manager
+        self.application.settings['serial_manager'] = self.serial_manager
 
     def run(self):
         """
