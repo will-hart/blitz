@@ -1,6 +1,7 @@
 __author__ = 'Will Hart'
 
 import datetime
+import logging
 import threading
 
 import sqlalchemy as sql
@@ -248,6 +249,12 @@ class DatabaseServer(object):
     __connection = redis.StrictRedis()
     __queue = []
     __queue_lock = threading.Lock()
+
+    logger = logging.getLogger(__name__)
+
+
+    def __init__(self):
+        self.logger.info("Initialised database server")
 
     def push(self, message):
         """
