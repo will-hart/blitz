@@ -14,6 +14,8 @@ import tornado.httpserver
 import tornado.ioloop
 import tornado.web
 
+from blitz.io.boards import BoardManager
+
 
 class Config(object):
     """
@@ -99,6 +101,9 @@ class Application(object):
         self.data.load_fixtures()
         self.logger.debug("Initialised client database")
 
+        # create a board manager
+        self.board_manager = BoardManager(self.data)
+
         # create an application
         self.application = tornado.web.Application([
             (r'/', blitz_http.IndexHandler),
@@ -123,6 +128,7 @@ class Application(object):
         # save variables for later
         self.application.settings['socket'] = None
         self.application.settings['data'] = self.data
+        self.application.settings['board_manager'] = self.board_manager
 
     def run(self):
         """
