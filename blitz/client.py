@@ -86,7 +86,8 @@ class Application(object):
         """
 
         # create a file logger and set it up for logging to file
-        logging.basicConfig(filename='log.txt', level=logging.DEBUG, format='[%(asctime)s %(levelname)-10s %(threadName)-10s]:    %(message)s')
+        logging.basicConfig(filename='log.txt', level=logging.DEBUG,
+                            format='[%(asctime)s %(levelname)-10s %(threadName)-10s]:    %(message)s')
         ch = logging.StreamHandler()
         self.logger = logging.getLogger(__name__)
         self.logger.addHandler(ch)
@@ -96,6 +97,7 @@ class Application(object):
 
         # create a database connection
         self.data = DatabaseClient()
+
         # TODO - database should persist
         self.data.create_tables()
         self.data.load_fixtures()
@@ -106,19 +108,19 @@ class Application(object):
 
         # create an application
         self.application = tornado.web.Application([
-            (r'/', blitz_http.IndexHandler),
-            (r'/categories', blitz_api.CategoriesHandler),
-            (r'/cache', blitz_api.CacheHandler),
-            (r'/cache/(?P<since>[^\/]+)', blitz_api.CacheHandler),
-            (r'/download/(?P<session_id>[^\/]+)', blitz_api.DownloadHandler),
-            (r'/session/(?P<session_id>[^\/]+)', blitz_api.SessionHandler),
-            (r'/sessions', blitz_api.SessionsHandler),
-            (r'/config', blitz_api.ConfigHandler),
-            (r'/connect', blitz_http.ConnectHandler),
-            (r'/start', blitz_http.StartHandler),
-            (r'/stop', blitz_http.StopHandler),
-            (r'/status', blitz_http.StatusHandler)
-        ], **self.config.settings)
+                                                   (r'/', blitz_http.IndexHandler),
+                                                   (r'/categories', blitz_api.CategoriesHandler),
+                                                   (r'/cache', blitz_api.CacheHandler),
+                                                   (r'/cache/(?P<since>[^\/]+)', blitz_api.CacheHandler),
+                                                   (r'/download/(?P<session_id>[^\/]+)', blitz_api.DownloadHandler),
+                                                   (r'/session/(?P<session_id>[^\/]+)', blitz_api.SessionHandler),
+                                                   (r'/sessions', blitz_api.SessionsHandler),
+                                                   (r'/config', blitz_api.ConfigHandler),
+                                                   (r'/connect', blitz_http.ConnectHandler),
+                                                   (r'/start', blitz_http.StartHandler),
+                                                   (r'/stop', blitz_http.StopHandler),
+                                                   (r'/status', blitz_http.StatusHandler)
+                                                   ], **self.config.settings)
         self.logger.debug("Initialised client application")
 
         # create an HTTP server

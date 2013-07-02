@@ -20,12 +20,12 @@
 
             {{#if controller.connected}}
                 {{#if controller.logging}}
-                <div id="control_handle" class="slide_out_handle stop_handle"><a {{action stopLogging}}<i class="icon-stop"></i></a></div>
+                <div id="control_handle" class="slide_out_handle stop_handle"><a {{action stopLogging}}><i class="icon-stop"></i></a></div>
                 {{else}}
-                <div id="control_handle" class="slide_out_handle success_handle"><a {{action startLogging}}<i class="icon-play"></i></a></div>
+                <div id="control_handle" class="slide_out_handle success_handle"><a {{action startLogging}}><i class="icon-play"></i></a></div>
                 {{/if}}
             {{else}}
-                <div id="control_handle" class="slide_out_handle primary_handle"><a {{action connectToLogger}}<i class="icon-signal"></i></a></div>
+                <div id="control_handle" class="slide_out_handle primary_handle"><a {{action connectToLogger}}><i class="icon-signal"></i></a></div>
             {{/if}}
 
             <div id="variables_handle" class="slide_out_handle"><a id="variable_link" title="Variables" href="#variable_pane"><i class="icon-list"></i></a></div>
@@ -49,7 +49,6 @@
         </script>
 
         <script type="text/x-handlebars" data-template-name="category">
-
             <img src="static/img/blitz_small.png" class="blitz-logo" width="300px" height="100px" alt="Blitz Logo" />
 
             <ul class="variable_list">
@@ -185,12 +184,12 @@
 
             {{#if model.isDownloadable}}
             <div id="browse_handle" class="slide_out_handle">
-                <a title="Export CSV" {{action downloadCsv}}<i class="icon-laptop"></i></a>
+                <a title="Export CSV" {{action downloadCsv}}><i class="icon-laptop"></i></a>
             </div>
             {{else}}
             <div id="browse_handle" class="slide_out_handle primary_handle">
-                <a title="Download from logger" {{action downloadSession model.id}}<i
-                    class="icon-cloud-download"></i></a>
+                <a title="Download from logger" {{action downloadSession model.id}}>
+                    <i class="icon-cloud-download"></i></a>
             </div>
             {{/if}}
 
