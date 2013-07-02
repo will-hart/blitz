@@ -58,7 +58,6 @@ class ServerLoggingState(BaseState):
         self.logger.debug("Calling ServerLoggingState.process_message: " + msg)
 
         if msg == "STOP":
-
             # TODO raise signal to stop logging
             self.logger.debug("[SIGNAL] Stop logging")
             tcp._send("ACK")
@@ -67,7 +66,8 @@ class ServerLoggingState(BaseState):
         if msg == "STATUS":
             # TODO raise signal to send status
             self.logger.debug("[SIGNAL] send status")
-
+        elif msg == "START":
+            tcp._send("INSESSION")
         else:
             tcp._send(validate_command(msg, VALID_SERVER_COMMANDS))
 
