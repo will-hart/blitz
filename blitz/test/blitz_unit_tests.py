@@ -12,7 +12,7 @@ from blitz.data.fixtures import *
 from blitz.data.models import *
 from blitz.io.boards import *
 from blitz.io.client_states import *
-from blitz.io.database import DatabaseClient
+from blitz.data.database import DatabaseClient
 from blitz.io.server_states import *
 from blitz.io.tcp import TcpServer
 

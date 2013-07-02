@@ -2,7 +2,7 @@ __author__ = 'Will Hart'
 
 import logging
 
-from blitz.io.database import DatabaseClient
+from blitz.data.database import DatabaseClient
 import blitz.web.api as blitz_api
 import blitz.web.http as blitz_http
 
