@@ -5,7 +5,7 @@ import logging
 
 from bitstring import BitArray
 
-from blitz.constants import BOARD_MESSAGE_MAPPING
+from blitz.constants import BOARD_MESSAGE_MAPPING, PAYLOAD_LENGTH, MESSAGE_BYTE_LENGTH
 from blitz.io.signals import data_line_received, data_line_processed, registering_boards
 from blitz.plugins import Plugin
 
@@ -136,9 +136,9 @@ class BaseExpansionBoard(Plugin):
         data_line_received.send(raw_message)
 
         # parse the message
-        if len(raw_message) != 16:
+        if len(raw_message) != MESSAGE_BYTE_LENGTH:
             raise Exception(
-                "Unable to parse message [%s]- expected 16 bytes, found %s" % (
+                "Unable to parse message [%s]- expected 28 bytes, found %s" % (
                     raw_message, len(raw_message))
             )
 
@@ -152,7 +152,7 @@ class BaseExpansionBoard(Plugin):
                 self[key] = self.__message[self.__mapping[key]["start"]]
 
         # get the payload into a bit_array
-        self._payload_array = BitArray(uint=self["payload"], length=32)
+        self._payload_array = BitArray(uint=self["payload"], length=PAYLOAD_LENGTH)
 
         # create a flags array
         self['flags'] = [
@@ -229,7 +229,9 @@ class BlitzBasicExpansionBoard(BaseExpansionBoard):
 
     def get_variables(self):
         return {
-            "adc_channel_one": self.get_number(0, 10),
-            "adc_channel_two": self.get_number(10, 10),
-            "adc_channel_three": self.get_number(20, 10)
+            "adc_channel_one": self.get_number(0, 12),
+            "adc_channel_two": self.get_number(12, 12),
+            "adc_channel_three": self.get_number(24, 12),
+            "adc_channel_four": self.get_number(36, 12),
+            "adc_channel_five": self.get_number(48, 12)
         }

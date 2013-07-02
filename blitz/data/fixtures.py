@@ -115,14 +115,15 @@ def generate_tcp_server_fixtures():
         msg_type = BitArray(bin="0b00000000")
         timestamp = BitArray(int=int(time.mktime(datetime.datetime.now().timetuple())), length=32)
         preamble = sender + msg_type + timestamp
-        zero = BitArray(bin="0b00")
 
         # generate reading
         # create the blitz basic variables
-        part_one = BitArray(uint=int(random()*1024), length=10)
-        part_two = BitArray(uint=int(random()*1024), length=10)
-        part_three = BitArray(uint=int(random()*1024), length=10)
-        payload = part_one + part_two + part_three + zero
+        part_one = BitArray(uint=int(random()*1024), length=12)
+        part_two = BitArray(uint=int(random()*1024), length=12)
+        part_three = BitArray(uint=int(random()*1024), length=12)
+        part_four = BitArray(uint=int(random()*1024), length=12)
+        part_five = BitArray(uint=int(random()*1024), length=12)
+        payload = part_one + part_two + part_three + part_four + part_five + BitArray(bin="0b0000")
 
         # build the final message
         message = preamble + payload

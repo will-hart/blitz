@@ -244,4 +244,4 @@ class TcpClient(object):
         """
         Returns True if the client is currently in logging state
         """
-        return self.current_state is ClientLoggingState
+        return type(self.current_state) is ClientLoggingState

@@ -494,11 +494,15 @@ class TestTcpClientStateMachine(unittest.TestCase):
     def test_is_logging_flag(self):
         self.tcp.process_message("ACK")  # enter logging state
         assert type(self.tcp.current_state) == ClientLoggingState
-        assert self.tcp.is_logging() is True
+        assert self.tcp.is_logging()
 
         self.tcp.request_stop()
+        assert type(self.tcp.current_state) == ClientStoppingState
+        assert not self.tcp.is_logging()
+
+        self.tcp.process_message("ACK")
         assert type(self.tcp.current_state) == ClientIdleState
-        assert self.tcp.is_logging() is False
+        assert not self.tcp.is_logging()
 
 
 class TestTcpServerStateMachine(unittest.TestCase):
@@ -627,13 +631,13 @@ class TestExpansionBoardParsing(unittest.TestCase):
     """
 
     def test_expansion_board_parses_valid_message(self):
-        message = "e3282f19572076ac"  # random message
+        message = "e32800002f19572076ac00000000"  # random message
         board = ExpansionBoardMock()
         board.parse_message(message)
 
         result = board.get_variables()
 
-        assert result['full_payload'] == 1461745324L
+        assert result['full_payload'] == 6278148361660923904
         assert result['flag_one'] is False
         assert result['flag_two'] is True
         assert result['flag_three'] is False
@@ -647,13 +651,15 @@ class TestExpansionBoardParsing(unittest.TestCase):
 
     def test_blitz_basic_expansion_board(self):
         board = BlitzBasicExpansionBoard()
-        board.parse_message("05755555cccccccc")
+        board.parse_message("057500005555cccccccc00000000")
         result = board.get_variables()
 
         expected = {
-            "adc_channel_one": 819,
-            "adc_channel_two": 204,
-            "adc_channel_three": 819
+            "adc_channel_one": 3276,
+            "adc_channel_two": 3276,
+            "adc_channel_three": 3264,
+            "adc_channel_four": 0,
+            "adc_channel_five": 0
         }
 
         # check get variables
