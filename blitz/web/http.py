@@ -97,4 +97,3 @@ class StatusHandler(RequestHandler):
 
         self.content_type = "application/json"
         self.write(json.dumps(response))
-

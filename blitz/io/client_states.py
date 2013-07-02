@@ -133,7 +133,7 @@ class ClientStoppingState(BaseState):
     Handles waiting for acknowledgement from a client before entering IDLE state
     """
     def enter_state(self, tcp, state):
-        self.logger.debug("Calling stopping.send_message: " + state.__name__)
+        self.logger.debug("Calling stopping.enter_state: " + state.__name__)
         tcp._send("STOP")
         return self
 
