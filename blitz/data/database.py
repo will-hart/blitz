@@ -1,10 +1,11 @@
 __author__ = 'Will Hart'
 
 import datetime
+import threading
 
 import sqlalchemy as sql
 from sqlalchemy.orm import sessionmaker
-import threading
+import redis
 
 from blitz.data.models import *
 from blitz.data.fixtures import *
@@ -235,8 +236,16 @@ class DatabaseClient(object):
 
 
 class DatabaseServer(object):
+    """
+    The redis database server - retains several documents:
 
+    "session" - the id of the current session
+    "session_start" - the timestamp when the current logging session began
+    "sessions" - a list of session in the database
+    "data-N" - a queue of raw session data for session_id N
+    """
     # todo - this is temporary
+    __connection = redis.StrictRedis()
     __queue = []
     __queue_lock = threading.Lock()
 
@@ -273,3 +282,8 @@ class DatabaseServer(object):
 
         # TODO - implement
         pass
+
+    def get_session_id(self):
+        """
+        Returns the current session ID after querying the database
+        """
