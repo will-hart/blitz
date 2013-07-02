@@ -102,6 +102,7 @@ class TcpServer(tornadoTCP):
         self.current_state = self.current_state.process_message(self, message)
 
     def _send(self, message):
+        self.last_sent = message
         for c in self._clients:
             c.send(message)
 
@@ -177,6 +178,7 @@ class TcpClient(object):
         Queues the given message and read the echoed response
         """
         with self._outbox_lock:
+            self.last_sent = message
             self._outbox.append(message)
 
     def disconnect(self):
@@ -242,4 +244,4 @@ class TcpClient(object):
         """
         Returns True if the client is currently in logging state
         """
-        return self.current_state is type(ClientLoggingState)
+        return self.current_state is ClientLoggingState
