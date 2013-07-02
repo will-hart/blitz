@@ -4,12 +4,10 @@ import datetime
 
 import sqlalchemy as sql
 from sqlalchemy.orm import sessionmaker
+import threading
 
 from blitz.data.models import *
 from blitz.data.fixtures import *
-
-
-# create the models
 
 
 class DatabaseClient(object):
@@ -237,4 +235,41 @@ class DatabaseClient(object):
 
 
 class DatabaseServer(object):
-    pass
+
+    # todo - this is temporary
+    __queue = []
+    __queue_lock = threading.Lock()
+
+    def push(self, message):
+        """
+        Queues a message in the database ready for transmission to the host PC
+        """
+
+        # TODO this is temporary, later on we should queue to a REDIS list indexed by
+        # session ID.  We should also maintain another list of sessions to allow saving
+        # and deleting of sessions
+        with self.__queue_lock():
+            self.__queue.append(message)
+
+    def pop(self):
+        """
+        Pops a queued reading from the top (FIFO) and returns it
+        """
+
+        result = ""  # set a default value just in case our dequeue fails
+
+        # TODO also temporary
+        with self.__queue_lock():
+            if len(self.__queue) > 0:
+                result = self.__queue[0]
+                self.__queue = self.__queue[1:]
+
+        return result
+
+    def new_session(self):
+        """
+        Increments the session counter in the database and prepares to log to a new message queue
+        """
+
+        # TODO - implement
+        pass
