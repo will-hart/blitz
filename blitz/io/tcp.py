@@ -100,7 +100,7 @@ class TcpServer(tornadoTCP):
         loop.blitz_tcp_server.stop()
 
     def unregister_client(self, client):
-        self.logger.info("[TCP] Client %s disconnected..." % client)
+        self.logger.info("[TCP] Client %s:%s disconnected..." % client.address)
         self._clients.remove(client)
 
     def process_message(self, message):
@@ -155,6 +155,8 @@ class TcpClient(object):
         self._client_thread.start()
 
     def listen(self, stop_event):
+        recv_buffer = ""
+
         while not stop_event.is_set():
             # send all queued messages
             with self._outbox_lock:
@@ -165,13 +167,34 @@ class TcpClient(object):
 
             # receive messages
             try:
-                response = self._socket.recv(128)  # message are invariably small
-                if response:
-                    self.logger.debug("[TCP] TcpClient has received: " + response)
-                    self.process_message(response)
+                recv_buffer += self._socket.recv(64)  # message are invariably small
+
+                if recv_buffer:
+                    # check if we have receved a complete message
+                    if recv_buffer[-1] == "\n":
+                        self.logger.debug("[TCP] TcpClient has received: " + recv_buffer[:-1])
+                        self.process_message(recv_buffer[:-1])
+                        recv_buffer = ""
+                        return
+
+                    # otherwise we may have a partial message
+                    responses = recv_buffer.split("\n")
+                    if len(responses) == 1:
+                        # still waiting for complete message, continue until newline recevied
+                        continue
+
+                    # save the stub to a receive buffer
+                    recv_buffer = responses[-1]
+
+                    # process the remainder
+                    for response in responses[:-1]:
+                        self.logger.debug("[TCP] TcpClient has received: " + response)
+                        self.process_message(response)
+
             except Exception:
                 # TODO skip allowable exceptions and throw others
                 pass
+
         self.logger.debug("[TCP] TcpClient exiting listen thread as stop_event was triggered")
 
     def send(self, message):

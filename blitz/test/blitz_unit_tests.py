@@ -768,8 +768,8 @@ class TestDatabaseServer(unittest.TestCase):
         sess1 = self.data.get_all_from_session(1)
         sess2 = self.data.get_all_from_session(2)
 
-        assert len(sess1) == 3, "Expected session length 3, got %s" % len(sess1)
-        assert len(sess2) == 3, "Expected session length 3, got %s" % len(sess2)
+        assert len(sess1) == 3, "Expected session length 3, got %s: %s" % (len(sess1), sess1)
+        assert len(sess2) == 3, "Expected session length 3, got %s: %s" % (len(sess2), sess2)
         assert sess1 == ["11", "12", "13"], "Session received %s" % sess1
         assert sess2 == ["21", "22", "23"], "Session received %s" % sess2
 
