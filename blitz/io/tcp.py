@@ -17,7 +17,7 @@ class ClientConnection(object):
 
     def __init__(self, server, stream, address):
         """Instantiates a new client connection"""
-        self.logger.debug("[SERVER] > Created new client connection handler")
+        self.logger.debug("[TCP] Created new client connection handler")
         self._server = server
         self._stream = stream
         self._stream.set_close_callback(self._stream_closed)
@@ -27,12 +27,12 @@ class ClientConnection(object):
 
     def _stream_closed(self):  # , *args, **kwargs):
         """A callback that triggers when the stream is closed"""
-        self.logger.debug("[SERVER] > Closing client stream")
+        self.logger.debug("[TCP] Closing client stream")
         self._server.unregister_client(self)
 
     def do_read(self):
         """Reads from a stream until a new line is found"""
-        self.logger.debug("[SERVER] > Listening to client TCP input stream: %s:%s" % self.address)
+        self.logger.debug("[TCP] Listening to client TCP input stream: %s:%s" % self.address)
         self._stream.read_until("\n", self._on_read)
 
     def _on_read(self, line):
@@ -53,6 +53,7 @@ class TcpServer(tornadoTCP):
     def __init__(self, port):
         """initialise the TCP Server and register it with the IO loop"""
         super(TcpServer, self).__init__()
+        self.logger.debug("TcpServer __init__")
 
         # save the port
         self._port = port
@@ -60,7 +61,6 @@ class TcpServer(tornadoTCP):
         # register this class with the IO Loop
         loop = IOLoop.instance()
         loop.blitz_tcp_server = self
-        self.logger.debug("[SERVER] > Created TcpServer and registered with IO loop")
 
         # start the server
         self.listen(port)
@@ -68,14 +68,13 @@ class TcpServer(tornadoTCP):
         self._thread = threading.Thread(target=loop.start)
         self._thread.daemon = True
         self._thread.start()
-        self.logger.debug("[SERVER] > Started on port %s" % port)
 
         self._clients = []
         self.current_state = BaseState().go_to_state(self, ServerIdleState)
 
     def handle_stream(self, stream, address):
         """Handles a new client stream by spawning a client connection object"""
-        self.logger.debug("[SERVER] > New client connection %s:%s" % address)
+        self.logger.debug("[TCP] New client connection %s:%s" % address)
         self._clients.append(ClientConnection(self, stream, address))
 
     def shutdown(self):
@@ -93,7 +92,7 @@ class TcpServer(tornadoTCP):
         loop.blitz_tcp_server.stop()
 
     def unregister_client(self, client):
-        self.logger.debug("[SERVER] > Client disconnected...")
+        self.logger.debug("[TCP] Client disconnected...")
         self._clients.remove(client)
 
     def process_message(self, message):
@@ -133,7 +132,7 @@ class TcpClient(object):
         self._socket.connect(self._address)
         self._socket.settimeout(0.5)
         self._outbox = []
-        self.logger.debug("[CLIENT] > Created TCP Client at %s:%s" % self._address)
+        self.logger.debug("[TCP] Created TCP Client at %s:%s" % self._address)
 
         # start up the state machine
         self.current_state = BaseState().enter_state(self, ClientInitState)
@@ -143,16 +142,16 @@ class TcpClient(object):
         self._outbox_lock = threading.RLock()
         self._client_thread = threading.Thread(target=self.listen, args=[self._stop_event])
         self._client_thread.daemon = True
-        self.logger.debug("[CLIENT] > Launching listen thread")
+        self.logger.debug("[TCP] Launching listen thread")
         self._client_thread.start()
 
     def listen(self, stop_event):
-        self.logger.debug("[CLIENT] > Entering listen thread")
+        self.logger.debug("[TCP] Entering listen thread")
         while not stop_event.is_set():
             # send all queued messages
             with self._outbox_lock:
                 for msg in self._outbox:
-                    self.logger.debug("[CLIENT] > TcpClient sending: " + msg)
+                    self.logger.debug("[TCP] TcpClient sending: " + msg)
                     self._socket.sendall(msg + "\n")
                 self._outbox = []
 
@@ -160,12 +159,12 @@ class TcpClient(object):
             try:
                 response = self._socket.recv(128)  # message are invariably small
                 if response:
-                    self.logger.debug("[CLIENT] > TcpClient has received: " + response)
+                    self.logger.debug("[TCP] TcpClient has received: " + response)
                     self.process_message(response)
             except Exception:
                 # TODO skip allowable exceptions and throw others
                 pass
-        self.logger.debug("[CLIENT] > TcpClient exiting listen thread as stop_event was triggered")
+        self.logger.debug("[TCP] TcpClient exiting listen thread as stop_event was triggered")
 
     def send(self, message):
         """
@@ -189,12 +188,12 @@ class TcpClient(object):
         # stop the listen thread
         self._stop_event.set()
         self._client_thread.join()
-        self.logger.debug("[CLIENT] > TCP Client has stopped listening")
+        self.logger.debug("[TCP] TCP Client has stopped listening")
 
         # close off the socket
         self._socket.shutdown(socket.SHUT_RDWR)
         self._socket.close()
-        self.logger.debug("[CLIENT] > TCP Client has closed socket connection")
+        self.logger.debug("[TCP] TCP Client has closed socket connection")
 
     def process_message(self, msg):
         """

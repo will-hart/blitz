@@ -16,19 +16,19 @@ class BaseState(object):
 
     def enter_state(self, tcp, state):
         """Called when entering the state"""
-        self.logger.debug("Calling base.enter_state >> " + state.__name__)
+        self.logger.debug("[TCP] Calling base.enter_state >> " + state.__name__)
         return state()
 
     def process_message(self, tcp, msg):
         """Called when a message needs processing"""
-        self.logger.debug("Calling base.process_message: " + msg)
+        self.logger.debug("[TCP] Calling base.process_message: " + msg)
         raise NotImplementedError()
 
     def send_message(self, tcp, msg):
         """
         Send the passed message over TCP and return the current state
         """
-        self.logger.debug("Calling base.send_message: " + msg)
+        self.logger.debug("[TCP] Calling base.send_message: " + msg)
         tcp._send(msg)
         return self
 
@@ -38,7 +38,7 @@ class BaseState(object):
 
         :return: the new state
         """
-        self.logger.debug("Calling base.go_to_state >> " + state.__name__)
+        self.logger.debug("[TCP] Calling base.go_to_state >> " + state.__name__)
         return state().enter_state(tcp, state)
 
     def __str__(self):
@@ -52,11 +52,11 @@ class ClientInitState(BaseState):
 
     def enter_state(self, tcp, state):
         """Send a logging query to the logger"""
-        self.logger.debug("Calling init.enter_state")
+        self.logger.debug("[TCP] Calling init.enter_state")
         return self.send_message(tcp, "LOGGING")
 
     def process_message(self, tcp, msg):
-        self.logger.debug("Calling init.process_message: " + msg)
+        self.logger.debug("[TCP] Calling init.process_message: " + msg)
         if msg == CommunicationCodes.Acknowledge:
             # logger is logging, transition to LOGGING state
             return self.go_to_state(tcp, ClientLoggingState)
@@ -74,11 +74,11 @@ class ClientIdleState(BaseState):
     """
     def process_message(self, tcp, msg):
         # no server messages are acceptable in this state
-        self.logger.debug("Calling idle.process_message: " + msg)
+        self.logger.debug("[TCP] Calling idle.process_message: " + msg)
         raise Exception("Received unexpected message in IdleState: " + msg)
 
     def send_message(self, tcp, msg):
-        self.logger.debug("Calling idle.send_message: " + msg)
+        self.logger.debug("[TCP] Calling idle.send_message: " + msg)
         if msg == CommunicationCodes.Start:
             return self.go_to_state(tcp, ClientStartingState)
         elif msg[0:8] == CommunicationCodes.Download:
@@ -91,12 +91,12 @@ class ClientIdleState(BaseState):
 class ClientStartingState(BaseState):
     """Handles logging starting - waits for ACK from server"""
     def enter_state(self, tcp, state):
-        self.logger.debug("Calling starting.enter_state: " + state.__name__)
+        self.logger.debug("[TCP] Calling starting.enter_state: " + state.__name__)
         tcp._send(CommunicationCodes.Start)
         return self
 
     def process_message(self, tcp, msg):
-        self.logger.debug("Calling starting.process_message: " + msg)
+        self.logger.debug("[TCP] Calling starting.process_message: " + msg)
         if msg == CommunicationCodes.Acknowledge:
             return self.go_to_state(tcp, ClientLoggingState)
         elif msg == CommunicationCodes.InSession:
@@ -110,7 +110,7 @@ class ClientLoggingState(BaseState):
     Handles the client in logging state - sends periodic status updates
     """
     def send_message(self, tcp, msg):
-        self.logger.debug("Calling logging.send_message: " + msg)
+        self.logger.debug("[TCP] Calling logging.send_message: " + msg)
 
         # check if we have requested logging to stop
         if msg == CommunicationCodes.Stop:
@@ -133,12 +133,12 @@ class ClientStoppingState(BaseState):
     Handles waiting for acknowledgement from a client before entering IDLE state
     """
     def enter_state(self, tcp, state):
-        self.logger.debug("Calling stopping.enter_state: " + state.__name__)
+        self.logger.debug("[TCP] Calling stopping.enter_state: " + state.__name__)
         tcp._send(CommunicationCodes.Stop)
         return self
 
     def process_message(self, tcp, msg):
-        self.logger.debug("Calling stopping.process_message: " + msg)
+        self.logger.debug("[TCP] Calling stopping.process_message: " + msg)
         if msg == CommunicationCodes.Acknowledge:
             return self.go_to_state(tcp, ClientIdleState)
         return self
@@ -149,7 +149,7 @@ class ClientDownloadingState(BaseState):
     Handles the client in logging state - sends periodic status updates
     """
     def process_message(self, tcp, msg):
-        self.logger.debug("Calling downloading.process_message: " + msg)
+        self.logger.debug("[TCP] Calling downloading.process_message: " + msg)
         if msg == CommunicationCodes.Negative:
             # the data has been received
             self.send_message(tcp, CommunicationCodes.Acknowledge)
@@ -160,7 +160,7 @@ class ClientDownloadingState(BaseState):
         return self
 
     def go_to_state(self, tcp, state):
-        self.logger.debug("Calling downloading.go_to_state >> " + state.__name__)
+        self.logger.debug("[TCP] Calling downloading.go_to_state >> " + state.__name__)
         if type(state) == ClientIdleState:
             tcp._send(CommunicationCodes.Acknowledge) # acknowledge end of download recieved
 

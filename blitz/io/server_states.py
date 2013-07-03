@@ -19,7 +19,7 @@ def validate_command(msg, commands):
 class ServerIdleState(BaseState):
 
     def enter_state(self, tcp, state):
-        self.logger.debug("Calling ServerIdleState.enter_state: " + state.__name__)
+        self.logger.debug("[TCP] Calling ServerIdleState.enter_state: " + state.__name__)
         tcp._send(CommunicationCodes.Ready)
         return self
 
@@ -28,7 +28,7 @@ class ServerIdleState(BaseState):
         Handle the various requests from the client including to start and stop logging
         """
 
-        self.logger.debug("Calling ServerIdleState.process_message: " + msg)
+        self.logger.debug("[TCP] Calling ServerIdleState.process_message: " + msg)
         # check if it is a command which causes a change of state
         if msg == CommunicationCodes.Start:
             tcp._send(CommunicationCodes.Acknowledge)
@@ -48,25 +48,25 @@ class ServerIdleState(BaseState):
 class ServerLoggingState(BaseState):
 
     def enter_state(self, tcp, state):
-        self.logger.debug("Calling ServerLoggingState.enter_state: " + state.__name__)
+        self.logger.debug("[TCP] Calling ServerLoggingState.enter_state: " + state.__name__)
 
         # TODO raise signal to start logging
-        self.logger.debug("[SIGNAL] Start logging")
+        self.logger.debug("[TCP] [SIGNAL] Start logging")
 
         return self
 
     def process_message(self, tcp, msg):
-        self.logger.debug("Calling ServerLoggingState.process_message: " + msg)
+        self.logger.debug("[TCP] Calling ServerLoggingState.process_message: " + msg)
 
         if msg == CommunicationCodes.Stop:
             # TODO raise signal to stop logging
-            self.logger.debug("[SIGNAL] Stop logging")
+            self.logger.debug("[TCP] [SIGNAL] Stop logging")
             tcp._send(CommunicationCodes.Acknowledge)
             return self.go_to_state(tcp, ServerIdleState)
 
         if msg == CommunicationCodes.Update:
             # TODO raise signal to send status
-            self.logger.debug("[SIGNAL] send status")
+            self.logger.debug("[TCP] [SIGNAL] send status")
 
             # TODO replace with REAL data :)
             fixture = generate_tcp_server_fixtures()
@@ -82,7 +82,7 @@ class ServerLoggingState(BaseState):
 
 class ServerDownloadingState(BaseState):
     def download_complete(self, tcp):
-        self.logger.debug("Calling ServerLoggingState.download_complete")
+        self.logger.debug("[TCP] Calling ServerLoggingState.download_complete")
         return self.go_to_state(tcp, ServerIdleState)
 
     def process_message(self, tcp, msg):
@@ -92,9 +92,9 @@ class ServerDownloadingState(BaseState):
 
 class ServerClosedState(BaseState):
     def process_message(self, tcp, msg):
-        self.logger.debug("Calling ServerClosedState.process_message" + msg)
+        self.logger.debug("[TCP] Calling ServerClosedState.process_message" + msg)
         raise Exception("Attempted to receive message on closed server" + msg)
 
     def send_message(self, tcp, msg):
-        self.logger.debug("Calling ServerClosedState.send_message" + msg)
+        self.logger.debug("[TCP] Calling ServerClosedState.send_message" + msg)
         raise Exception("Attempted to send message on closed server" + msg)

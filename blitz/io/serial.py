@@ -38,7 +38,7 @@ class SerialManager(object):
                 "Attempted to instantiate a new SerialManager, but only one instance is"
                 " allowed.  Use the Instance() method instead")
         else:
-            self.logger.info("Created a new SerialManager - saving as Instance()")
+            self.logger.debug("SerialManager __init__")
             SerialManager.__instance = self
 
         # create a database object
@@ -49,6 +49,7 @@ class SerialManager(object):
         """
         Returns a reference to a single SerialManager instance
         """
+        cls.logger.debug("SerialManager Instance called")
         if cls.__instance is None:
             return SerialManager()
         else:

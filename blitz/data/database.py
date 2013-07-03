@@ -15,7 +15,7 @@ class DatabaseClient(object):
 
     _database = None
     _baseClass = None
-    logging = logging.getLogger(__name__)
+    logger = logging.getLogger(__name__)
 
     def __init__(self, verbose=False):
         """
@@ -24,7 +24,7 @@ class DatabaseClient(object):
         # TODO: load the database from the app.db file
         self._database = sql.create_engine('sqlite:///:memory:', echo=verbose)
         self._session = sessionmaker(bind=self._database)
-        self.logging.debug("Created Client Database")
+        self.logger.debug("DatabaseClient __init__")
 
     def create_tables(self, force_drop=False):
         """
@@ -253,7 +253,7 @@ class DatabaseServer(object):
     logger = logging.getLogger(__name__)
 
     def __init__(self):
-        self.logger.info("Initialised database server")
+        self.logger.debug("DatabaseServer __init__")
         self.session_id = self.__get_session_id()
 
     def start_session(self):

@@ -4,8 +4,8 @@ import json
 import logging
 import os
 
-from blitz.data.database import DatabaseServer
 from blitz.io.serial import SerialManager
+from blitz.io.tcp import TcpServer
 
 class Config(object):
     """
@@ -19,7 +19,7 @@ class Config(object):
         """
         Sets up default settings
         """
-        self.logger.debug("Loading Server Configuration")
+        self.logger.info("Loading Server Configuration")
         self.settings = {
             "application_path": os.path.dirname(__file__),
             "tcp_port": 8999,
@@ -109,7 +109,7 @@ class Application(object):
 
         # create a file logger and set it up for logging to file
         logging.basicConfig(filename='server_log.txt', level=logging.DEBUG,
-                            format='[%(asctime)s %(levelname)-10s %(threadName)-10s]:    %(message)s')
+                            format='%(asctime)-27s %(levelname)-10s %(threadName)-15s    %(message)s')
         ch = logging.StreamHandler()
         self.logger = logging.getLogger(__name__)
         self.logger.addHandler(ch)
@@ -117,11 +117,16 @@ class Application(object):
         # load configuration
         self.config = Config()
 
-        # create a database connection
-        self.data = DatabaseServer()
-        self.data.start_session()
-        self.logger.debug("Initialised server database")
-
         # create a serial server
         self.serial_server = SerialManager()
-        self.logger.debug("Initialised serial manager")
+        self.logger.info("Initialised serial manager")
+
+        # start the TCP server
+        self.tcp = TcpServer(self.config['tcp_port'])
+        self.tcp.start()
+        self.logger.info("Started TCP server on port %s" % self.config['tcp_port'])
+
+    def __del__(self):
+        self.logger.warning("Shutting down server Application")
+
+
