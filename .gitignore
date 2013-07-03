@@ -3,10 +3,10 @@
 
 *.pyc
 
-log.txt
 
 blitz/test/.coverage
 
 config.json
 
+client_log.txt
 server_log.txt
