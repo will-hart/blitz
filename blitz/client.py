@@ -160,8 +160,6 @@ def close_io_loop():
     instance = tornado.ioloop.IOLoop.instance()
     instance.add_callback(instance.stop)
 
-
 signal.signal(signal.SIGTERM, close_io_loop)
-signal.signal(signal.SIGSEGV, close_io_loop)
 
 

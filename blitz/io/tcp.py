@@ -22,7 +22,7 @@ class ClientConnection(object):
         self._stream = stream
         self._stream.set_close_callback(self._stream_closed)
         self.address = address
-        self.close = False
+        self.closing = False
         self.do_read()
 
     def _stream_closed(self):  # , *args, **kwargs):
@@ -32,23 +32,26 @@ class ClientConnection(object):
 
     def do_read(self):
         """Reads from a stream until a new line is found"""
-        self.logger.debug("[TCP] Listening to client TCP input stream: %s:%s" % self.address)
         self._stream.read_until("\n", self._on_read)
 
     def _on_read(self, line):
         """Handle a read message"""
         self._server.process_message(line.replace("\n", ""))
 
+        if not self.closing:
+            self.do_read()  # listen for the next message
+
     def send(self, message):
         """Writes a message to the socket"""
-        self.logger.debug("[SERVER SENDS] > " + message)
-        self._stream.write(message)
+        self.logger.debug("[TCP] > " + message)
+        self._stream.write(message + "\n")
 
 
 class TcpServer(tornadoTCP):
     """A server which listens for connections and maintains application state"""
 
     logger = logging.getLogger(__name__)
+    is_running = False
 
     def __init__(self, port):
         """initialise the TCP Server and register it with the IO loop"""
@@ -68,13 +71,14 @@ class TcpServer(tornadoTCP):
         self._thread = threading.Thread(target=loop.start)
         self._thread.daemon = True
         self._thread.start()
+        self.is_running = True
 
         self._clients = []
         self.current_state = BaseState().go_to_state(self, ServerIdleState)
 
     def handle_stream(self, stream, address):
         """Handles a new client stream by spawning a client connection object"""
-        self.logger.debug("[TCP] New client connection %s:%s" % address)
+        self.logger.info("[TCP] New client connection %s:%s" % address)
         self._clients.append(ClientConnection(self, stream, address))
 
     def shutdown(self):
@@ -86,13 +90,17 @@ class TcpServer(tornadoTCP):
         # set the correct shutdown state
         self.current_state = self.current_state.go_to_state(self, ServerClosedState)
 
+        # stop all the clients from listening
+        for client in self._clients:
+            client.closing = True
+
     def _do_shutdown(self):
         """The callback which does the shutting down"""
         loop = IOLoop.instance()
         loop.blitz_tcp_server.stop()
 
     def unregister_client(self, client):
-        self.logger.debug("[TCP] Client disconnected...")
+        self.logger.info("[TCP] Client %s disconnected..." % client)
         self._clients.remove(client)
 
     def process_message(self, message):
@@ -128,8 +136,8 @@ class TcpClient(object):
         """
         self._address = (host, port)
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # disabled as per https://github.com/facebook/tornado/issues/737
-        #self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # allow reuse
+        # TODO this could be disabled as per https://github.com/facebook/tornado/issues/737
+        self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # allow reuse
         self._socket.connect(self._address)
         self._socket.settimeout(0.5)
         self._outbox = []
