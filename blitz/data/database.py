@@ -15,6 +15,7 @@ class DatabaseClient(object):
 
     _database = None
     _baseClass = None
+    logging = logging.getLogger(__name__)
 
     def __init__(self, verbose=False):
         """
@@ -23,6 +24,7 @@ class DatabaseClient(object):
         # TODO: load the database from the app.db file
         self._database = sql.create_engine('sqlite:///:memory:', echo=verbose)
         self._session = sessionmaker(bind=self._database)
+        self.logging.debug("Created Client Database")
 
     def create_tables(self, force_drop=False):
         """
