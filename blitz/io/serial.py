@@ -81,7 +81,7 @@ class SerialManager(object):
         A thread which periodically polls a serial connection until a stop_event is received
         """
         while not stop_event.set():
-            with self.__queue_lock():
+            with self.__queue_lock:
                 # todo - this is fake :/ actually need to send a message to the boards requesting an update
                 self.__data.queue(generate_tcp_server_fixtures())
 
