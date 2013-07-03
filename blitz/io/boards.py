@@ -172,7 +172,6 @@ class BaseExpansionBoard(Plugin):
         be overridden by derived classes
         """
         manager.register_board(self['id'], self)
-        self.logger.debug("Board [%s:%s] subscribed to board manager" % (self['id'], self['description']))
 
     def get_number(self, start_bit, length):
         """

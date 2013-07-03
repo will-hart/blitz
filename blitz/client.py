@@ -1,20 +1,16 @@
 __author__ = 'Will Hart'
 
 import logging
-
-from blitz.data.database import DatabaseClient
-import blitz.web.api as blitz_api
-import blitz.web.http as blitz_http
-
-
-#import json
 import os.path
-
+import signal
 import tornado.httpserver
 import tornado.ioloop
 import tornado.web
 
+from blitz.data.database import DatabaseClient
 from blitz.io.boards import BoardManager
+import blitz.web.api as blitz_api
+import blitz.web.http as blitz_http
 
 
 class Config(object):
@@ -101,7 +97,7 @@ class Application(object):
         # TODO - database should persist
         self.data.create_tables()
         self.data.load_fixtures()
-        self.logger.debug("Initialised client database")
+        self.logger.info("Initialised DatabaseClient")
 
         # create a board manager
         self.board_manager = BoardManager(self.data)
@@ -121,11 +117,10 @@ class Application(object):
                                                    (r'/stop', blitz_http.StopHandler),
                                                    (r'/status', blitz_http.StatusHandler)
                                                    ], **self.config.settings)
-        self.logger.debug("Initialised client application")
 
         # create an HTTP server
         self.http_server = tornado.httpserver.HTTPServer(self.application)
-        self.logger.info("Initialised client HTTP server")
+        self.logger.debug("HTTPServer __init__")
 
         # save variables for later
         self.application.settings['socket'] = None
@@ -145,15 +140,28 @@ class Application(object):
         try:
             self.io_loop = tornado.ioloop.IOLoop.instance()
             self.io_loop.start()
-            self.logger.debug("HTTP server started IO loop")
+            self.logger.debug("Client HTTP IoLoop exited")
 
         finally:
             tcp = self.application.settings['socket']
             if tcp is not None:
                 tcp.disconnect()
+                self.logger.warning("Stopped TCP Socket")
 
-            self.io_loop.stop()
-            self.logger.info("Stopped IO loop resources")
+            self.io_loop.add_callback(self.io_loop.stop)
+            self.logger.warning("Stopped IO loop with callback")
 
     def __del__(self):
         self.logger.warning("Closing Client Application")
+
+
+def close_io_loop():
+    """Closes an IO loop if sigterm is received"""
+    instance = tornado.ioloop.IOLoop.instance()
+    instance.add_callback(instance.stop)
+
+
+signal.signal(signal.SIGTERM, close_io_loop)
+signal.signal(signal.SIGSEGV, close_io_loop)
+
+

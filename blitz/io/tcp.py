@@ -128,11 +128,12 @@ class TcpClient(object):
         """
         self._address = (host, port)
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # allow reuse
+        # disabled as per https://github.com/facebook/tornado/issues/737
+        #self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # allow reuse
         self._socket.connect(self._address)
         self._socket.settimeout(0.5)
         self._outbox = []
-        self.logger.debug("[TCP] Created TCP Client at %s:%s" % self._address)
+        self.logger.debug("Created TCP Client at %s:%s" % self._address)
 
         # start up the state machine
         self.current_state = BaseState().enter_state(self, ClientInitState)
@@ -142,11 +143,10 @@ class TcpClient(object):
         self._outbox_lock = threading.RLock()
         self._client_thread = threading.Thread(target=self.listen, args=[self._stop_event])
         self._client_thread.daemon = True
-        self.logger.debug("[TCP] Launching listen thread")
+        self.logger.debug("Launching TcpClient listen thread")
         self._client_thread.start()
 
     def listen(self, stop_event):
-        self.logger.debug("[TCP] Entering listen thread")
         while not stop_event.is_set():
             # send all queued messages
             with self._outbox_lock:
