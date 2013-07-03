@@ -739,7 +739,7 @@ class TestDatabaseServer(unittest.TestCase):
         self.data.start_session()
 
         # queue four and check length
-        for i in range(0,4):
+        for i in range(0, 4):
             self.data.queue(str(i))
         assert len(self.data.get_ten_from_session()) == 4
 
