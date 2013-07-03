@@ -2,6 +2,7 @@ __author__ = 'Will Hart'
 
 from blitz.constants import *
 from blitz.io.client_states import BaseState
+import blitz.io.signals as sigs
 from blitz.utilities import generate_tcp_server_fixtures
 
 
@@ -49,24 +50,20 @@ class ServerLoggingState(BaseState):
 
     def enter_state(self, tcp, state):
         self.logger.debug("[TCP] Calling ServerLoggingState.enter_state: " + state.__name__)
-
-        # TODO raise signal to start logging
-        self.logger.debug("[TCP] [SIGNAL] Start logging")
-
+        sigs.logging_started.send()
         return self
 
     def process_message(self, tcp, msg):
         self.logger.debug("[TCP] Calling ServerLoggingState.process_message: " + msg)
 
         if msg == CommunicationCodes.Stop:
-            # TODO raise signal to stop logging
+            sigs.logging_stopped.send()
             self.logger.debug("[TCP] [SIGNAL] Stop logging")
             tcp._send(CommunicationCodes.Acknowledge)
             return self.go_to_state(tcp, ServerIdleState)
 
         if msg == CommunicationCodes.Update:
-            # TODO raise signal to send status
-            self.logger.debug("[TCP] [SIGNAL] send status")
+            sigs.client_status_request.send(tcp)
 
             # TODO replace with REAL data :)
             fixture = generate_tcp_server_fixtures()

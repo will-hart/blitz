@@ -39,3 +39,12 @@ registering_boards = signal('registering_boards')
 
 # called when plugins are loaded
 plugin_loaded = signal('plugin_loaded')
+
+# called when logging starts on the server
+logging_started = signal('logging_started')
+
+# called when logging stops on the server
+logging_stopped = signal('logging_stopped')
+
+# called when the client requests a status update from the server
+client_status_request = signal('client_status_request')
