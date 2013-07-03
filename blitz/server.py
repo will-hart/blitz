@@ -96,7 +96,7 @@ class Config(object):
         return self.set(key, value)
 
 
-class Application(object):
+class Application(TcpServer):
     """
     A basic application which exposes the Api and HTTP request handlers
     provided by Tornado
@@ -106,6 +106,7 @@ class Application(object):
         """
         Create a new client web application, setting defaults
         """
+
 
         # create a file logger and set it up for logging to file
         logging.basicConfig(filename='server_log.txt', level=logging.DEBUG,
@@ -122,9 +123,7 @@ class Application(object):
         self.logger.info("Initialised serial manager")
 
         # start the TCP server
-        self.tcp = TcpServer(self.config['tcp_port'])
-        self.tcp.start()
-        self.logger.info("Started TCP server on port %s" % self.config['tcp_port'])
+        super(Application, self).__init__(self.config['tcp_port'])
 
     def __del__(self):
         self.logger.warning("Shutting down server Application")
