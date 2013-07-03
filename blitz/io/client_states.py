@@ -53,7 +53,7 @@ class ClientInitState(BaseState):
     def enter_state(self, tcp, state):
         """Send a logging query to the logger"""
         self.logger.debug("[TCP] Calling init.enter_state")
-        return self.send_message(tcp, "LOGGING")
+        return self.send_message(tcp, CommunicationCodes.IsLogging)
 
     def process_message(self, tcp, msg):
         self.logger.debug("[TCP] Calling init.process_message: " + msg)

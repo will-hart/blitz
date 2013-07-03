@@ -19,6 +19,7 @@ class CommunicationCodes(object):
     BoardError = "BOARDERROR"
     NoBoard = "NOBOARD"
     Ready = "READY"
+    IsLogging = "LOGGING"
 
     @classmethod
     def composite(cls, base_code, code_id):
@@ -32,7 +33,8 @@ VALID_SERVER_COMMANDS = [
     CommunicationCodes.Stop,
     CommunicationCodes.Update,
     CommunicationCodes.Download,
-    CommunicationCodes.Board
+    CommunicationCodes.Board,
+    CommunicationCodes.IsLogging
 ]
 
 # commands that are valid to send TO the client
