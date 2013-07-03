@@ -78,14 +78,15 @@ class SerialManager(object):
 
     def __poll_serial(self, stop_event):
         """
-        A thread which periodically polls a serial connection until a stopevent is received
+        A thread which periodically polls a serial connection until a stop_event is received
         """
         while not stop_event.set():
             with self.__queue_lock():
                 # todo - this is fake :/ actually need to send a message to the boards requesting an update
-                self.__data.push(generate_tcp_server_fixtures())
+                self.__data.queue(generate_tcp_server_fixtures())
 
-            time.sleep(SerialUpdatePeriod)
+            time.sleep(SerialUpdatePeriod / 4)  # TODO currently 0.25 of serial period to generate lots of data
+                                                # TODO remove the " / 4" later
 
     def __listen_serial(self, stop_event):
         """
