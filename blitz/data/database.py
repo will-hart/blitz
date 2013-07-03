@@ -2,7 +2,6 @@ __author__ = 'Will Hart'
 
 import datetime
 import logging
-import threading
 
 import sqlalchemy as sql
 from sqlalchemy.orm import sessionmaker
@@ -245,52 +244,59 @@ class DatabaseServer(object):
     "sessions" - a list of session in the database
     "data-N" - a queue of raw session data for session_id N
     """
-    # todo - this is temporary
-    __connection = redis.StrictRedis()
-    __queue = []
-    __queue_lock = threading.Lock()
+
+    __data = redis.StrictRedis()
+    session_id = -1
 
     logger = logging.getLogger(__name__)
 
-
     def __init__(self):
         self.logger.info("Initialised database server")
+        self.session_id = self.__get_session_id()
 
-    def push(self, message):
-        """
-        Queues a message in the database ready for transmission to the host PC
-        """
+    def start_session(self):
+        self.__data.incr("session_id")
+        self.session_id = self.__get_session_id()
+        self.__data.lpush("sessions", self.session_id)
+        return self.__get_session_id()
 
-        # TODO this is temporary, later on we should queue to a REDIS list indexed by
-        # session ID.  We should also maintain another list of sessions to allow saving
-        # and deleting of sessions
-        with self.__queue_lock():
-            self.__queue.append(message)
+    def stop_session(self):
+        self.session_id = -1
 
-    def pop(self):
-        """
-        Pops a queued reading from the top (FIFO) and returns it
-        """
+    def __get_session_id(self):
+        sess_id = self.__data.get("session_id")
+        return int(sess_id) if sess_id is not None else -1
 
-        result = ""  # set a default value just in case our dequeue fails
-
-        # TODO also temporary
-        with self.__queue_lock():
-            if len(self.__queue) > 0:
-                result = self.__queue[0]
-                self.__queue = self.__queue[1:]
-
+    def get_ten_from_session(self):
+        session_str = "session_" + str(self.session_id)
+        result = self.__data.lrange(session_str, 0, 9)  # numbers are inclusive
+        result.reverse()
         return result
 
-    def new_session(self):
-        """
-        Increments the session counter in the database and prepares to log to a new message queue
-        """
+    def queue(self, message):
+         # only log against current session
+        if self.session_id == -1:
+            self.logger.error("Requested variable QUEUE in ServerDatabase with no valid session")
+            raise Exception("Attempted to queue a session variable with no session available")
+        session_str = "session_%s" % self.session_id
+        self.__data.lpush(session_str, message)
+        return message
 
-        # TODO - implement
-        pass
+    def get_all_from_session(self, session_id):
+        session_str = "session_" + str(session_id)
+        result = self.__data.lrange(session_str, 0, -1)
+        result.reverse()
+        return result
 
-    def get_session_id(self):
-        """
-        Returns the current session ID after querying the database
-        """
+    def delete_session(self, session_id):
+        session_str = "session_" + str(session_id)
+        self.__data.lrem("sessions", 1, session_id)
+        return self.__data.delete(session_str)
+
+    def available_sessions(self):
+        result = self.__data.lrange("sessions", 0, -1)
+        return [] if result is None else result
+
+    def flush(self):
+        """Cleans out the database - no save or undo, USE WITH CAUTION"""
+        self.__data.flushdb()

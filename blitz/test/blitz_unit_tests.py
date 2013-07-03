@@ -12,7 +12,7 @@ from blitz.data.fixtures import *
 from blitz.data.models import *
 from blitz.io.boards import *
 from blitz.io.client_states import *
-from blitz.data.database import DatabaseClient
+from blitz.data.database import *
 from blitz.io.server_states import *
 from blitz.io.tcp import TcpServer
 
@@ -690,3 +690,98 @@ class TestBoardManager(unittest.TestCase):
         # the BlitzBasic board should be registered as ID 1, no other boards currently registered
         assert len(self.bm.boards) == 1
         assert type(self.bm.boards[1]) == BlitzBasicExpansionBoard
+
+
+class TestDatabaseServer(unittest.TestCase):
+
+    def setUp(self):
+        self.data = DatabaseServer()
+
+    def tearDown(self):
+        self.data.flush()
+
+    def test_session_id_increments_on_new_session(self):
+        assert self.data.session_id == -1, "Session ID %s is not 0 as expected" % self.data.session_id
+        self.data.start_session()
+        assert self.data.session_id == 1, "Session ID %s is not 1 as expected" % self.data.session_id
+
+    def test_throw_on_queue_with_no_session(self):
+        assert self.data.session_id == -1
+        with self.assertRaises(Exception):
+            self.data.queue("asdf")
+
+    def test_queue_and_retrieve_variable(self):
+        # start a session
+        self.data.start_session()
+        assert self.data.session_id == 1, "Expected 1, got %s" % self.data.session_id
+
+        # save some variables
+        self.data.queue("one")
+        self.data.queue("two")
+
+        # retrieve them
+        result = self.data.get_all_from_session(1)
+        assert len(result) == 2, "Expected list of length 2, got %s" % len(result)
+        assert result[0] == "one", "Expected 'one' got '%s'" % result[0]
+        assert result[1] == "two", "Expected 'two' got '%s'" % result[1]
+
+    def test_start_and_stop_session_returns_to_not_logging_state(self):
+        self.data.start_session()
+        assert self.data.session_id == 1, "Expected 1, got %s" % self.data.session_id
+
+        self.data.stop_session()
+        assert self.data.session_id == -1, "Expected -1, got %s" % self.data.session_id
+
+        with self.assertRaises(Exception):
+            self.data.queue("asdf")
+
+    def test_get_ten_from_session(self):
+        self.data.start_session()
+
+        # queue four and check length
+        for i in range(0,4):
+            self.data.queue(str(i))
+        assert len(self.data.get_ten_from_session()) == 4
+
+        # add twelve more and check we only get the last ten
+        for i in range(4, 16):
+            self.data.queue(str(i))
+        result = self.data.get_ten_from_session()
+        assert len(result) == 10, "Expected 10 items, found %s" % len(result)
+        assert result == ["6", "7", "8", "9", "10", "11", "12", "13", "14", "15"], "Expected [6..15], for %s" % result
+
+    def test_get_data_from_multiple_sessions(self):
+        # run the first session
+        self.data.start_session()
+        self.data.queue("11")
+        self.data.queue("12")
+        self.data.queue("13")
+        self.data.stop_session()
+
+        # run the second session
+        self.data.start_session()
+        self.data.queue("21")
+        self.data.queue("22")
+        self.data.queue("23")
+        self.data.stop_session()
+
+        sess1 = self.data.get_all_from_session(1)
+        sess2 = self.data.get_all_from_session(2)
+
+        assert len(sess1) == 3
+        assert len(sess2) == 3
+        assert sess1 == ["11", "12", "13"]
+        assert sess2 == ["21", "22", "23"]
+
+    def test_session_listing(self):
+        sessions = self.data.available_sessions()
+        assert sessions == [], "Expected empty list, recieved %s" % sessions
+
+        for i in range(0, 10):
+            self.data.start_session()
+            self.data.stop_session()
+
+        sessions = self.data.available_sessions()
+        print sessions
+        assert len(sessions) == 10
+        assert sessions == [x for x in reversed([str(x) for x in range(1, 11)])]
