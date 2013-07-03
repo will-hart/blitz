@@ -6,3 +6,7 @@
 log.txt
 
 blitz/test/.coverage
+
+config.json
+
+server_log.txt
