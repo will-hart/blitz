@@ -1,6 +1,6 @@
 __author__ = 'Will Hart'
 
-from blitz.client import Application
+from blitz.client import ApplicationClient
 
-app = Application()
+app = ApplicationClient()
 app.run()

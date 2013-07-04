@@ -4,6 +4,8 @@ import logging
 import threading
 import time
 
+from redis import ConnectionError
+
 from blitz.constants import SerialUpdatePeriod
 from blitz.data.database import DatabaseServer
 from blitz.io.signals import logging_started, logging_stopped
@@ -54,8 +56,11 @@ class SerialManager(object):
             SerialManager.__instance = self
 
         # create a database object
-        self.__data = DatabaseServer()
-
+        try:
+            self.__data = DatabaseServer()
+        except ConnectionError as e:
+            self.logger.critical("ConnectionError when attempting to start the DatabaseServer!")
+            self.logger.critical(e)
         # register to signals
         logging_started.connect(self.start)
         logging_stopped.connect(self.stop)

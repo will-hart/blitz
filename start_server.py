@@ -3,12 +3,12 @@ __author__ = 'Will Hart'
 import signal
 import time
 
-from blitz.server import Application
+from blitz.server import ApplicationServer
 
 app = None
 
 def run_app():
-    app = Application()
+    app = ApplicationServer()
 
     while app.is_running:
         # just check periodically if we should exit

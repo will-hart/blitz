@@ -96,7 +96,7 @@ class Config(object):
         return self.set(key, value)
 
 
-class Application(TcpServer):
+class ApplicationServer(TcpServer):
     """
     A basic application which exposes the Api and HTTP request handlers
     provided by Tornado
@@ -123,7 +123,7 @@ class Application(TcpServer):
         self.logger.info("Initialised serial manager")
 
         # start the TCP server
-        super(Application, self).__init__(self.config['tcp_port'])
+        super(ApplicationServer, self).__init__(self.config['tcp_port'])
 
     def __del__(self):
         self.logger.warning("Shutting down server Application")
