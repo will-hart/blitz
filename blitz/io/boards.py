@@ -136,7 +136,7 @@ class BaseExpansionBoard(Plugin):
         data_line_received.send(raw_message)
 
         # parse the message
-        if len(raw_message) != MESSAGE_BYTE_LENGTH:
+        if len(raw_message) < MESSAGE_BYTE_LENGTH:
             raise Exception(
                 "Unable to parse message [%s]- expected 28 bytes, found %s" % (
                     raw_message, len(raw_message))
@@ -147,12 +147,15 @@ class BaseExpansionBoard(Plugin):
         # parse all the variables to match the mapping
         for key in self.__mapping.keys():
             if "end" in self.__mapping[key]:
-                self[key] = self.__message[self.__mapping[key]["start"]:self.__mapping[key]["end"]].uint
+                if self.__mapping[key]["end"] == -1:
+                    self[key] = self.__message[self.__mapping[key]["start"]:].uint
+                else:
+                    self[key] = self.__message[self.__mapping[key]["start"]:self.__mapping[key]["end"]].uint
             else:
                 self[key] = self.__message[self.__mapping[key]["start"]]
 
         # get the payload into a bit_array
-        self._payload_array = BitArray(uint=self["payload"], length=PAYLOAD_LENGTH)
+        self._payload_array = BitArray(uint=self["payload"], length=PAYLOAD_LENGTH + (len(raw_message)- 28) * 4)
 
         # create a flags array
         self['flags'] = [

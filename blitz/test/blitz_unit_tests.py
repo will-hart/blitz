@@ -638,7 +638,7 @@ class TestExpansionBoardParsing(unittest.TestCase):
 
         result = board.get_variables()
 
-        assert result['full_payload'] == 6278148361660923904
+        assert result['full_payload'] == 6278148361660923904, "Expected 6278148361660923904, recieved %s" % result['full_payload']
         assert result['flag_one'] is False
         assert result['flag_two'] is True
         assert result['flag_three'] is False
@@ -666,7 +666,37 @@ class TestExpansionBoardParsing(unittest.TestCase):
         # check get variables
         assert set(result.keys()) == set(expected.keys())
         for k in expected.keys():
-            assert result[k] == expected[k]
+            assert result[k] == expected[k], "Expected %s, received %s" % (expected[k], result[k])
+
+        # check other parsed variables
+        assert board['id'] == 1
+        assert board['sender'] == 5
+        assert board['type'] == 3
+        assert board['flags'] == [True, False, True, False, True]
+        assert board['timestamp'] == 21845
+
+    def test_short_length_raises_exception(self):
+        board = BlitzBasicExpansionBoard()
+        with(self.assertRaises(Exception)):
+            board.parse_message("cc")
+
+    def test_long_length_parses_fine(self):
+        board = BlitzBasicExpansionBoard()
+        board.parse_message("057500005555cccccccc00000000FAFAFA")
+        result = board.get_variables()
+
+        expected = {
+            "adc_channel_one": 3276,
+            "adc_channel_two": 3276,
+            "adc_channel_three": 3264,
+            "adc_channel_four": 0,
+            "adc_channel_five": 0
+        }
+
+        # check get variables
+        assert set(result.keys()) == set(expected.keys())
+        for k in expected.keys():
+            assert result[k] == expected[k], "Expected %s, received %s" % (expected[k], result[k])
 
         # check other parsed variables
         assert board['id'] == 1

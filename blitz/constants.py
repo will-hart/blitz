@@ -63,7 +63,7 @@ BOARD_MESSAGE_MAPPING = {
     "flag4": {"start": 14},
     "flag5": {"start": 15},
     "timestamp": {"start": 16, "end": 48},
-    "payload": {"start": 48, "end": 112}
+    "payload": {"start": 48, "end": -1}
 }
 
 SerialUpdatePeriod = 1.0  # serial update period in seconds
