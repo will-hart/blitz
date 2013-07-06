@@ -112,10 +112,10 @@ class ApplicationClient(object):
                                                    (r'/session/(?P<session_id>[^\/]+)', blitz_api.SessionHandler),
                                                    (r'/sessions', blitz_api.SessionsHandler),
                                                    (r'/config', blitz_api.ConfigHandler),
+                                                   (r'/status', blitz_api.StatusHandler),
                                                    (r'/connect', blitz_http.ConnectHandler),
                                                    (r'/start', blitz_http.StartHandler),
-                                                   (r'/stop', blitz_http.StopHandler),
-                                                   (r'/status', blitz_http.StatusHandler)
+                                                   (r'/stop', blitz_http.StopHandler)
                                                    ], **self.config.settings)
 
         # create an HTTP server

@@ -82,20 +82,3 @@ class StopHandler(RequestHandler):
 
         self.content_type = "application/json"
         self.write(json.dumps(response))
-
-
-class StatusHandler(RequestHandler):
-
-    logger = logging.getLogger(__name__)
-
-    def get(self):
-        """Get the current system status"""
-        self.logger.debug("Responding to web client 'status' request")
-        tcp = self.application.settings['socket']
-        response = {
-            "logging": False if tcp is None else tcp.is_logging(),
-            "connected": tcp is None
-        }
-
-        self.content_type = "application/json"
-        self.write(json.dumps(response))
