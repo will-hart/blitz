@@ -21,7 +21,7 @@ class ServerIdleState(BaseState):
 
     def enter_state(self, tcp, state):
         self.logger.debug("[TCP] Calling ServerIdleState.enter_state: " + state.__name__)
-        tcp._send(CommunicationCodes.Ready)
+        tcp._do_send(CommunicationCodes.Ready)
         return self
 
     def process_message(self, tcp, msg):
@@ -32,16 +32,16 @@ class ServerIdleState(BaseState):
         self.logger.debug("[TCP] Calling ServerIdleState.process_message: " + msg)
         # check if it is a command which causes a change of state
         if msg == CommunicationCodes.Start:
-            tcp._send(CommunicationCodes.Acknowledge)
+            tcp._do_send(CommunicationCodes.Acknowledge)
             return self.go_to_state(tcp, ServerLoggingState)
         elif msg[0:8] == CommunicationCodes.Download:
             return self.go_to_state(tcp, ServerDownloadingState)
 
         if msg == CommunicationCodes.Stop or msg == CommunicationCodes.Update:
             # huh? We are not logging!?
-            tcp._send(CommunicationCodes.NoSession)
+            tcp._do_send(CommunicationCodes.NoSession)
         else:
-            tcp._send(validate_command(msg, VALID_SERVER_COMMANDS))
+            tcp._do_send(validate_command(msg, VALID_SERVER_COMMANDS))
 
         return self
 
@@ -59,7 +59,7 @@ class ServerLoggingState(BaseState):
         if msg == CommunicationCodes.Stop:
             sigs.logging_stopped.send()
             self.logger.debug("[TCP] [SIGNAL] Stop logging")
-            tcp._send(CommunicationCodes.Acknowledge)
+            tcp._do_send(CommunicationCodes.Acknowledge)
             return self.go_to_state(tcp, ServerIdleState)
 
         if msg == CommunicationCodes.Update:
@@ -67,12 +67,12 @@ class ServerLoggingState(BaseState):
 
             # TODO replace with REAL data :)
             fixture = generate_tcp_server_fixtures()
-            tcp._send(fixture.hex)
+            tcp._do_send(fixture.hex)
 
         elif msg == CommunicationCodes.Start:
-            tcp._send(CommunicationCodes.InSession)
+            tcp._do_send(CommunicationCodes.InSession)
         else:
-            tcp._send(validate_command(msg, VALID_SERVER_COMMANDS))
+            tcp._do_send(validate_command(msg, VALID_SERVER_COMMANDS))
 
         return self
 
@@ -83,7 +83,7 @@ class ServerDownloadingState(BaseState):
         return self.go_to_state(tcp, ServerIdleState)
 
     def process_message(self, tcp, msg):
-        tcp._send(validate_command(msg, VALID_SERVER_COMMANDS))
+        tcp._do_send(validate_command(msg, VALID_SERVER_COMMANDS))
         return self
 
 

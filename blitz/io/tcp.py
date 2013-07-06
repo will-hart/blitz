@@ -1,6 +1,7 @@
 __author__ = 'Will Hart'
 
 import logging
+import Queue
 import socket
 import threading
 from tornado.ioloop import IOLoop
@@ -108,7 +109,7 @@ class TcpServer(tornadoTCP):
         self.logger.debug("[SERVER PROCESSING] > %s" % message)
         self.current_state = self.current_state.process_message(self, message)
 
-    def _send(self, message):
+    def _do_send(self, message):
         self.last_sent = message.upper()
         for c in self._clients:
             c.send(self.last_sent)
@@ -121,7 +122,41 @@ class TcpServer(tornadoTCP):
             self.current_state = self.current_state.download_complete(self)
 
 
-class TcpClient(object):
+#
+# A threaded TCP client - http://eli.thegreenplace.net/2011/05/18/code-sample-socket-client-thread-in-python/
+#
+class TcpClientCommand(object):
+    """ A command to the client thread.
+        Each command type has its associated data:
+
+        CONNECT:    (host, port) tuple
+        SEND:       Data string
+        RECEIVE:    None
+        CLOSE:      None
+    """
+    CONNECT, SEND, RECEIVE, CLOSE, START, STOP, LOGGING = range(7)
+
+    def __init__(self, cmd, data=None):
+        self.type = cmd
+        self.data = data
+
+
+class TcpClientReply(object):
+    """ A reply from the client thread.
+        Each reply type has its associated data:
+
+        ERROR:      The error string
+        SUCCESS:    Depends on the command - for RECEIVE it's the received
+                    data string, for others None.
+    """
+    ERROR, SUCCESS, MESSAGE = range(3)
+
+    def __init__(self, cmd, data=None):
+        self.type = cmd
+        self.data = data
+
+
+class TcpClient(threading.Thread):
     """
     A TCP client which maintains a socket connection and
     sends / receives messages upon request
@@ -130,72 +165,124 @@ class TcpClient(object):
     current_state = None
     logger = logging.getLogger(__name__)
 
-    def __init__(self, host, port):
+    def __init__(self, host, port, inbox=None, outbox=None):
         """
         Connect the socket to the given port and IP
         """
-        self._address = (host, port)
-        self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # TODO this could be disabled as per https://github.com/facebook/tornado/issues/737
-        self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # allow reuse
-        self._socket.connect(self._address)
-        self._socket.settimeout(0.5)
-        self._outbox = []
-        self.logger.debug("Created TCP Client at %s:%s" % self._address)
+        super(TcpClient, self).__init__()
+        self.__address = (host, port)
+        self.inbox = inbox or Queue.Queue()
+        self.outbox = outbox or Queue.Queue()
+        self.alive = threading.Event()
+        self.alive.set()
+        self._socket = None
+        self.logger.debug("Created TCP Client at %s:%s" % self.__address)
 
         # start up the state machine
         self.current_state = BaseState().enter_state(self, ClientInitState)
 
-        # set up the listen thread
-        self._stop_event = threading.Event()
-        self._outbox_lock = threading.RLock()
-        self._client_thread = threading.Thread(target=self.listen, args=[self._stop_event])
-        self._client_thread.daemon = True
-        self.logger.debug("Launching TcpClient listen thread")
-        self._client_thread.start()
+        # set up the command handlers
+        self.handlers = {
+            TcpClientCommand.CONNECT: self.__handle_connect,
+            TcpClientCommand.CLOSE: self.__handle_close,
+            TcpClientCommand.SEND: self.__handle_send,
+            TcpClientCommand.RECEIVE: self.__handle_receive
+        }
 
-    def listen(self, stop_event):
-        recv_buffer = ""
-
-        while not stop_event.is_set():
-            # send all queued messages
-            with self._outbox_lock:
-                for msg in self._outbox:
-                    self.logger.debug("[TCP] TcpClient sending: " + msg)
-                    self._socket.sendall(msg + "\n")
-                self._outbox = []
-
-            # receive messages
+    def run(self):
+        """
+        Runs the TcpClient, listening for events
+        """
+        self.logger.info("Entering TcpClient thread")
+        while self.alive.is_set():
             try:
-                recv_buffer += self._socket.recv(64)  # message are invariably small
+                # try to get a command and handle it
+                cmd = self.inbox.get(True, 0.05)
+                self.handlers[cmd](cmd)
+            except Queue.Empty:
+                # this is ok - we can continue
+                # other exceptions should be thrown
+                continue
 
-                if recv_buffer:
-                    # check if we have receved a complete message
-                    if recv_buffer[-1] == "\n":
-                        self.logger.debug("[TCP] TcpClient has received: " + recv_buffer[:-1])
-                        self.process_message(recv_buffer[:-1])
-                        recv_buffer = ""
-                        return
+    def join(self, timeout=None):
+        """
+        Closes the thread and blocks until this is done
+        """
+        self.logger.debug("Attempting to close TcpClient thread")
+        self.alive.clear()
+        threading.Thread.join(self, timeout)
+        self.logger.debug("TcpClient thread closed")
 
-                    # otherwise we may have a partial message
-                    responses = recv_buffer.split("\n")
-                    if len(responses) == 1:
-                        # still waiting for complete message, continue until newline recevied
-                        continue
+    def __handle_connect(self, cmd):
+        """
+        Connects to a TCP Server
+        :param cmd: The connection command
+        """
+        self.logger.debug("TcpClient Receiving CONNECT command")
+        try:
+            self.__socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.__socket.connect(self.__address)
+            self.outbox.put(self.__success_reply())
+        except IOError as e:
+            self.logger.error("Error in TcpClient.CONNECT - " + str(e))
+            self.outbox.put(self.__error_reply(str(e)))
 
-                    # save the stub to a receive buffer
-                    recv_buffer = responses[-1]
+    def __handle_close(self, cmd):
+        """
+        Closes the TCP socket
+        :param cmd: The close command
+        """
+        self.logger.debug("TcpClient Receiving CLOSE command")
+        self.__socket.close()
+        reply = self.__success_reply()
+        self.outbox.put(reply)
 
-                    # process the remainder
-                    for response in responses[:-1]:
-                        self.logger.debug("[TCP] TcpClient has received: " + response)
-                        self.process_message(response)
+    def __handle_send(self, cmd):
+        """
+        Sends a message to the TCP Server
+        :param cmd: The command object, where cmd.data is the message to send
+        """
+        self.logger.debug("TcpClient Receiving SEND command - " + cmd.data)
+        try:
+            self.__socket.sendall(cmd.data)
+            self.outbox.put(self.__success_reply())
+        except IOError as e:
+            self.logger.error("Error in TcpClient.SEND - " + str(e))
+            self.outbox.put(self.__error_reply(str(e)))
 
-            except Exception:
-                # TODO skip allowable exceptions and throw others
-                pass
+    def __handle_receive(self, cmd):
+        """
+        Receives from the socket
+        :param cmd: The command to receive
+        """
+        self.logger.debug("TcpClient Receiving RECEIVE command - " + cmd.data)
+        try:
+            data = self.__receive_until_newline()
+            self.process_message(data)
+        except IOError as e:
+            self.logger.error("Error in TcpClient.RECEIVE - " + str(e))
+            self.outbox.put(self.__error_reply(str(e)))
 
-        self.logger.debug("[TCP] TcpClient exiting listen thread as stop_event was triggered")
+    def __receive_until_newline(self):
+        """
+        Receives data until a new line is found
+        """
+        message = ""
+        separator = "\n"
+        while True:
+            chunk = self.__socket.recv(1)
+            if chunk == "" or chunk == separator:
+                break
+            message += chunk
+        self.logger.debug("TcpClient received raw message - " + message)
+        return message
+
+    def connect(self):
+        """Connects to the IP and port given in the constructor"""
+
+        self.logger.info("Creating TCP Client Connection to %s:%s", self.__address)
+        self.inbox.put(TcpClientCommand(TcpClientCommand.CONNECT, None))
+        self.__read_reply("connection request")
 
     def send(self, message):
         """
@@ -203,34 +290,37 @@ class TcpClient(object):
         """
         self.current_state = self.current_state.send_message(self, message)
 
-    def _send(self, message):
-        """
-        Queues the given message and read the echoed response
-        """
-        with self._outbox_lock:
-            self.last_sent = message.upper()
-            self._outbox.append(self.last_sent)
-
     def disconnect(self):
         """
         Disconnects the socket
         """
-
-        # stop the listen thread
-        self._stop_event.set()
-        self._client_thread.join()
-        self.logger.debug("[TCP] TCP Client has stopped listening")
-
-        # close off the socket
-        self._socket.shutdown(socket.SHUT_RDWR)
-        self._socket.close()
-        self.logger.debug("[TCP] TCP Client has closed socket connection")
+        self.logger.info("Stopping TCP Client")
+        return self.join()
 
     def process_message(self, msg):
         """
         Process a message received via TCP by using the state machine
         """
         self.current_state = self.current_state.process_message(self, msg)
+
+    def _do_send(self, message):
+        """
+        Queues the given message and read the echoed response
+        """
+        self.last_sent = message.upper()
+        self.outbox.put(TcpClientCommand(TcpClientCommand.SEND, message.upper()))
+        self.__read_reply("send request")
+
+    def __read_reply(self, log_message="TCP Operation", timeout=2, blocking=True):
+        """Reads a reply from the TCP outbox queue and raises log messages accordingly"""
+        try:
+            reply = self.outbox.get(blocking, timeout)
+            if reply.type == TcpClientReply.SUCCESS:
+                self.logger.debug("Successfully completed " + log_message)
+            else:
+                self.logger.error("Error in TCP Client during " + log_message + " - " + reply.data)
+        except Queue.Empty:
+            self.logger.warning("Unable to complete " + log_message + " before timeout")
 
     def parse_reading(self, msg):
         """
@@ -276,3 +366,12 @@ class TcpClient(object):
         Returns True if the client is currently in logging state
         """
         return type(self.current_state) is ClientLoggingState
+
+    def __success_reply(self, data=None):
+        return TcpClientReply(TcpClientReply.SUCCESS, data)
+
+    def __error_reply(self, data):
+        return TcpClientReply(TcpClientReply.ERROR, data)
+
+    def __message_reply(self, payload):
+        return TcpClientReply(TcpClientReply.MESSAGE, payload)

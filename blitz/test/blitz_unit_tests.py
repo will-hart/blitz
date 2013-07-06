@@ -432,6 +432,7 @@ class TestTcpClientStateMachine(unittest.TestCase):
         # simulate starting a new connection by entering the init state
         self.tcpServer = TcpServer(8999)
         self.tcp = TcpClientMock("127.0.0.1", 8999)
+        self.tcp.start()
 
     def tearDown(self):
         self.tcp.disconnect()

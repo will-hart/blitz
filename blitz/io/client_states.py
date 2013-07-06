@@ -29,7 +29,7 @@ class BaseState(object):
         Send the passed message over TCP and return the current state
         """
         self.logger.debug("[TCP] Calling base.send_message: " + msg)
-        tcp._send(msg)
+        tcp._do_send(msg)
         return self
 
     def go_to_state(self, tcp, state):
@@ -82,7 +82,7 @@ class ClientIdleState(BaseState):
         if msg == CommunicationCodes.Start:
             return self.go_to_state(tcp, ClientStartingState)
         elif msg[0:8] == CommunicationCodes.Download:
-            tcp._send(msg)
+            tcp._do_send(msg)
             return self.go_to_state(tcp, ClientDownloadingState)
         else:
             raise Exception("Unknown message for IDLE state - " + msg)
@@ -92,7 +92,7 @@ class ClientStartingState(BaseState):
     """Handles logging starting - waits for ACK from server"""
     def enter_state(self, tcp, state):
         self.logger.debug("[TCP] Calling starting.enter_state: " + state.__name__)
-        tcp._send(CommunicationCodes.Start)
+        tcp._do_send(CommunicationCodes.Start)
         return self
 
     def process_message(self, tcp, msg):
@@ -118,13 +118,13 @@ class ClientLoggingState(BaseState):
 
         # if not, are we requesting a status?
         if msg == CommunicationCodes.Update:
-            tcp._send(CommunicationCodes.Update)
+            tcp._do_send(CommunicationCodes.Update)
         elif len(msg) == COMMAND_MESSAGE_BYTES or len(msg) == SHORT_COMMAND_MESSAGE_BYTES:
             # this is likely to be a data message
             tcp.parse_reading(msg)
         else:
             # otherwise we just send the message and let the server sort it out
-            tcp._send(msg)
+            tcp._do_send(msg)
         return self
 
 
@@ -134,7 +134,7 @@ class ClientStoppingState(BaseState):
     """
     def enter_state(self, tcp, state):
         self.logger.debug("[TCP] Calling stopping.enter_state: " + state.__name__)
-        tcp._send(CommunicationCodes.Stop)
+        tcp._do_send(CommunicationCodes.Stop)
         return self
 
     def process_message(self, tcp, msg):
@@ -162,6 +162,6 @@ class ClientDownloadingState(BaseState):
     def go_to_state(self, tcp, state):
         self.logger.debug("[TCP] Calling downloading.go_to_state >> " + state.__name__)
         if type(state) == ClientIdleState:
-            tcp._send(CommunicationCodes.Acknowledge) # acknowledge end of download recieved
+            tcp._do_send(CommunicationCodes.Acknowledge) # acknowledge end of download recieved
 
         return super(ClientDownloadingState, self).go_to_state(tcp, state)
