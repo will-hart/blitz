@@ -33,7 +33,6 @@ class ClientConnection(object):
 
     def do_read(self):
         """Reads from a stream until a new line is found"""
-        self.logger.critical("Looping do_read")
         self._stream.read_until("\n", self._on_read)
 
     def _on_read(self, line):
