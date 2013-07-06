@@ -28,6 +28,8 @@ class ConnectHandler(RequestHandler):
             # we are connecting
             self.logger.debug("Created TCP connection at client request")
             tcp = TcpClient("127.0.0.1", 8999)  # TODO get from config
+            tcp.start()
+            tcp.connect()
             self.application.settings['socket'] = tcp
             response = {'connected': True}
         else:

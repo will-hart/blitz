@@ -197,8 +197,8 @@ class TcpClient(threading.Thread):
         while self.alive.is_set():
             try:
                 # try to get a command and handle it
-                cmd = self.inbox.get(True, 0.05)
-                self.handlers[cmd](cmd)
+                cmd = self.inbox.get(True, 0.1)
+                self.handlers[cmd.type](cmd)
             except Queue.Empty:
                 # this is ok - we can continue
                 # other exceptions should be thrown
@@ -218,7 +218,7 @@ class TcpClient(threading.Thread):
         Connects to a TCP Server
         :param cmd: The connection command
         """
-        self.logger.debug("TcpClient Receiving CONNECT command")
+        self.logger.debug("TcpClient handling CONNECT command")
         try:
             self.__socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.__socket.connect(self.__address)
@@ -232,7 +232,7 @@ class TcpClient(threading.Thread):
         Closes the TCP socket
         :param cmd: The close command
         """
-        self.logger.debug("TcpClient Receiving CLOSE command")
+        self.logger.debug("TcpClient handling CLOSE command")
         self.__socket.close()
         reply = self.__success_reply()
         self.outbox.put(reply)
@@ -242,7 +242,7 @@ class TcpClient(threading.Thread):
         Sends a message to the TCP Server
         :param cmd: The command object, where cmd.data is the message to send
         """
-        self.logger.debug("TcpClient Receiving SEND command - " + cmd.data)
+        self.logger.debug("TcpClient handling SEND command - " + cmd.data)
         try:
             self.__socket.sendall(cmd.data)
             self.outbox.put(self.__success_reply())
@@ -255,7 +255,7 @@ class TcpClient(threading.Thread):
         Receives from the socket
         :param cmd: The command to receive
         """
-        self.logger.debug("TcpClient Receiving RECEIVE command - " + cmd.data)
+        self.logger.debug("TcpClient handling RECEIVE command - " + cmd.data)
         try:
             data = self.__receive_until_newline()
             self.process_message(data)
@@ -277,10 +277,17 @@ class TcpClient(threading.Thread):
         self.logger.debug("TcpClient received raw message - " + message)
         return message
 
-    def connect(self):
+    def connect(self, host=None, port=None):
         """Connects to the IP and port given in the constructor"""
 
-        self.logger.info("Creating TCP Client Connection to %s:%s", self.__address)
+        # save new connection details if received
+        if host is not None:
+            self.__address = (host, self.__address[1])
+        if port is not None:
+            self.__address = (self.__address[0], port)
+
+        # connect
+        self.logger.info("Creating TCP Client Connection to %s:%s" % self.__address)
         self.inbox.put(TcpClientCommand(TcpClientCommand.CONNECT, None))
         self.__read_reply("connection request")
 
@@ -308,7 +315,7 @@ class TcpClient(threading.Thread):
         Queues the given message and read the echoed response
         """
         self.last_sent = message.upper()
-        self.outbox.put(TcpClientCommand(TcpClientCommand.SEND, message.upper()))
+        self.inbox.put(TcpClientCommand(TcpClientCommand.SEND, message.upper()))
         self.__read_reply("send request")
 
     def __read_reply(self, log_message="TCP Operation", timeout=2, blocking=True):
