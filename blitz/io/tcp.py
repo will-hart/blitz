@@ -33,10 +33,12 @@ class ClientConnection(object):
 
     def do_read(self):
         """Reads from a stream until a new line is found"""
+        self.logger.critical("Looping do_read")
         self._stream.read_until("\n", self._on_read)
 
     def _on_read(self, line):
         """Handle a read message"""
+        self.logger.critical("Handling read message")
         self._server.process_message(line.replace("\n", ""))
 
         if not self.closing:
@@ -57,7 +59,6 @@ class TcpServer(tornadoTCP):
     def __init__(self, port):
         """initialise the TCP Server and register it with the IO loop"""
         super(TcpServer, self).__init__()
-        self.logger.debug("TcpServer __init__")
 
         # save the port
         self._port = port
@@ -76,6 +77,7 @@ class TcpServer(tornadoTCP):
 
         self._clients = []
         self.current_state = BaseState().go_to_state(self, ServerIdleState)
+        self.logger.debug("TcpServer listening on port %s" % port)
 
     def handle_stream(self, stream, address):
         """Handles a new client stream by spawning a client connection object"""
@@ -244,7 +246,7 @@ class TcpClient(threading.Thread):
         """
         self.logger.debug("TcpClient handling SEND command - " + cmd.data)
         try:
-            self.__socket.sendall(cmd.data)
+            self.__socket.sendall(cmd.data.upper() + "\n")
             self.outbox.put(self.__success_reply())
         except IOError as e:
             self.logger.error("Error in TcpClient.SEND - " + str(e))
@@ -315,7 +317,7 @@ class TcpClient(threading.Thread):
         Queues the given message and read the echoed response
         """
         self.last_sent = message.upper()
-        self.inbox.put(TcpClientCommand(TcpClientCommand.SEND, message.upper()))
+        self.inbox.put(TcpClientCommand(TcpClientCommand.SEND, message))
         self.__read_reply("send request")
 
     def __read_reply(self, log_message="TCP Operation", timeout=2, blocking=True):

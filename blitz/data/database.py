@@ -278,8 +278,8 @@ class DatabaseServer(object):
     def queue(self, message):
          # only log against current session
         if self.session_id == -1:
-            self.logger.error("Requested variable QUEUE in ServerDatabase with no valid session")
-            raise Exception("Attempted to queue a session variable with no session available")
+            self.logger.warning("Requested variable QUEUE in ServerDatabase with no valid session: %s" % message)
+            return
         session_str = "session_%s" % self.session_id
         self.__data.lpush(session_str, message)
         return message
