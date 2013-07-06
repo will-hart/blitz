@@ -260,9 +260,11 @@ class DatabaseServer(object):
         self.__data.incr("session_id")
         self.session_id = self.__get_session_id()
         self.__data.lpush("sessions", self.session_id)
+        self.__data.set("session_" + str(self.session_id) + "_start", datetime.datetime.now())
         return self.__get_session_id()
 
     def stop_session(self):
+        self.__data.set("session_" + str(self.session_id) + "_end", datetime.datetime.now())
         self.session_id = -1
 
     def __get_session_id(self):
@@ -293,6 +295,8 @@ class DatabaseServer(object):
     def delete_session(self, session_id):
         session_str = "session_" + str(session_id)
         self.__data.lrem("sessions", 1, session_id)
+        self.__data.delete(session_str + "_start")
+        self.__data.delete(session_str + "_end")
         return self.__data.delete(session_str)
 
     def available_sessions(self):
