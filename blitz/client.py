@@ -83,7 +83,7 @@ class ApplicationClient(object):
 
         # create a file logger and set it up for logging to file
         logging.basicConfig(filename='client_log.txt', level=logging.DEBUG,
-                            format='%(asctime)-27s %(levelname)-10s %(name)-20s %(threadName)-15s   %(message)s')
+                            format='%(asctime)-27s %(levelname)-10s %(name)-25s %(threadName)-15s   %(message)s')
         ch = logging.StreamHandler()
         self.logger = logging.getLogger(__name__)
         self.logger.addHandler(ch)
