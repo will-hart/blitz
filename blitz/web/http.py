@@ -28,6 +28,8 @@ class ConnectHandler(RequestHandler):
             # we are connecting
             self.logger.debug("Created TCP connection at client request")
             tcp = TcpClient("127.0.0.1", 8999)  # TODO get from config
+            tcp.start()
+            tcp.connect()
             self.application.settings['socket'] = tcp
             response = {'connected': True}
         else:
@@ -77,23 +79,6 @@ class StopHandler(RequestHandler):
             self.logger.debug("Web client requested logging stop")
             tcp.request_stop()
             response = {'logging': False, 'connected': True}
-
-        self.content_type = "application/json"
-        self.write(json.dumps(response))
-
-
-class StatusHandler(RequestHandler):
-
-    logger = logging.getLogger(__name__)
-
-    def get(self):
-        """Get the current system status"""
-        self.logger.debug("Responding to web client 'status' request")
-        tcp = self.application.settings['socket']
-        response = {
-            "logging": False if tcp is None else tcp.is_logging(),
-            "connected": tcp is None
-        }
 
         self.content_type = "application/json"
         self.write(json.dumps(response))

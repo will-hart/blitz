@@ -1,9 +1,11 @@
 __author__ = 'Will Hart'
 
+import json
+
+from tornado.web import RequestHandler
+
 from blitz.data.models import *
 from blitz.utilities import to_blitz_date
-import json
-from tornado.web import RequestHandler
 
 
 class CategoriesHandler(RequestHandler):
@@ -158,3 +160,17 @@ class ConfigHandler(RequestHandler):
 
         self.content_type = "application/json"
         self.write("{'response': 'ok'}")
+
+
+class StatusHandler(RequestHandler):
+
+    def get(self):
+        """Get the current system status"""
+        tcp = self.application.settings['socket']
+        response = {
+            "logging": False if tcp is None else tcp.is_logging(),
+            "connected": tcp is None
+        }
+
+        self.content_type = "application/json"
+        self.write(json.dumps(response))

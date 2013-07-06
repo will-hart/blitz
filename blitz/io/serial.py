@@ -19,11 +19,8 @@ class SerialManager(object):
     uses for sending information.
     """
 
-    __outbox_lock = threading.Lock()
-    __queue_lock = threading.Lock()
     __instance = None
     __data = None
-    __stop_event = None
     __serial_thread = None
     __listen_thread = None
 
@@ -71,7 +68,7 @@ class SerialManager(object):
         """
 
         # enter a new session
-        self.__data.start_session()
+        session_id = self.__data.start_session()
 
         # start a thread for listening to the serial ports
         self.__stop_event = threading.Event()
@@ -87,7 +84,7 @@ class SerialManager(object):
         self.logger.debug("Started serial polling thread: %s" % self.__serial_thread.name)
 
         # log about serial listening starting
-        self.logger.info("Commenced logging - now listening and polling serial ports for updates")
+        self.logger.info("Commenced logging session %s" % session_id)
 
     def stop(self, signal_args):
         """Stops logging threads"""
@@ -99,6 +96,7 @@ class SerialManager(object):
 
         self.__stop_event.set()
         self.__listen_thread.join()
+        self.logger.debug("Stopped listening for new serial messages")
         self.__serial_thread.join()
         self.logger.info("All serial threads have now stopped")
 
@@ -106,18 +104,21 @@ class SerialManager(object):
         """
         A thread which periodically polls a serial connection until a stop_event is received
         """
-        while not stop_event.set():
-            with self.__queue_lock:
-                # todo - this is fake :/ actually need to send a message to the boards requesting an update
-                self.__data.queue(generate_tcp_server_fixtures())
+        while not stop_event.is_set():
+            # todo - this is fake :/ actually need to send a message to the boards requesting an update
+            self.__data.queue(generate_tcp_server_fixtures())
 
             time.sleep(SerialUpdatePeriod / 4)  # TODO currently 0.25 of serial period to generate lots of data
                                                 # TODO remove the " / 4" later
+
+        self.logger.debug("Exited poll serial thread")
 
     def __listen_serial(self, stop_event):
         """
         A threaded function that listens on a serial port and queues any received messages into the inbox
         """
-        while not stop_event.set():
+        while not stop_event.is_set():
             # todo - something useful
-            pass
+            time.sleep(0.5)
+
+        self.logger.debug("Exited listen serial thread")
