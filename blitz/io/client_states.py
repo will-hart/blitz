@@ -1,6 +1,7 @@
 __author__ = 'Will Hart'
 
 import logging
+import threading
 
 from blitz.constants import *
 
@@ -53,7 +54,8 @@ class ClientInitState(BaseState):
     def enter_state(self, tcp, state):
         """Send a logging query to the logger"""
         self.logger.debug("[TCP] Calling init.enter_state")
-        return self.send_message(tcp, CommunicationCodes.IsLogging)
+        tcp._do_send(CommunicationCodes.IsLogging)
+        return self
 
     def process_message(self, tcp, msg):
         self.logger.debug("[TCP] Calling init.process_message: " + msg)
@@ -97,9 +99,7 @@ class ClientStartingState(BaseState):
 
     def process_message(self, tcp, msg):
         self.logger.debug("[TCP] Calling starting.process_message: " + msg)
-        if msg == CommunicationCodes.Acknowledge:
-            return self.go_to_state(tcp, ClientLoggingState)
-        elif msg == CommunicationCodes.InSession:
+        if msg == CommunicationCodes.Acknowledge or msg == CommunicationCodes.InSession:
             return self.go_to_state(tcp, ClientLoggingState)
 
         return self.go_to_state(tcp, ClientIdleState)
@@ -109,6 +109,22 @@ class ClientLoggingState(BaseState):
     """
     Handles the client in logging state - sends periodic status updates
     """
+    def enter_state(self, tcp, state):
+        """sets up a timer which periodically polls the data logger for updates"""
+        self.logger.debug("[TCP] Calling logging.enter_state")
+        t = threading.Timer(1.0, self.request_update, args=[tcp])
+        t.start()
+
+    def request_update(self, tcp):
+        """called on timer tick to request an update from the TCP server"""
+        self.logger.critical("TICK")
+        tcp.request_update()
+
+        # if we are still logging, request another update
+        if type(tcp.current_state) is ClientLoggingState:
+            t = threading.Timer(1.0, self.request_update, args=[tcp])
+            t.start()
+
     def send_message(self, tcp, msg):
         self.logger.debug("[TCP] Calling logging.send_message: " + msg)
 

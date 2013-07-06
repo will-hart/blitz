@@ -40,6 +40,8 @@ class ServerIdleState(BaseState):
         if msg == CommunicationCodes.Stop or msg == CommunicationCodes.Update:
             # huh? We are not logging!?
             tcp._do_send(CommunicationCodes.NoSession)
+        elif msg == CommunicationCodes.IsLogging:
+            tcp._do_send(CommunicationCodes.Negative)
         else:
             tcp._do_send(validate_command(msg, VALID_SERVER_COMMANDS))
 
@@ -71,6 +73,9 @@ class ServerLoggingState(BaseState):
 
         elif msg == CommunicationCodes.Start:
             tcp._do_send(CommunicationCodes.InSession)
+        elif msg == CommunicationCodes.IsLogging:
+            tcp._do_send(CommunicationCodes.Negative)
+
         else:
             tcp._do_send(validate_command(msg, VALID_SERVER_COMMANDS))
 

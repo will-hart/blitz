@@ -37,7 +37,7 @@ class ClientConnection(object):
 
     def _on_read(self, line):
         """Handle a read message"""
-        self.logger.critical("Handling read message")
+        self.logger.critical("Handling read message: %s" % line)
         self._server.process_message(line.replace("\n", ""))
 
         if not self.closing:
@@ -179,9 +179,6 @@ class TcpClient(threading.Thread):
         self._socket = None
         self.logger.debug("Created TCP Client at %s:%s" % self.__address)
 
-        # start up the state machine
-        self.current_state = BaseState().enter_state(self, ClientInitState)
-
         # set up the command handlers
         self.handlers = {
             TcpClientCommand.CONNECT: self.__handle_connect,
@@ -195,6 +192,7 @@ class TcpClient(threading.Thread):
         Runs the TcpClient, listening for events
         """
         self.logger.info("Entering TcpClient thread")
+
         while self.alive.is_set():
             try:
                 # try to get a command and handle it
@@ -224,9 +222,14 @@ class TcpClient(threading.Thread):
             self.__socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.__socket.connect(self.__address)
             self.outbox.put(self.__success_reply())
+
+            # start up the state machine
+            self.current_state = BaseState().go_to_state(self, ClientInitState)
+
         except IOError as e:
             self.logger.error("Error in TcpClient.CONNECT - " + str(e))
             self.outbox.put(self.__error_reply(str(e)))
+
 
     def __handle_close(self, cmd):
         """
