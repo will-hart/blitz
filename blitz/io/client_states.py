@@ -114,6 +114,7 @@ class ClientLoggingState(BaseState):
         self.logger.debug("[TCP] Calling logging.enter_state")
         t = threading.Timer(1.0, self.request_update, args=[tcp])
         t.start()
+        return self
 
     def request_update(self, tcp):
         """called on timer tick to request an update from the TCP server"""
