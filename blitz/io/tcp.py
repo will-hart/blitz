@@ -230,7 +230,6 @@ class TcpClient(threading.Thread):
             self.logger.error("Error in TcpClient.CONNECT - " + str(e))
             self.outbox.put(self.__error_reply(str(e)))
 
-
     def __handle_close(self, cmd):
         """
         Closes the TCP socket
@@ -281,6 +280,34 @@ class TcpClient(threading.Thread):
         self.logger.debug("TcpClient received raw message - " + message)
         return message
 
+    def __read_reply(self, log_message="TCP Operation", timeout=2, blocking=True):
+        """Reads a reply from the TCP outbox queue and raises log messages accordingly"""
+        try:
+            reply = self.outbox.get(blocking, timeout)
+            if reply.type == TcpClientReply.SUCCESS:
+                self.logger.debug("Successfully completed " + log_message)
+            else:
+                self.logger.error("Error in TCP Client during " + log_message + " - " + reply.data)
+        except Queue.Empty:
+            self.logger.warning("Unable to complete " + log_message + " before timeout")
+
+    def __success_reply(self, data=None):
+        return TcpClientReply(TcpClientReply.SUCCESS, data)
+
+    def __error_reply(self, data):
+        return TcpClientReply(TcpClientReply.ERROR, data)
+
+    def __message_reply(self, payload):
+        return TcpClientReply(TcpClientReply.MESSAGE, payload)
+
+    def _do_send(self, message):
+        """
+        Queues the given message and read the echoed response
+        """
+        self.last_sent = message.upper()
+        self.inbox.put(TcpClientCommand(TcpClientCommand.SEND, message))
+        self.__read_reply("send request")
+
     def connect(self, host=None, port=None):
         """Connects to the IP and port given in the constructor"""
 
@@ -313,25 +340,6 @@ class TcpClient(threading.Thread):
         Process a message received via TCP by using the state machine
         """
         self.current_state = self.current_state.process_message(self, msg)
-
-    def _do_send(self, message):
-        """
-        Queues the given message and read the echoed response
-        """
-        self.last_sent = message.upper()
-        self.inbox.put(TcpClientCommand(TcpClientCommand.SEND, message))
-        self.__read_reply("send request")
-
-    def __read_reply(self, log_message="TCP Operation", timeout=2, blocking=True):
-        """Reads a reply from the TCP outbox queue and raises log messages accordingly"""
-        try:
-            reply = self.outbox.get(blocking, timeout)
-            if reply.type == TcpClientReply.SUCCESS:
-                self.logger.debug("Successfully completed " + log_message)
-            else:
-                self.logger.error("Error in TCP Client during " + log_message + " - " + reply.data)
-        except Queue.Empty:
-            self.logger.warning("Unable to complete " + log_message + " before timeout")
 
     def parse_reading(self, msg):
         """
@@ -377,12 +385,3 @@ class TcpClient(threading.Thread):
         Returns True if the client is currently in logging state
         """
         return type(self.current_state) is ClientLoggingState
-
-    def __success_reply(self, data=None):
-        return TcpClientReply(TcpClientReply.SUCCESS, data)
-
-    def __error_reply(self, data):
-        return TcpClientReply(TcpClientReply.ERROR, data)
-
-    def __message_reply(self, payload):
-        return TcpClientReply(TcpClientReply.MESSAGE, payload)
