@@ -10,25 +10,32 @@ time1 = datetime.datetime.now() - datetime.timedelta(seconds=1)
 time2 = datetime.datetime.now() - datetime.timedelta(seconds=2)
 time3 = datetime.datetime.now() - datetime.timedelta(seconds=3)
 time4 = datetime.datetime.now() - datetime.timedelta(seconds=4)
+time5 = datetime.datetime.now() - datetime.timedelta(seconds=5)
+time6 = datetime.datetime.now() - datetime.timedelta(seconds=6)
 
 READING_FIXTURES = [
     {"sessionId": 1, "timeLogged": time3, "categoryId": 1, "value": 3.75},
     {"sessionId": 1, "timeLogged": time2, "categoryId": 1, "value": 9.12},
+    {"sessionId": 1, "timeLogged": time4, "categoryId": 1, "value": 7.56},
     {"sessionId": 1, "timeLogged": time1, "categoryId": 2, "value": 5.2},
-    {"sessionId": 1, "timeLogged": time0, "categoryId": 2, "value": 4.3}
+    {"sessionId": 1, "timeLogged": time0, "categoryId": 2, "value": 4.3},
+    {"sessionId": 1, "timeLogged": time5, "categoryId": 2, "value": 1.23}
 ]
 
 CACHE_FIXTURES = [
     {"timeLogged": time3, "categoryId": 1, "value": 3.75},
     {"timeLogged": time2, "categoryId": 1, "value": 9.12},
+    {"timeLogged": time4, "categoryId": 1, "value": 7.56},
     {"timeLogged": time1, "categoryId": 2, "value": 5.2},
-    {"timeLogged": time0, "categoryId": 2, "value": 4.3}
+    {"timeLogged": time0, "categoryId": 2, "value": 4.3},
+    {"timeLogged": time5, "categoryId": 2, "value": 1.23}
+
 ]
 
 CATEGORY_FIXTURES = [
-    {"variableName": "Accelerator"},
-    {"variableName": "Brake"},
-    {"variableName": "Third"}
+    {"variableName": "adc_channel_one"},
+    {"variableName": "adc_channel_two"},
+    {"variableName": "adc_channel_three"}
 ]
 
 SESSION_FIXTURES = [
@@ -62,7 +69,7 @@ class TcpClientMock(TcpClient):
     A class for mocking TCP operations (client side) during unit testing
     """
 
-    def send(self, msg):
+    def _do_send(self, msg):
         """Mocks sending a TCP message by printing to stdout"""
         print "[SEND] ", msg
 
