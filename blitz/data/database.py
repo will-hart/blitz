@@ -43,7 +43,6 @@ class DatabaseClient(object):
 
         :returns: The item that was added
         """
-
         res = self.add_many([item])
         return res[0]
 
@@ -280,7 +279,7 @@ class DatabaseServer(object):
     def queue(self, message):
          # only log against current session
         if self.session_id == -1:
-            self.logger.warning("Requested variable QUEUE in ServerDatabase with no valid session: %s" % message)
+            self.logger.warning("Attempted to save a logged variable with no session running: %s" % message)
             return
         session_str = "session_%s" % self.session_id
         self.__data.lpush(session_str, message)
