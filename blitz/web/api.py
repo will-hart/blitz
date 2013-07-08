@@ -8,6 +8,18 @@ from blitz.data.models import *
 from blitz.utilities import to_blitz_date
 
 
+def generate_status_response(app):
+    """generates a status response"""
+    tcp = app.application.settings['socket']
+    data = app.settings['data']
+
+    return {
+        "logging": False if tcp is None else tcp.is_logging(),
+        "connected": tcp is None,
+        "errors": data.all(Notification)
+    }
+
+
 class CategoriesHandler(RequestHandler):
     def get(self):
         """
@@ -166,11 +178,7 @@ class StatusHandler(RequestHandler):
 
     def get(self):
         """Get the current system status"""
-        tcp = self.application.settings['socket']
-        response = {
-            "logging": False if tcp is None else tcp.is_logging(),
-            "connected": tcp is None
-        }
 
+        response = generate_status_response(self)
         self.content_type = "application/json"
         self.write(json.dumps(response))

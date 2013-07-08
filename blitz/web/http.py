@@ -6,6 +6,7 @@ import os
 from tornado.web import RequestHandler
 
 from blitz.io.tcp import TcpClient
+from blitz.web.api import generate_status_response
 
 
 class IndexHandler(RequestHandler):
@@ -31,13 +32,12 @@ class ConnectHandler(RequestHandler):
             tcp.start()
             tcp.connect()
             self.application.settings['socket'] = tcp
-            response = {'connected': True}
         else:
             tcp.disconnect()
             self.logger.debug("Closed TCP connection at client request")
             self.application.settings['socket'] = None
-            response = {'connected': False}
 
+        response = generate_status_response(self)
         self.content_type = "application/json"
         self.write(json.dumps(response))
 
