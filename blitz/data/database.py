@@ -29,7 +29,6 @@ class DatabaseClient(object):
         self.create_tables()
         self.logger.debug("DatabaseClient created tables")
 
-
     def create_tables(self, force_drop=False):
         """
         Uses the supplied engine and models to create the required table structure
@@ -213,6 +212,19 @@ class DatabaseClient(object):
             new_category = Category(variableName=key)
             self.add(new_category)
         return new_category.id
+
+    def log_error(self, description, severity=1):
+        """
+        Log an error to the database - this will be sent to the client
+        """
+        notification = Notification(
+            timeLogged=datetime.datetime.now(),
+            severity=severity,
+            description=description
+        )
+
+        self.add(notification)
+        return notification
 
     def add_reading(self, session_id, time_logged, category_id, value):
         """

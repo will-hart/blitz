@@ -55,7 +55,7 @@ class TestDatabaseClientSetup(unittest.TestCase):
         self.db.create_tables()
 
         # check we have the right number of tables and the correct table names
-        assert (set(SQL_BASE.metadata.tables.keys()) == {"cache", "reading", "category", "config", "session"})
+        assert set(SQL_BASE.metadata.tables.keys()) == {"cache", "reading", "category", "config", "session", "notifications"}
 
     def test_load_fixtures(self):
 
@@ -67,6 +67,7 @@ class TestDatabaseClientSetup(unittest.TestCase):
         assert len(self.db.all(Config)) == len(CONFIG_FIXTURES)
         assert len(self.db.all(Reading)) == len(READING_FIXTURES)
         assert len(self.db.all(Session)) == len(SESSION_FIXTURES)
+        assert len(self.db.all(Notification)) == 0
 
     def test_cache_model_serialisation(self):
         fixture = CACHE_FIXTURES[0]
@@ -181,7 +182,8 @@ class TestBasicDatabaseOperations(unittest.TestCase):
     def test_filter_readings(self):
         res = self.db.find(Reading, {"categoryId": 2})
         assert (res.count() == 3), "Expected 2 results, found %s" % res.count()
-        assert (res[0].id in [4, 5, 6]), "Expected [4, 5, 6] results, found %s, %s, %s" % (res[0].id, res[1].id, res[2].id)
+        assert (res[0].id in [4, 5, 6]), "Expected [4, 5, 6] results, found %s, %s, %s" % (
+            res[0].id, res[1].id, res[2].id)
         assert (res[0].id in [4, 5, 6])
         for x in res:
             assert type(x) == Reading
@@ -256,6 +258,19 @@ class TestDatabaseHelpers(unittest.TestCase):
         self.db.add_many(generate_objects(Config, CONFIG_FIXTURES))
         self.db.add_many(generate_objects(Reading, READING_FIXTURES))
         self.db.add_many(generate_objects(Session, SESSION_FIXTURES))
+
+    def test_create_error(self):
+        self.db.log_error("This is a test error")
+        self.db.log_error("This is another error", 2)
+        errs = self.db.all(Notification)
+        err1got = self.db.get_by_id(Notification, 1)
+        err2got = self.db.get_by_id(Notification, 2)
+
+        assert len(errs) == 2, "Expected length 2, found %s" % len(errs)
+        assert err1got.description == "This is a test error", "Expected 'This is a test error', found %s " % err1got.description
+        assert err1got.severity == 1, "Expected 1, found %s" % err1got.severity
+        assert err2got.description == "This is another error", "Expected 'This is a another error', found %s " % err2got.description
+        assert err2got.severity == 2, "Expected 2, found %s" % err2got.severity
 
     def test_get_categories_for_session(self):
         """
@@ -440,21 +455,26 @@ class TestTcpClientStateMachine(unittest.TestCase):
         self.tcpServer.shutdown()
 
     def test_enter_init_state_on_load(self):
-        assert type(self.tcp.current_state) == ClientInitState, "Expected INIT state on load, got %s" % type(self.tcp.current_state)
+        assert type(self.tcp.current_state) == ClientInitState, "Expected INIT state on load, got %s" % type(
+            self.tcp.current_state)
 
     def test_enter_logging_state_after_init_ack(self):
         self.tcp.process_message(CommunicationCodes.Acknowledge)
-        assert type(self.tcp.current_state) == ClientLoggingState, "Expected Logging state, got %s" % type(self.tcp.current_state)
+        assert type(self.tcp.current_state) == ClientLoggingState, "Expected Logging state, got %s" % type(
+            self.tcp.current_state)
 
     def test_enter_idle_state_from_logging_stop(self):
         self.tcp.process_message(CommunicationCodes.Acknowledge)  # enter logging state
-        assert type(self.tcp.current_state) == ClientLoggingState, "Expected logging state, found %s" % type(self.tcp.current_state)
+        assert type(self.tcp.current_state) == ClientLoggingState, "Expected logging state, found %s" % type(
+            self.tcp.current_state)
 
         self.tcp.request_stop()  # enter stopping state
-        assert type(self.tcp.current_state) == ClientStoppingState, "Expected stopping state, found %s" % type(self.tcp.current_state)
+        assert type(self.tcp.current_state) == ClientStoppingState, "Expected stopping state, found %s" % type(
+            self.tcp.current_state)
 
         self.tcp.process_message(CommunicationCodes.Acknowledge)  # enter idle state
-        assert type(self.tcp.current_state) == ClientIdleState, "Expected idle state, found %s" % type(self.tcp.current_state)
+        assert type(self.tcp.current_state) == ClientIdleState, "Expected idle state, found %s" % type(
+            self.tcp.current_state)
 
     def test_enter_idle_state_after_init_nack(self):
         self.tcp.process_message(CommunicationCodes.Negative)
@@ -462,47 +482,58 @@ class TestTcpClientStateMachine(unittest.TestCase):
 
     def test_enter_logging_state_after_idle_start(self):
         self.tcp.process_message(CommunicationCodes.Negative)  # enter idle state
-        assert type(self.tcp.current_state) == ClientIdleState, "Expected Idle state, got %s" % type(self.tcp.current_state)
+        assert type(self.tcp.current_state) == ClientIdleState, "Expected Idle state, got %s" % type(
+            self.tcp.current_state)
 
         self.tcp.request_start()
-        assert type(self.tcp.current_state) == ClientStartingState, "Expected Starting state, got %s" % type(self.tcp.current_state)
+        assert type(self.tcp.current_state) == ClientStartingState, "Expected Starting state, got %s" % type(
+            self.tcp.current_state)
 
         self.tcp.process_message(CommunicationCodes.Acknowledge)
-        assert type(self.tcp.current_state) == ClientLoggingState, "Expected Logging state, got %s" % type(self.tcp.current_state)
+        assert type(self.tcp.current_state) == ClientLoggingState, "Expected Logging state, got %s" % type(
+            self.tcp.current_state)
 
     def test_enter_downloading_state_from_idle(self):
         self.tcp.process_message(CommunicationCodes.Negative)  # enter idle state
-        assert type(self.tcp.current_state) == ClientIdleState, "Expected Idle state, got %s" % type(self.tcp.current_state)
+        assert type(self.tcp.current_state) == ClientIdleState, "Expected Idle state, got %s" % type(
+            self.tcp.current_state)
 
         self.tcp.request_download(1)
-        assert type(self.tcp.current_state) == ClientDownloadingState, "Expected Downloading state, got %s" % type(self.tcp.current_state)
+        assert type(self.tcp.current_state) == ClientDownloadingState, "Expected Downloading state, got %s" % type(
+            self.tcp.current_state)
 
-        self.tcp.process_message("asdfasdf")
+        self.tcp.process_message("adfa32df")
         self.tcp.process_message("12345678")
         self.tcp.process_message("87654321")
-        assert type(self.tcp.current_state) == ClientDownloadingState, "Expected Downloading state, got %s" % type(self.tcp.current_state)
+        assert type(self.tcp.current_state) == ClientDownloadingState, "Expected Downloading state, got %s" % type(
+            self.tcp.current_state)
 
         self.tcp.process_message(CommunicationCodes.Negative)
-        assert type(self.tcp.current_state) == ClientIdleState, "Expected Idle state, got %s" % type(self.tcp.current_state)
+        assert type(self.tcp.current_state) == ClientIdleState, "Expected Idle state, got %s" % type(
+            self.tcp.current_state)
 
     def test_receive_insession_on_start_during_logging(self):
         self.tcp.process_message(CommunicationCodes.Acknowledge)  # enter logging state
-        assert type(self.tcp.current_state) == ClientLoggingState, "Expected logging but found %s" % type(self.tcp.current_state)
+        assert type(self.tcp.current_state) == ClientLoggingState, "Expected logging but found %s" % type(
+            self.tcp.current_state)
 
         self.tcp.request_start()
         assert type(self.tcp.current_state) == ClientLoggingState
 
     def test_is_logging_flag(self):
         self.tcp.process_message(CommunicationCodes.Acknowledge)  # enter logging state
-        assert type(self.tcp.current_state) == ClientLoggingState, "Expecting Logging state, found %s" % type(self.tcp.current_state)
+        assert type(self.tcp.current_state) == ClientLoggingState, "Expecting Logging state, found %s" % type(
+            self.tcp.current_state)
         assert self.tcp.is_logging()
 
         self.tcp.request_stop()
-        assert type(self.tcp.current_state) == ClientStoppingState, "Expecting Stopping state, found %s" % type(self.tcp.current_state)
+        assert type(self.tcp.current_state) == ClientStoppingState, "Expecting Stopping state, found %s" % type(
+            self.tcp.current_state)
         assert not self.tcp.is_logging()
 
         self.tcp.process_message(CommunicationCodes.Acknowledge)
-        assert type(self.tcp.current_state) == ClientIdleState, "Expecting Idle state, found %s" % type(self.tcp.current_state)
+        assert type(self.tcp.current_state) == ClientIdleState, "Expecting Idle state, found %s" % type(
+            self.tcp.current_state)
 
 
 class TestTcpServerStateMachine(unittest.TestCase):
@@ -640,7 +671,8 @@ class TestExpansionBoardParsing(unittest.TestCase):
 
         result = board.get_variables()
 
-        assert result['full_payload'] == 6278148361660923904, "Expected 6278148361660923904, recieved %s" % result['full_payload']
+        assert result['full_payload'] == 6278148361660923904, "Expected 6278148361660923904, recieved %s" % result[
+            'full_payload']
         assert result['flag_one'] is False
         assert result['flag_two'] is True
         assert result['flag_three'] is False
@@ -725,7 +757,6 @@ class TestBoardManager(unittest.TestCase):
 
 
 class TestDatabaseServer(unittest.TestCase):
-
     def setUp(self):
         self.data = DatabaseServer()
 
