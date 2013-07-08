@@ -121,11 +121,10 @@ class ClientLoggingState(BaseState):
 
     def request_update(self, stop_event, tcp):
         """called on timer tick to request an update from the TCP server"""
-        self.logger.critical("Entering request_update")
         while not stop_event.is_set():
-            self.logger.critical("TICK")
-            time.sleep(1)
-        self.logger.critical("Leaving request_update")
+            tcp.send(CommunicationCodes.Update)
+            time.sleep(2)  # TODO get this value from config
+        self.logger.info("Stopping update request thread on TcpClient")
 
     def send_message(self, tcp, msg):
         self.logger.debug("[TCP] Calling logging.send_message: " + msg)
@@ -143,6 +142,13 @@ class ClientLoggingState(BaseState):
         else:
             # otherwise we just send the message and let the server sort it out
             tcp._do_send(msg)
+        return self
+
+    def process_message(self, tcp, msg):
+        if len(msg) == 4 or len(msg) >= 28:
+            tcp.parse_reading(msg)
+        else:
+            tcp.process_message(msg)
         return self
 
     def go_to_state(self, tcp, state):
