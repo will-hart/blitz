@@ -29,6 +29,9 @@ class BoardManager(object):
 
         # send the signal to register boards
         registering_boards.send(self)
+        
+        # connect the data line received message
+        data_line_received.connect(self.parse_message)
 
     def register_board(self, board_id, board):
         """
@@ -43,7 +46,7 @@ class BoardManager(object):
         self.logger.info("Registered expansion board [%s: %s]" % (board_id, board.description))
         self.boards[board_id] = board
 
-    def parse_message(self, message, board_id, session_id=None):
+    def parse_message(self, message, board_id=None, session_id=None):
         """
         Gets a variable dictionary from a board and save to database
         :rtype : bool
@@ -53,10 +56,13 @@ class BoardManager(object):
         :param session_id: The session ID of the message (ignore if getting cached variables)
         """
 
+        if board_id is None:
+            board_id = int(message[0:2], 16)
+
         try:
             board = self.boards[board_id]
         except KeyError:
-            self.logger.debug("Ignoring message (%s) for unknown board id - %s" % (message, board_id))
+            self.logger.warning("Ignoring message (%s) for unknown board id - %s" % (message, board_id))
             return False
 
         # use the board to parse the message
