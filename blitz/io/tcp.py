@@ -177,6 +177,7 @@ class TcpClient(threading.Thread):
         self.alive = threading.Event()
         self.alive.set()
         self._socket = None
+        self.state_lock = threading.Lock()
         self.logger.debug("Created TCP Client at %s:%s" % self.__address)
 
         # set up the command handlers
@@ -224,7 +225,8 @@ class TcpClient(threading.Thread):
             self.response_queue.put(self.__success_reply())
 
             # start up the state machine
-            self.current_state = BaseState().go_to_state(self, ClientInitState)
+            with self.state_lock:
+                self.current_state = BaseState().go_to_state(self, ClientInitState)
 
         except IOError as e:
             self.logger.error("Error in TcpClient.CONNECT - " + str(e))
@@ -327,7 +329,8 @@ class TcpClient(threading.Thread):
         """
         Send the message via the current ClientState
         """
-        self.current_state = self.current_state.send_message(self, message)
+        with self.state_lock:
+            self.current_state = self.current_state.send_message(self, message)
 
     def disconnect(self):
         """
@@ -340,7 +343,8 @@ class TcpClient(threading.Thread):
         """
         Process a message received via TCP by using the state machine
         """
-        self.current_state = self.current_state.process_message(self, msg)
+        with self.state_lock:
+            self.current_state = self.current_state.process_message(self, msg)
 
     def parse_reading(self, msg):
         """
@@ -354,32 +358,38 @@ class TcpClient(threading.Thread):
         """
         Request a status update from the data logger
         """
-        self.current_state = self.current_state.send_message(self, CommunicationCodes.Update)
+        with self.state_lock:
+            self.current_state = self.current_state.send_message(self, CommunicationCodes.Update)
 
     def request_download(self, session_id):
         """
         Request download of a session of data from the data logger
         """
-        self.current_state = self.current_state.send_message(self, CommunicationCodes.composite(
-            CommunicationCodes.Download, session_id))
+        with self.state_lock:
+            self.current_state = self.current_state.send_message(self, CommunicationCodes.composite(
+                CommunicationCodes.Download, session_id))
 
     def request_start(self):
         """
         Requests logging to start
         """
-        self.current_state = self.current_state.send_message(self, CommunicationCodes.Start)
+        with self.state_lock:
+            self.current_state = self.current_state.send_message(self, CommunicationCodes.Start)
 
     def request_stop(self):
         """
         Requests logging to stop
         """
-        self.current_state = self.current_state.send_message(self, CommunicationCodes.Stop)
+        with self.state_lock:
+            self.current_state = self.current_state.send_message(self, CommunicationCodes.Stop)
 
     def request_is_logging(self):
         """
         Asks the server if it is currently logging
         """
-        self.current_state = self.current_state.go_to_state(self, ClientInitState)
+        # TODO what the hell is this meant to do? should actually send a status command!
+        with self.state_lock:
+            self.current_state = self.current_state.go_to_state(self, ClientInitState)
 
     def is_logging(self):
         """
