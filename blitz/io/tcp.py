@@ -9,6 +9,7 @@ from tornado.tcpserver import TCPServer as tornadoTCP
 
 from blitz.io.client_states import *
 from blitz.io.server_states import *
+import blitz.io.signals as sigs
 
 
 class ClientConnection(object):
@@ -351,8 +352,8 @@ class TcpClient(threading.Thread):
         Parses a reading received from a state machine using ExpansionBoard
         classes.
         """
-        # TODO - pass to a BoardManager for parsing and storage in the database
-        pass
+        # raise the signal and let subscribers handle it
+        sigs.data_line_received.send(msg)
 
     def request_status(self):
         """
