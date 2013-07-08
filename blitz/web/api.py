@@ -19,7 +19,7 @@ class ApiRequestHandler(RequestHandler):
             tcp = app.application.settings['socket']
 
         counter = 0
-        while not tcp.command_queue.empty():
+        while tcp is not None and tcp.is_busy():
             counter += 1
             time.sleep(0.2)
             if counter > 5:
@@ -27,7 +27,7 @@ class ApiRequestHandler(RequestHandler):
 
         return {
             "logging": False if tcp is None else tcp.is_logging(),
-            "connected": tcp is not None,
+            "connected": False if tcp is None else tcp.is_connected(),
             "errors": data.all(Notification)
         }
 
