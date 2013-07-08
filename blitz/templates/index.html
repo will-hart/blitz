@@ -19,7 +19,9 @@
         <script type="text/x-handlebars" id="index">
 
             <!-- Show the slide out buttons for variables and settings -->
+            {{#if client_errors }}
             <div id="alert_handle" class="slide_out_handle error_handle"><a {{action showAlerts}}><i class="icon-exclamation"></i></a></div>
+            {{/if}}
 
             {{#if controller.connected}}
                 {{#if controller.logging}}

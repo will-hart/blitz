@@ -331,6 +331,7 @@ Blitz.IndexController = Ember.ArrayController.extend({
     chartDataDirty: false,
     chartDirty: false,
     needs: ['category', 'config'],
+    client_errors: [],
 
     /* true if we are connected to the logger via TCP */
     connected: false,
@@ -448,7 +449,10 @@ Blitz.IndexController = Ember.ArrayController.extend({
     connectToLogger: function connectToLogger() {
         var self = this;
         Blitz.HandleJsonRaw("connect", function (response) {
+            // parse the response
             self.set("connected", response.connected);
+            self.set("logging", response.logging);
+            self.set("client_errors", response.errors);
         });
     },
 
@@ -469,7 +473,7 @@ Blitz.IndexController = Ember.ArrayController.extend({
             self.set("connected", response.connected);
 
             // set a logging update timeout
-            // TODO grab timeout from console
+            // TODO grab timeout from config
             setTimeout(function () { self.getUpdates(); }, 2000);
         });
     },
