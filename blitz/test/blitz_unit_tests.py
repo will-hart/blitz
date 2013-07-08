@@ -37,7 +37,7 @@ class TestBlitzUtilities(unittest.TestCase):
 
 class TestDatabaseClientSetup(unittest.TestCase):
     def setUp(self):
-        self.db = DatabaseClient()  # pass true to DatabaseClient() to get verbose logging from SQLAlchemy
+        self.db = DatabaseClient(path=":memory:")
 
     def test_variables_initialised(self):
         """
@@ -151,7 +151,7 @@ class TestBasicDatabaseOperations(unittest.TestCase):
     def setUp(self):
 
         # create a database
-        self.db = DatabaseClient()  # pass true to DatabaseClient() to get verbose logging from SQLAlchemy
+        self.db = DatabaseClient(path=":memory:")
         self.db.create_tables()
 
         # add the fixtures
@@ -247,7 +247,7 @@ class TestBasicDatabaseOperations(unittest.TestCase):
 class TestDatabaseHelpers(unittest.TestCase):
     def setUp(self):
         # create a database
-        self.db = DatabaseClient()  # pass True to DatabaseClient() to get verbose logging from SQLAlchemy
+        self.db = DatabaseClient(path=":memory:")
         self.db.create_tables(True)
 
         # add the fixtures
@@ -274,7 +274,7 @@ class TestDatabaseHelpers(unittest.TestCase):
         """
         res = self.db.get_cache_variables()
 
-        assert len(res) == 2, "Got %s" % len(2)
+        assert len(res) == 2, "Got %s" % len(res)
         assert res[0].variableName in ["adc_channel_one", "adc_channel_two"]
         assert res[1].variableName in ["adc_channel_one", "adc_channel_two"]
         assert res[0].variableName != res[1].variableName

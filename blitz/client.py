@@ -92,11 +92,14 @@ class ApplicationClient(object):
         self.config = Config()
 
         # create a database connection
-        self.data = DatabaseClient()
+        self.data = DatabaseClient(path=self.config['database_path'])
 
-        # TODO - database should persist
-        self.data.create_tables()
-        self.data.load_fixtures()
+        # todo remove fixture loading
+        try:
+            self.data.load_fixtures()
+        except Exception:
+            pass  # for now just load fixtures damnit
+
         self.logger.info("Initialised DatabaseClient")
 
         # create a board manager

@@ -123,7 +123,7 @@ class ClientLoggingState(BaseState):
         """called on timer tick to request an update from the TCP server"""
         while not stop_event.is_set():
             tcp.send(CommunicationCodes.Update)
-            time.sleep(2)  # TODO get this value from config
+            time.sleep(2.0)  # TODO get this value from config
         self.logger.info("Stopping update request thread on TcpClient")
 
     def send_message(self, tcp, msg):
@@ -136,9 +136,6 @@ class ClientLoggingState(BaseState):
         # if not, are we requesting a status?
         if msg == CommunicationCodes.Update:
             tcp._do_send(CommunicationCodes.Update)
-        elif len(msg) == COMMAND_MESSAGE_BYTES or len(msg) == SHORT_COMMAND_MESSAGE_BYTES:
-            # this is likely to be a data message
-            tcp.parse_reading(msg)
         else:
             # otherwise we just send the message and let the server sort it out
             tcp._do_send(msg)
@@ -148,7 +145,7 @@ class ClientLoggingState(BaseState):
         if len(msg) == 4 or len(msg) >= 28:
             tcp.parse_reading(msg)
         else:
-            tcp.process_message(msg)
+            self.logger.warning("Received message of unexpected length: " + msg)
         return self
 
     def go_to_state(self, tcp, state):

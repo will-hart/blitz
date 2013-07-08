@@ -17,14 +17,18 @@ class DatabaseClient(object):
     _baseClass = None
     logger = logging.getLogger(__name__)
 
-    def __init__(self, verbose=False):
+    def __init__(self, verbose=False, path=":memory:"):
         """
         Instantiates a connection and creates an in memory database
         """
-        # TODO: load the database from the app.db file
-        self._database = sql.create_engine('sqlite:///:memory:', echo=verbose)
+
+        # allow loading from memory for testing
+        self._database = sql.create_engine('sqlite:///' + path, echo=verbose)
         self._session = sessionmaker(bind=self._database)
         self.logger.debug("DatabaseClient __init__")
+        self.create_tables()
+        self.logger.debug("DatabaseClient created tables")
+
 
     def create_tables(self, force_drop=False):
         """

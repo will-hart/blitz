@@ -125,7 +125,8 @@ class TcpServer(tornadoTCP):
 
 
 #
-# A threaded TCP client - http://eli.thegreenplace.net/2011/05/18/code-sample-socket-client-thread-in-python/
+# A threaded TCP client based on
+# http://eli.thegreenplace.net/2011/05/18/code-sample-socket-client-thread-in-python/
 #
 class TcpClientCommand(object):
     """ A command to the client thread.
@@ -346,6 +347,7 @@ class TcpClient(threading.Thread):
         """
         with self.state_lock:
             self.current_state = self.current_state.process_message(self, msg)
+        self.logger.debug("Finished processing message - %s" % msg)
 
     def parse_reading(self, msg):
         """

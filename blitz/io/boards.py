@@ -29,7 +29,7 @@ class BoardManager(object):
 
         # send the signal to register boards
         registering_boards.send(self)
-        
+
         # connect the data line received message
         data_line_received.connect(self.parse_message)
 
@@ -70,7 +70,7 @@ class BoardManager(object):
         result = board.get_variables()
 
         # get session metadata
-        timeLogged = datetime.datetime.from_timestamp(board.get_timestamp())
+        timeLogged = datetime.datetime.fromtimestamp(board["timestamp"])
 
         # write the variables to the database
         for key in result.keys():
@@ -137,9 +137,6 @@ class BaseExpansionBoard(Plugin):
         This method SHOULD NOT be overridden in derived classes.  Derived classes
         should implement the get_variables function
         """
-
-        # raise the pre-processing event
-        data_line_received.send(raw_message)
 
         # parse the message
         if len(raw_message) < MESSAGE_BYTE_LENGTH:
