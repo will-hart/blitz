@@ -25,11 +25,17 @@ class ApiRequestHandler(RequestHandler):
             if counter > 5:
                 break
 
-        return {
+        response = {
             "logging": False if tcp is None else tcp.is_logging(),
             "connected": False if tcp is None else tcp.is_connected(),
-            "errors": data.all(Notification)
+            "errors": []
         }
+
+        errors = data.all(Notification)
+        for e in errors:
+            response['errors'].append(e.to_dict())
+
+        return response
 
 
 class CategoriesHandler(ApiRequestHandler):

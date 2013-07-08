@@ -36,6 +36,10 @@ class ConnectHandler(ApiRequestHandler):
             self.logger.debug("Closed TCP connection at client request")
             self.application.settings['socket'] = None
 
+            # write a connection error to database for the user
+            data = self.application.settings['data']
+            data.log_error("Unable to connect to the network")
+
         self.content_type = "application/json"
         self.write(json.dumps(self.generate_status_response()))
 
