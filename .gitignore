@@ -2,7 +2,7 @@
 .idea/
 
 *.pyc
-
+*.db
 
 blitz/test/.coverage
 
