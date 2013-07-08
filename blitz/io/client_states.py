@@ -2,6 +2,7 @@ __author__ = 'Will Hart'
 
 import logging
 import threading
+import time
 
 from blitz.constants import *
 
@@ -112,19 +113,19 @@ class ClientLoggingState(BaseState):
     def enter_state(self, tcp, state):
         """sets up a timer which periodically polls the data logger for updates"""
         self.logger.debug("[TCP] Calling logging.enter_state")
-        t = threading.Timer(1.0, self.request_update, args=[tcp])
-        t.start()
+        self.__stop_updater = threading.Event()
+        self.update_thread = threading.Thread(target=self.request_update, args=[self.__stop_updater, tcp])
+        self.update_thread.daemon = True
+        self.update_thread.start()
         return self
 
-    def request_update(self, tcp):
+    def request_update(self, stop_event, tcp):
         """called on timer tick to request an update from the TCP server"""
-        self.logger.critical("TICK")
-        tcp.request_update()
-
-        # if we are still logging, request another update
-        if type(tcp.current_state) is ClientLoggingState:
-            t = threading.Timer(1.0, self.request_update, args=[tcp])
-            t.start()
+        self.logger.critical("Entering request_update")
+        while not stop_event.is_set():
+            self.logger.critical("TICK")
+            time.sleep(1)
+        self.logger.critical("Leaving request_update")
 
     def send_message(self, tcp, msg):
         self.logger.debug("[TCP] Calling logging.send_message: " + msg)
@@ -143,6 +144,13 @@ class ClientLoggingState(BaseState):
             # otherwise we just send the message and let the server sort it out
             tcp._do_send(msg)
         return self
+
+    def go_to_state(self, tcp, state):
+        self.logger.debug("[TCP] Calling logging.go_to_state: " + state.__name__)
+        self.__stop_updater.set()
+        self.update_thread.join()
+        return super(ClientLoggingState, self).go_to_state(tcp, state)
+
 
 
 class ClientStoppingState(BaseState):
