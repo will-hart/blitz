@@ -113,6 +113,7 @@ class ApplicationClient(object):
                                                    (r'/cache', blitz_api.CacheHandler),
                                                    (r'/cache/(?P<since>[^\/]+)', blitz_api.CacheHandler),
                                                    (r'/download/(?P<session_id>[^\/]+)', blitz_api.DownloadHandler),
+                                                   (r'/error/(?P<error_id>[^\/]+)', blitz_api.ErrorHandler),
                                                    (r'/session/(?P<session_id>[^\/]+)', blitz_api.SessionHandler),
                                                    (r'/sessions', blitz_api.SessionsHandler),
                                                    (r'/config', blitz_api.ConfigHandler),

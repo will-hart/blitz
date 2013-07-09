@@ -206,3 +206,13 @@ class StatusHandler(ApiRequestHandler):
         self.content_type = "application/json"
         self.set_header("Cache-control", "no-cache")
         self.write(json.dumps(self.generate_status_response()))
+
+
+class ErrorHandler(ApiRequestHandler):
+
+    def get(self, error_id):
+        data = self.settings['data']
+
+        self.content_type = "application/json"
+        self.set_header("Cache-control", "no-cache")
+        self.write(json.dumps(self.generate_status_response()))
