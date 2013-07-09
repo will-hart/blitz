@@ -1,6 +1,7 @@
 __author__ = 'Will Hart'
 
 import datetime
+from math import ceil
 import time
 from random import random
 
@@ -13,6 +14,10 @@ def to_blitz_date(given_date):
     """
     return given_date.strftime("%d-%m-%Y %H:%M:%S") + "." + str(
         int(float(given_date.microsecond) / 1000.0))
+
+
+def blitz_timestamp():
+    return ceil(time.time() * 1000) / 1000
 
 
 def generate_tcp_server_fixtures():

@@ -5,7 +5,6 @@ import time
 from tornado.web import RequestHandler
 
 from blitz.data.models import *
-from blitz.utilities import to_blitz_date
 
 
 class ApiRequestHandler(RequestHandler):
@@ -77,7 +76,7 @@ class CacheHandler(ApiRequestHandler):
         data_objs = []
 
         if since is not None:
-            result = data.get_cache(float(since))
+            result = data.get_cache(since)
         else:
             result = data.get_cache()
 
@@ -110,8 +109,8 @@ class DownloadHandler(ApiRequestHandler):
             data_objs.append(r.to_dict())
 
         json_objs['sessionId'] = session_id
-        json_objs['timeStarted'] = to_blitz_date(session.timeStarted)
-        json_objs['timeStopped'] = to_blitz_date(session.timeStopped)
+        json_objs['timeStarted'] = session.timeStarted
+        json_objs['timeStopped'] = session.timeStopped
         json_objs['numberOfReadings'] = len(data_objs)
         json_objs['data'] = data_objs
 

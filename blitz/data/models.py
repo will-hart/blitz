@@ -3,11 +3,8 @@ __author__ = 'mecharius'
 import json
 
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, String, Integer, DateTime, Boolean, ForeignKey
+from sqlalchemy import Column, String, Integer, Boolean, ForeignKey, Numeric
 from sqlalchemy.orm import relationship, backref
-
-from blitz.utilities import to_blitz_date
-
 
 # set up the base model
 SQL_BASE = declarative_base()
@@ -20,7 +17,7 @@ class Notification(SQL_BASE):
     __tablename__ = 'notifications'
 
     id = Column(Integer, primary_key=True)
-    timeLogged = Column(DateTime)
+    timeLogged = Column(Numeric(12,3))
     severity = Column(Integer)
     description = Column(String)
 
@@ -30,7 +27,7 @@ class Notification(SQL_BASE):
         """
         return {
             "id": self.id,
-            "timeLogged": to_blitz_date(self.timeLogged),
+            "timeLogged": self.timeLogged,
             "severity": self.severity,
             "description": self.description
         }
@@ -47,7 +44,7 @@ class Reading(SQL_BASE):
 
     id = Column(Integer, primary_key=True)
     sessionId = Column(Integer)
-    timeLogged = Column(DateTime)
+    timeLogged = Column(Numeric(12,3))
     categoryId = Column(Integer, ForeignKey('category.id'))
     value = Column(String)
 
@@ -60,7 +57,7 @@ class Reading(SQL_BASE):
         return {
             "id": self.id,
             "sessionId": self.sessionId,
-            "timeLogged": to_blitz_date(self.timeLogged),
+            "timeLogged": self.timeLogged,
             "categoryId": self.categoryId,
             "value": self.value
         }
@@ -76,8 +73,8 @@ class Session(SQL_BASE):
 
     id = Column(Integer, primary_key=True)
     available = Column(Boolean, default=False)
-    timeStarted = Column(DateTime)
-    timeStopped = Column(DateTime)
+    timeStarted = Column(Numeric(12,3))
+    timeStopped = Column(Numeric(12,3))
     numberOfReadings = Column(Integer)
 
     def to_dict(self):
@@ -87,8 +84,8 @@ class Session(SQL_BASE):
         return {
             "id": self.id,
             "available": self.available,
-            "timeStarted": to_blitz_date(self.timeStarted),
-            "timeStopped": to_blitz_date(self.timeStopped),
+            "timeStarted": self.timeStarted,
+            "timeStopped": self.timeStopped,
             "numberOfReadings": self.numberOfReadings
         }
 
@@ -150,7 +147,7 @@ class Cache(SQL_BASE):
     __tablename__ = 'cache'
 
     id = Column(Integer, primary_key=True)
-    timeLogged = Column(DateTime)
+    timeLogged = Column(Numeric(12,3))
     categoryId = Column(Integer)
     value = Column(String)
 
@@ -160,7 +157,7 @@ class Cache(SQL_BASE):
         """
         return {
             "id": self.id,
-            "timeLogged": to_blitz_date(self.timeLogged),
+            "timeLogged": self.timeLogged,
             "categoryId": self.categoryId,
             "value": self.value
         }

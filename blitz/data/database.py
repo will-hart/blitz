@@ -1,14 +1,13 @@
 __author__ = 'Will Hart'
 
-import datetime
 import logging
-
 import sqlalchemy as sql
 from sqlalchemy.orm import sessionmaker
 import redis
 
 from blitz.data.models import *
 from blitz.data.fixtures import *
+from blitz.utilities import blitz_timestamp
 
 
 class DatabaseClient(object):
@@ -135,7 +134,7 @@ class DatabaseClient(object):
         sess = self._session()
         return sess.query(Reading).filter(Reading.sessionId == session_id).all()
 
-    def get_cache(self, since=None):
+    def get_cache(self, since=0):
         """
         Gets cached variables. If a "since" argument is applied, it only
         returns values that have been read since this time.  If no since
@@ -148,22 +147,16 @@ class DatabaseClient(object):
         """
 
         res = []
-        dt = None
         sess = self._session()
-        qry = None
 
         # get the categories in the cache
         cache_vars = sess.query(Cache).group_by(Cache.categoryId).all()
-
-        # convert since to a datetime
-        if since is not None:
-            dt = datetime.datetime.fromtimestamp(since)
 
         # loop and build the variables
         for v in cache_vars:
             if since:
                 qry = sess.query(Cache).filter(Cache.categoryId == v.categoryId).filter(
-                    Cache.timeLogged >= dt).order_by(Cache.timeLogged.desc())
+                    Cache.timeLogged >= since).order_by(Cache.timeLogged.desc())
             else:
                 qry = sess.query(Cache).filter(Cache.categoryId == v.categoryId).order_by(Cache.timeLogged.desc())
 
@@ -218,7 +211,7 @@ class DatabaseClient(object):
         Log an error to the database - this will be sent to the client
         """
         notification = Notification(
-            timeLogged=datetime.datetime.now(),
+            timeLogged=blitz_timestamp(),
             severity=severity,
             description=description
         )
@@ -293,11 +286,11 @@ class DatabaseServer(object):
         self.__data.incr("session_id")
         self.session_id = self.__get_session_id()
         self.__data.lpush("sessions", self.session_id)
-        self.__data.set("session_" + str(self.session_id) + "_start", datetime.datetime.now())
+        self.__data.set("session_" + str(self.session_id) + "_start", blitz_timestamp())
         return self.__get_session_id()
 
     def stop_session(self):
-        self.__data.set("session_" + str(self.session_id) + "_end", datetime.datetime.now())
+        self.__data.set("session_" + str(self.session_id) + "_end", blitz_timestamp())
         self.session_id = -1
 
     def __get_session_id(self):

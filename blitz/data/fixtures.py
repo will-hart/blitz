@@ -1,17 +1,16 @@
 __author__ = 'Will Hart'
 
-import datetime
-
 from blitz.io.boards import BaseExpansionBoard
 from blitz.io.tcp import TcpClient
+from blitz.utilities import blitz_timestamp
 
-time0 = datetime.datetime.now()
-time1 = datetime.datetime.now() - datetime.timedelta(seconds=1)
-time2 = datetime.datetime.now() - datetime.timedelta(seconds=2)
-time3 = datetime.datetime.now() - datetime.timedelta(seconds=3)
-time4 = datetime.datetime.now() - datetime.timedelta(seconds=4)
-time5 = datetime.datetime.now() - datetime.timedelta(seconds=5)
-time6 = datetime.datetime.now() - datetime.timedelta(seconds=6)
+time0 = blitz_timestamp()
+time1 = time0 - 1
+time2 = time0 - 2
+time3 = time0 - 3
+time4 = time0 - 4
+time5 = time0 - 5
+time6 = time0 - 6
 
 READING_FIXTURES = [
     {"sessionId": 1, "timeLogged": time3, "categoryId": 1, "value": 3.75},
