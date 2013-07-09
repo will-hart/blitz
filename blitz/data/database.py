@@ -228,12 +228,15 @@ class DatabaseClient(object):
 
     def clear_errors(self):
         """Removes all errors from the database"""
-        self._session().query(Notification).delete()
+        sess = self._session()
+        sess.query(Notification).delete()
+        sess.commit()
 
     def handle_error(self, err_id):
         """Removes a single error from the database"""
         sess = self._session()
         sess.query(Notification).filter(Notification.id==err_id).delete()
+        sess.commit()
 
     def add_reading(self, session_id, time_logged, category_id, value):
         """
