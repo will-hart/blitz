@@ -93,6 +93,7 @@ class ApplicationClient(object):
 
         # create a database connection
         self.data = DatabaseClient(path=self.config['database_path'])
+        self.data.clear_errors()
 
         # todo remove fixture loading
         try:

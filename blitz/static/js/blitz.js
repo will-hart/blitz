@@ -518,6 +518,10 @@ Blitz.IndexController = Ember.ArrayController.extend({
                 self.getUpdates();
             }, 2000);
         }
+    },
+
+    showAlerts: function showAlerts() {
+        $("#alert_display_box").slideToggle();
     }
 });
 
@@ -611,7 +615,7 @@ Blitz.IndexView = Ember.View.extend({
      */
     didInsertElement: function () {
         // Draw the chart
-        // console.log("Finished drawing chart view - ready for chart updates");
+        console.log("Reconnecting UI event handlers");
         var indexController = this.get('controller'),
             rendered;
 

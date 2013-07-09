@@ -21,6 +21,14 @@
             <!-- Show the slide out buttons for variables and settings -->
             {{#if client_errors }}
             <div id="alert_handle" class="slide_out_handle error_handle"><a {{action showAlerts}}><i class="icon-exclamation"></i></a></div>
+
+            <div id="alert_display_box">
+                <ul>
+                {{#each err in client_errors }}
+                    <li>{{err.description}}</li>
+                {{/each}}
+                </ul>
+            </div>
             {{/if}}
 
             {{#if controller.connected}}

@@ -183,8 +183,22 @@ ul.variable_list li svg, .float-right { float: right; }
     color: white;
 }
 
-.pure-button-error, .error_handle {
+.pure-button-error, .error_handle, #alert_display_box {
     background: rgb(202, 60, 60); /* this is a maroon */
+}
+
+#alert_display_box {
+    color: white;
+    font-size: 0.9em;
+    width: 300px;
+    height: 150px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: fixed;
+    top: 38px;
+    right: 250px;
+    padding: 8px;
+    display: none;
 }
 
 .pure-button-warning {
