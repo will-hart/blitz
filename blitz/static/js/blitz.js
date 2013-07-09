@@ -537,7 +537,14 @@ Blitz.IndexController = Ember.ArrayController.extend({
         Blitz.HandleJsonRaw("error/" + errorId, function (response) {
             self.handleSettings(response);
         });
-    }
+    },
+
+    /*
+     * Connects handlers in the event that errors or the alert buttons change
+     */
+    reconnectButtonHandlers: function reconnectButtonHandlers() {
+        console.log("Updating handlers");
+    }.observes("errors.length")
 });
 
 Blitz.SessionsController = Ember.ArrayController.extend({});
@@ -625,12 +632,12 @@ Blitz.ConfigController = Ember.ObjectController.extend({
 
 Blitz.IndexView = Ember.View.extend({
     /**
-     * When the view has finished rendering, set a flag to
-     * show that updating the chart is ok
+     * When the view has finished rendering, connect all jquery events
      */
     didInsertElement: function () {
-        // Draw the chart
-        console.log("Reconnecting UI event handlers");
+
+        console.log("IndexView >> didInsertElement");
+
         var indexController = this.get('controller'),
             rendered;
 
@@ -768,4 +775,16 @@ Blitz.CategoryLineView = Ember.View.extend({
         // firing when the mouse moves quickly
         $('ul.variable_list li svg').remove();
     }
+});
+
+
+/*********************************************************
+ * HELPERS
+*********************************************************/
+
+/*
+ * Formats a date in a template in a human readable format
+ */
+Ember.Handlebars.registerBoundHelper("human_date", function(date) {
+    return moment(date, "DD-MM-YYYY HH:mm:ss.SSS").fromNow();
 });

@@ -191,7 +191,8 @@ ul.variable_list li svg, .float-right { float: right; }
     color: white;
     font-size: 0.9em;
     width: 300px;
-    height: 150px;
+    min-height: 150px;
+    max-height: 600px;
     overflow-y: auto;
     overflow-x: hidden;
     position: fixed;
@@ -199,6 +200,32 @@ ul.variable_list li svg, .float-right { float: right; }
     right: 250px;
     padding: 8px;
     display: none;
+}
+
+#alert_display_box ul {
+    list-style: none;
+    text-indent: 0;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+}
+
+li.error_notification
+{
+    padding: 5px;
+}
+
+li.error_notification:hover {
+    background: rgb(202, 89, 86);
+}
+
+li.error_notification h4 {
+    margin: 0 0 5px 0;
+    padding: 0;
+}
+
+li.error_notification a {
+    color: white;
 }
 
 .pure-button-warning {
