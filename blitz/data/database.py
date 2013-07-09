@@ -29,7 +29,6 @@ class DatabaseClient(object):
         self.create_tables()
         self.logger.debug("DatabaseClient created tables")
 
-
     def create_tables(self, force_drop=False):
         """
         Uses the supplied engine and models to create the required table structure
@@ -214,6 +213,31 @@ class DatabaseClient(object):
             self.add(new_category)
         return new_category.id
 
+    def log_error(self, description, severity=1):
+        """
+        Log an error to the database - this will be sent to the client
+        """
+        notification = Notification(
+            timeLogged=datetime.datetime.now(),
+            severity=severity,
+            description=description
+        )
+
+        self.add(notification)
+        return notification
+
+    def clear_errors(self):
+        """Removes all errors from the database"""
+        sess = self._session()
+        sess.query(Notification).delete()
+        sess.commit()
+
+    def handle_error(self, err_id):
+        """Removes a single error from the database"""
+        sess = self._session()
+        sess.query(Notification).filter(Notification.id==err_id).delete()
+        sess.commit()
+
     def add_reading(self, session_id, time_logged, category_id, value):
         """
         Quick helper to add a reading record to the database
@@ -238,6 +262,12 @@ class DatabaseClient(object):
         )
         self.add(cache)
         return cache
+
+    def clear_cache(self):
+        """Clears all variables from the cache"""
+        sess = self._session()
+        sess.query(Cache).delete()
+        sess.commit()
 
 
 class DatabaseServer(object):

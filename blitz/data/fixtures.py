@@ -83,6 +83,9 @@ class TcpClientMock(TcpClient):
         print "[RECEIVE] ", msg
         super(TcpClientMock, self).process_message(msg)
 
+    def __handle_receive(self, cmd):
+        pass
+
 
 class ExpansionBoardMock(BaseExpansionBoard):
     """

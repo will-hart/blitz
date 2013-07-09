@@ -179,6 +179,7 @@ class TcpClient(threading.Thread):
         self.alive = threading.Event()
         self.alive.set()
         self._socket = None
+        self.__connected = False
         self.state_lock = threading.Lock()
         self.logger.debug("Created TCP Client at %s:%s" % self.__address)
 
@@ -230,9 +231,12 @@ class TcpClient(threading.Thread):
             with self.state_lock:
                 self.current_state = BaseState().go_to_state(self, ClientInitState)
 
+            self.__connected = True
+
         except IOError as e:
             self.logger.error("Error in TcpClient.CONNECT - " + str(e))
             self.response_queue.put(self.__error_reply(str(e)))
+            self.__connected = False
 
     def __handle_close(self, cmd):
         """
@@ -243,6 +247,7 @@ class TcpClient(threading.Thread):
         self.__socket.close()
         reply = self.__success_reply()
         self.response_queue.put(reply)
+        self.__connected = False
 
     def __handle_send(self, cmd):
         """
@@ -399,3 +404,16 @@ class TcpClient(threading.Thread):
         Returns True if the client is currently in logging state
         """
         return type(self.current_state) is ClientLoggingState
+
+    def is_busy(self):
+        """
+        Returns True if the Tcp Client currently has queued commands, False otherwise
+        """
+        return self.command_queue.empty()
+
+    def is_connected(self):
+        """
+        Returns True if the TCP client is currently busy
+        """
+        return self.__connected
+

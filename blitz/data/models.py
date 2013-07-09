@@ -1,13 +1,42 @@
 __author__ = 'mecharius'
 
-from blitz.utilities import to_blitz_date
 import json
+
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, String, Integer, DateTime, Boolean, ForeignKey
 from sqlalchemy.orm import relationship, backref
 
+from blitz.utilities import to_blitz_date
+
+
 # set up the base model
 SQL_BASE = declarative_base()
+
+
+class Notification(SQL_BASE):
+    """
+    A model class for database notifications to send to the client
+    """
+    __tablename__ = 'notifications'
+
+    id = Column(Integer, primary_key=True)
+    timeLogged = Column(DateTime)
+    severity = Column(Integer)
+    description = Column(String)
+
+    def to_dict(self):
+        """
+        Returns the object in json format
+        """
+        return {
+            "id": self.id,
+            "timeLogged": to_blitz_date(self.timeLogged),
+            "severity": self.severity,
+            "description": self.description
+        }
+
+    def __str__(self):
+        return json.dumps(self.to_dict())
 
 
 class Reading(SQL_BASE):

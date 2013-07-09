@@ -331,6 +331,8 @@ Blitz.IndexController = Ember.ArrayController.extend({
     chartDataDirty: false,
     chartDirty: false,
     needs: ['category', 'config'],
+    client_errors: [],
+    updatesWithoutStatus: 0,
 
     /* true if we are connected to the logger via TCP */
     connected: false,
@@ -442,13 +444,23 @@ Blitz.IndexController = Ember.ArrayController.extend({
         this.set('chartDirty', false);
     }.observes('chartDirty'),
 
+    /*
+     * Takes a status reponse from the server and updates the controller state
+     */
+    handleSettings: function handleSettings(response) {
+        // parse the response
+        this.set("connected", response.connected);
+        this.set("logging", response.logging);
+        this.set("client_errors", response.errors);
+    },
+
     /**
      * Handles the connection/disconnection of the TCP socket
      */
     connectToLogger: function connectToLogger() {
         var self = this;
         Blitz.HandleJsonRaw("connect", function (response) {
-            self.set("connected", response.connected);
+            self.handleSettings(response);
         });
     },
 
@@ -465,12 +477,17 @@ Blitz.IndexController = Ember.ArrayController.extend({
 
         var self = this;
         Blitz.HandleJsonRaw("start", function (response) {
-            self.set("logging", response.logging);
-            self.set("connected", response.connected);
 
-            // set a logging update timeout
-            // TODO grab timeout from console
-            setTimeout(function () { self.getUpdates(); }, 2000);
+            // handle the settings response
+            self.handleSettings(response);
+
+            // clear out existing cache and reset "status" update handler
+            self.set("content", []);
+            self.set("chartContent", []);
+            self.set("updatesWithoutStatus", 0);
+
+            // start the update cycle
+            self.getUpdates();
         });
     },
 
@@ -487,8 +504,7 @@ Blitz.IndexController = Ember.ArrayController.extend({
 
         var self = this;
         Blitz.HandleJsonRaw("stop", function (response) {
-            self.set("logging", response.logging);
-            self.set("connected", response.connected);
+            self.handleSettings(response);
         });
     },
 
@@ -499,8 +515,8 @@ Blitz.IndexController = Ember.ArrayController.extend({
     getUpdates: function getUpdates() {
 
         // find out when the updates are required
-        var since = moment(),
-            self = this;
+        var self = this,
+            updateCount = this.get('updatesWithoutStatus');
 
         // request updates
         Blitz.Reading.findUpdated(this.get('lastUpdated'), function () {
@@ -508,13 +524,48 @@ Blitz.IndexController = Ember.ArrayController.extend({
             self.set("chartDataDirty", true);
         }, this.get('content'));
 
+        // check if we need to do a status request (should be done every 10th "update")
+        if (updateCount >= 10) {
+            Blitz.HandleJsonRaw("status", function (response) {
+                self.handleSettings(response);
+            });
+            this.set("updatesWithoutStatus", 0);
+        } else {
+            this.set("updatesWithoutStatus", updateCount + 1);
+        }
+
         // reset the timeout
+        // TODO - get the timeout from CONFIG
         if (this.get("logging")) {
             setTimeout(function () {
                 self.getUpdates();
             }, 2000);
         }
-    }
+    },
+
+    /*
+     * Displays or hides the alert display box in the UI
+     */
+    showAlerts: function showAlerts() {
+        $("#alert_display_box").slideToggle();
+    },
+
+    /*
+     * Removes a particular error from the error list
+     */
+    suppressError: function suppressError(errorId) {
+        var self = this;
+        Blitz.HandleJsonRaw("error/" + errorId, function (response) {
+            self.handleSettings(response);
+        });
+    },
+
+    /*
+     * Connects handlers in the event that errors or the alert buttons change
+     */
+    reconnectButtonHandlers: function reconnectButtonHandlers() {
+        console.log("Updating handlers");
+    }.observes("errors.length")
 });
 
 Blitz.SessionsController = Ember.ArrayController.extend({});
@@ -602,12 +653,12 @@ Blitz.ConfigController = Ember.ObjectController.extend({
 
 Blitz.IndexView = Ember.View.extend({
     /**
-     * When the view has finished rendering, set a flag to
-     * show that updating the chart is ok
+     * When the view has finished rendering, connect all jquery events
      */
     didInsertElement: function () {
-        // Draw the chart
-        // console.log("Finished drawing chart view - ready for chart updates");
+
+        console.log("IndexView >> didInsertElement");
+
         var indexController = this.get('controller'),
             rendered;
 
@@ -745,4 +796,16 @@ Blitz.CategoryLineView = Ember.View.extend({
         // firing when the mouse moves quickly
         $('ul.variable_list li svg').remove();
     }
+});
+
+
+/*********************************************************
+ * HELPERS
+*********************************************************/
+
+/*
+ * Formats a date in a template in a human readable format
+ */
+Ember.Handlebars.registerBoundHelper("human_date", function(date) {
+    return moment(date, "DD-MM-YYYY HH:mm:ss.SSS").fromNow();
 });

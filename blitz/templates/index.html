@@ -19,7 +19,20 @@
         <script type="text/x-handlebars" id="index">
 
             <!-- Show the slide out buttons for variables and settings -->
+            {{#if client_errors }}
             <div id="alert_handle" class="slide_out_handle error_handle"><a {{action showAlerts}}><i class="icon-exclamation"></i></a></div>
+
+            <div id="alert_display_box">
+                <ul>
+                {{#each err in client_errors }}
+                    <li class="error_notification">
+                        <h4>{{human_date err.timeLogged}}:</h4>
+                        <a href="" {{action suppressError err.id}}>{{err.description}}</a>
+                    </li>
+                {{/each}}
+                </ul>
+            </div>
+            {{/if}}
 
             {{#if controller.connected}}
                 {{#if controller.logging}}

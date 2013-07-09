@@ -3,12 +3,12 @@ __author__ = 'Will Hart'
 import json
 import logging
 import os
-from tornado.web import RequestHandler
 
 from blitz.io.tcp import TcpClient
+from blitz.web.api import ApiRequestHandler
 
 
-class IndexHandler(RequestHandler):
+class IndexHandler(ApiRequestHandler):
 
     def get(self):
         # just read the file in to prevent tornado from processing handlebars
@@ -16,7 +16,7 @@ class IndexHandler(RequestHandler):
         self.write(resp_file.read())
 
 
-class ConnectHandler(RequestHandler):
+class ConnectHandler(ApiRequestHandler):
 
     logger = logging.getLogger(__name__)
 
@@ -31,39 +31,42 @@ class ConnectHandler(RequestHandler):
             tcp.start()
             tcp.connect()
             self.application.settings['socket'] = tcp
-            response = {'connected': True}
         else:
             tcp.disconnect()
             self.logger.debug("Closed TCP connection at client request")
             self.application.settings['socket'] = None
-            response = {'connected': False}
+
+            # write a connection error to database for the user
+            data = self.application.settings['data']
+            data.log_error("Unable to connect to the network")
 
         self.content_type = "application/json"
-        self.write(json.dumps(response))
+        self.write(json.dumps(self.generate_status_response()))
 
 
-class StartHandler(RequestHandler):
+class StartHandler(ApiRequestHandler):
 
     logger = logging.getLogger(__name__)
 
     def get(self):
         """Attempts to start logging"""
         tcp = self.application.settings['socket']
+        data = self.application.settings['data']
 
         if tcp is None:
             self.logger.warning("Attempt to start logging on TCP connection failed - there is no TCP connection")
-            response = {'logging': False, 'connected': False}
-
         else:
             self.logger.debug("Web client requested logging start")
             tcp.request_start()
-            response = {'logging': True, 'connected': True}
+
+        # clear the cache before starting
+        data.clear_cache()
 
         self.content_type = "application/json"
-        self.write(json.dumps(response))
+        self.write(json.dumps(self.generate_status_response()))
 
 
-class StopHandler(RequestHandler):
+class StopHandler(ApiRequestHandler):
 
     logger = logging.getLogger(__name__)
 
@@ -73,12 +76,10 @@ class StopHandler(RequestHandler):
 
         if tcp is None:
             self.logger.warning("Attempt to stop logging on TCP connection failed - there is no TCP connection")
-            response = {'logging': False, 'connected': False}
 
         else:
             self.logger.debug("Web client requested logging stop")
             tcp.request_stop()
-            response = {'logging': False, 'connected': True}
 
         self.content_type = "application/json"
-        self.write(json.dumps(response))
+        self.write(json.dumps(self.generate_status_response()))
