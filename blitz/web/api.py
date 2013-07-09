@@ -212,6 +212,7 @@ class ErrorHandler(ApiRequestHandler):
 
     def get(self, error_id):
         data = self.settings['data']
+        data.handle_error(error_id)
 
         self.content_type = "application/json"
         self.set_header("Cache-control", "no-cache")

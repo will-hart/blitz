@@ -443,16 +443,23 @@ Blitz.IndexController = Ember.ArrayController.extend({
         this.set('chartDirty', false);
     }.observes('chartDirty'),
 
+    /*
+     * Takes a status reponse from the server and updates the controller state
+     */
+    handleSettings: function handleSettings(response) {
+        // parse the response
+        this.set("connected", response.connected);
+        this.set("logging", response.logging);
+        this.set("client_errors", response.errors);
+    },
+
     /**
      * Handles the connection/disconnection of the TCP socket
      */
     connectToLogger: function connectToLogger() {
         var self = this;
         Blitz.HandleJsonRaw("connect", function (response) {
-            // parse the response
-            self.set("connected", response.connected);
-            self.set("logging", response.logging);
-            self.set("client_errors", response.errors);
+            self.handleSettings(response);
         });
     },
 
@@ -469,12 +476,8 @@ Blitz.IndexController = Ember.ArrayController.extend({
 
         var self = this;
         Blitz.HandleJsonRaw("start", function (response) {
-            self.set("logging", response.logging);
-            self.set("connected", response.connected);
-
-            // set a logging update timeout
-            // TODO grab timeout from config
-            setTimeout(function () { self.getUpdates(); }, 2000);
+            self.handleSettings(response);
+            self.getUpdates();
         });
     },
 
@@ -491,8 +494,7 @@ Blitz.IndexController = Ember.ArrayController.extend({
 
         var self = this;
         Blitz.HandleJsonRaw("stop", function (response) {
-            self.set("logging", response.logging);
-            self.set("connected", response.connected);
+            self.handleSettings(response);
         });
     },
 
@@ -520,8 +522,21 @@ Blitz.IndexController = Ember.ArrayController.extend({
         }
     },
 
+    /*
+     * Displays or hides the alert display box in the UI
+     */
     showAlerts: function showAlerts() {
         $("#alert_display_box").slideToggle();
+    },
+
+    /*
+     * Removes a particular error from the error list
+     */
+    suppressError: function suppressError(errorId) {
+        var self = this;
+        Blitz.HandleJsonRaw("error/" + errorId, function (response) {
+            self.handleSettings(response);
+        });
     }
 });
 

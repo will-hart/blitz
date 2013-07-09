@@ -25,7 +25,7 @@
             <div id="alert_display_box">
                 <ul>
                 {{#each err in client_errors }}
-                    <li>{{err.description}}</li>
+                    <li><a href="" {{action suppressError err.id}}>{{err.description}}</a></li>
                 {{/each}}
                 </ul>
             </div>
