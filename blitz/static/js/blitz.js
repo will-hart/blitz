@@ -418,10 +418,10 @@ Blitz.IndexController = Ember.ArrayController.extend({
             momentDate = moment(timestamp);//, "DD-MM-YYYY HH:m:s.SSS");
 
             // convert to unix timestamp
-            theDate = momentDate.valueOf() / 1000;
+            theDate = momentDate.valueOf() / 1000.0;
         }
         this.set('lastUpdated', theDate);
-    }.observes('content.length'),
+    },
 
     /**
      * Draws the chart inside the "#chart" div element, first
@@ -493,6 +493,7 @@ Blitz.IndexController = Ember.ArrayController.extend({
             self.set("content", []);
             self.set("chartContent", []);
             self.set("updatesWithoutStatus", 0);
+            self.set("lastUpdated", 0);
 
             // start the update cycle
             self.getUpdates();
