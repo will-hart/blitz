@@ -407,6 +407,10 @@ class TestDatabaseHelpers(unittest.TestCase):
         assert result.categoryId == category_id
         assert result.value == str(value)
 
+        self.db.clear_cache()
+        cached = self.db.all(Cache)
+        assert len(cached) == 0, "Expected 0 cached items, found %s" % len(cached)
+
 #
 # class TestWebApi(unittest.TestCase):
 #

@@ -263,6 +263,12 @@ class DatabaseClient(object):
         self.add(cache)
         return cache
 
+    def clear_cache(self):
+        """Clears all variables from the cache"""
+        sess = self._session()
+        sess.query(Cache).delete()
+        sess.commit()
+
 
 class DatabaseServer(object):
     """

@@ -51,13 +51,16 @@ class StartHandler(ApiRequestHandler):
     def get(self):
         """Attempts to start logging"""
         tcp = self.application.settings['socket']
+        data = self.application.settings['data']
 
         if tcp is None:
             self.logger.warning("Attempt to start logging on TCP connection failed - there is no TCP connection")
-
         else:
             self.logger.debug("Web client requested logging start")
             tcp.request_start()
+
+        # clear the cache before starting
+        data.clear_cache()
 
         self.content_type = "application/json"
         self.write(json.dumps(self.generate_status_response()))
