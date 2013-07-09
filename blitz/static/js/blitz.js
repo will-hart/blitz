@@ -332,6 +332,7 @@ Blitz.IndexController = Ember.ArrayController.extend({
     chartDirty: false,
     needs: ['category', 'config'],
     client_errors: [],
+    updatesWithoutStatus: 0,
 
     /* true if we are connected to the logger via TCP */
     connected: false,
@@ -476,7 +477,16 @@ Blitz.IndexController = Ember.ArrayController.extend({
 
         var self = this;
         Blitz.HandleJsonRaw("start", function (response) {
+
+            // handle the settings response
             self.handleSettings(response);
+
+            // clear out existing cache and reset "status" update handler
+            self.set("content", []);
+            self.set("chartContent", []);
+            self.set("updatesWithoutStatus", 0);
+
+            // start the update cycle
             self.getUpdates();
         });
     },
@@ -505,8 +515,8 @@ Blitz.IndexController = Ember.ArrayController.extend({
     getUpdates: function getUpdates() {
 
         // find out when the updates are required
-        var since = moment(),
-            self = this;
+        var self = this,
+            updateCount = this.get('updatesWithoutStatus');
 
         // request updates
         Blitz.Reading.findUpdated(this.get('lastUpdated'), function () {
@@ -514,7 +524,18 @@ Blitz.IndexController = Ember.ArrayController.extend({
             self.set("chartDataDirty", true);
         }, this.get('content'));
 
+        // check if we need to do a status request (should be done every 10th "update")
+        if (updateCount >= 10) {
+            Blitz.HandleJsonRaw("status", function (response) {
+                self.handleSettings(response);
+            });
+            this.set("updatesWithoutStatus", 0);
+        } else {
+            this.set("updatesWithoutStatus", updateCount + 1);
+        }
+
         // reset the timeout
+        // TODO - get the timeout from CONFIG
         if (this.get("logging")) {
             setTimeout(function () {
                 self.getUpdates();
