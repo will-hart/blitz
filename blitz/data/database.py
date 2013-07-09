@@ -226,6 +226,10 @@ class DatabaseClient(object):
         self.add(notification)
         return notification
 
+    def clear_errors(self):
+        """Removes all errors from the database"""
+        self._session().query(Notification).delete()
+
     def add_reading(self, session_id, time_logged, category_id, value):
         """
         Quick helper to add a reading record to the database

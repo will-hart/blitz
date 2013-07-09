@@ -272,6 +272,10 @@ class TestDatabaseHelpers(unittest.TestCase):
         assert err2got.description == "This is another error", "Expected 'This is a another error', found %s " % err2got.description
         assert err2got.severity == 2, "Expected 2, found %s" % err2got.severity
 
+        self.db.clear_errors()
+        errs = self.db.all(Notification)
+        assert len(errs) == 0
+
     def test_get_categories_for_session(self):
         """
         Test retrieving categories for a specific session
