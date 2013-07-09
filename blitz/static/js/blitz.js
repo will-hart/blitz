@@ -163,7 +163,7 @@ Blitz.Reading.reopenClass({
      * Gets at most 50 recent readings for each variable in the cache
      */
     findAll: function () {
-        return Blitz.HandleJsonMultiple("cache", Blitz.Reading, Blitz.RemoveLoadingIndicator);
+        return Blitz.HandleJsonMultiple("cache", Blitz.Reading);
     },
 
     /**
@@ -276,10 +276,12 @@ Blitz.IndexRoute = Ember.Route.extend({
         if (content === undefined || content.length === 0) {
             return Blitz.Reading.findAll();
         }
+
         return content;
     },
 
     setupController: function (controller, model) {
+
         // check if we have already saved controller data
         var content = controller.get("content"),
             lastUpdated = controller.get("lastUpdated"),
@@ -287,6 +289,12 @@ Blitz.IndexRoute = Ember.Route.extend({
                 controller.updateChartData(true);
                 Blitz.RemoveLoadingIndicator();
             };
+
+        // get an initial status update
+        Blitz.HandleJsonRaw("status", function (response) {
+            controller.handleSettings(response);
+            Blitz.RemoveLoadingIndicator();
+        });
 
         if (content === undefined || content.length === 0) {
 
@@ -656,8 +664,6 @@ Blitz.IndexView = Ember.View.extend({
      * When the view has finished rendering, connect all jquery events
      */
     didInsertElement: function () {
-
-        console.log("IndexView >> didInsertElement");
 
         var indexController = this.get('controller'),
             rendered;
