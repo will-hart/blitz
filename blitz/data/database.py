@@ -230,6 +230,11 @@ class DatabaseClient(object):
         """Removes all errors from the database"""
         self._session().query(Notification).delete()
 
+    def handle_error(self, err_id):
+        """Removes a single error from the database"""
+        sess = self._session()
+        sess.query(Notification).filter({"id": err_id}).delete()
+
     def add_reading(self, session_id, time_logged, category_id, value):
         """
         Quick helper to add a reading record to the database

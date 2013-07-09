@@ -276,6 +276,19 @@ class TestDatabaseHelpers(unittest.TestCase):
         errs = self.db.all(Notification)
         assert len(errs) == 0
 
+    def test_delete_error(self):
+
+        errs = self.db.all(Notification)
+        assert len(errs) == 0, "Expected 0 errors found %s" % len(errs)
+
+        self.db.log_error("A test error")
+        errs = self.db.all(Notification)
+        assert len(errs) == 1, "Expected 1 error found %s" % len(errs)
+
+        self.db.handle_error(1)
+        errs = self.db.all(Notification)
+        assert len(errs) == 0, "Expected 0 errors found %s" % len(errs)
+
     def test_get_categories_for_session(self):
         """
         Test retrieving categories for a specific session
