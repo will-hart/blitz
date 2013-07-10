@@ -817,3 +817,10 @@ Blitz.CategoryLineView = Ember.View.extend({
 Ember.Handlebars.registerBoundHelper("human_date", function (date) {
     return moment(date).fromNow();
 });
+
+/*
+ * Formats a date in a template in the blitz date format
+ */
+Ember.Handlebars.registerBoundHelper("blitz_date", function (date) {
+    return moment(date).format("YYYY-MM-DD HH:mm:ss");
+});
