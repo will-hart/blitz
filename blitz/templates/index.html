@@ -211,8 +211,8 @@
 
             <h2>Session Detail</h2>
             <p>
-                <strong>Started Logging:</strong> {{model.timeStarted}} <br/>
-                <strong>Stopped Logging:</strong> {{model.timeStopped}} <br/>
+                <strong>Started Logging:</strong> {{human_date model.timeStarted}} ({{blitz_date model.timeStarted}})<br/>
+                <strong>Stopped Logging:</strong> {{human_date model.timeStopped}} ({{blitz_date model.timeStopped}})<br/>
                 <strong>Readings Taken:</strong> {{model.readings}}
             </p>
 
