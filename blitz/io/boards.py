@@ -1,7 +1,6 @@
 __author__ = 'Will Hart'
 
 import logging
-from math import ceil
 
 from bitstring import BitArray
 

@@ -4,7 +4,9 @@ import json
 import logging
 import os
 
+from blitz.constants import CommunicationCodes
 from blitz.io.serial import SerialManager
+import blitz.io.signals as sigs
 from blitz.io.tcp import TcpServer
 
 class Config(object):
@@ -122,8 +124,18 @@ class ApplicationServer(TcpServer):
         self.serial_server = SerialManager()
         self.logger.info("Initialised serial manager")
 
+        # hook up signals
+        sigs.client_requested_session_list.connect(self.update_session_list)
+
         # start the TCP server
         super(ApplicationServer, self).__init__(self.config['tcp_port'])
+
+    def update_session_list(self, args):
+        self.logger.debug("Server sending out updated session list")
+        sessions = self.serial_server.database.build_client_session_list()
+        for session in sessions:
+            self.send(session)
+        self.send(CommunicationCodes.Negative)
 
     def __del__(self):
         self.logger.warning("Shutting down server Application")

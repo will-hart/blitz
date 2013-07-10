@@ -7,6 +7,7 @@ import redis
 
 from blitz.data.models import *
 from blitz.data.fixtures import *
+import blitz.io.signals as sigs
 from blitz.utilities import blitz_timestamp
 
 
@@ -27,6 +28,9 @@ class DatabaseClient(object):
         self.logger.debug("DatabaseClient __init__")
         self.create_tables()
         self.logger.debug("DatabaseClient created tables")
+
+        # connect up the session_list_update signal
+        sigs.client_session_list_updated.connect(self.update_session_list)
 
     def create_tables(self, force_drop=False):
         """
@@ -163,6 +167,22 @@ class DatabaseClient(object):
             res += qry[:50]
 
         return res
+
+    def update_session_list(self, sessions_list):
+        """
+        Session list comes in [session_id, start_timestamp, end_timstamp] format
+        This replaces the existing session list
+        """
+        self.logger.debug("Updating session list")
+        for session in sessions_list:
+            # check if it exists
+            qry = { "id": session[0] }
+            if len(self.find(Session, qry)) == 0:
+                blitz_session = Session()
+                blitz_session.ref_id = session[0]
+                blitz_session.timeStarted = session[1]
+                blitz_session.timeStopped = session[2]
+                self.add(blitz_session)
 
     def load_fixtures(self):
         """
@@ -332,3 +352,14 @@ class DatabaseServer(object):
     def flush(self):
         """Cleans out the database - no save or undo, USE WITH CAUTION"""
         self.__data.flushdb()
+
+    def build_client_session_list(self):
+        """Sends a newline separated list of sessions, then a NACK to the user"""
+        sessions = self.available_sessions()
+        result = []
+        for session in sessions:
+            session_start = self.__data.get("session_" + str(session) + "_start")
+            session_end = self.__data.get("session_" + str(session) + "_end")
+            result.append("%s %s %s" % (session, session_start, session_end))
+
+        return result

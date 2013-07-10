@@ -20,7 +20,7 @@ class SerialManager(object):
     """
 
     __instance = None
-    __data = None
+    database = None
     __serial_thread = None
     __listen_thread = None
 
@@ -54,7 +54,7 @@ class SerialManager(object):
 
         # create a database object
         try:
-            self.__data = DatabaseServer()
+            self.database = DatabaseServer()
         except ConnectionError as e:
             self.logger.critical("ConnectionError when attempting to start the DatabaseServer!")
             self.logger.critical(e)
@@ -68,7 +68,7 @@ class SerialManager(object):
         """
 
         # enter a new session
-        session_id = self.__data.start_session()
+        session_id = self.database.start_session()
 
         # start a thread for listening to the serial ports
         self.__stop_event = threading.Event()
@@ -92,7 +92,7 @@ class SerialManager(object):
         self.logger.debug("Received signal to stop logging")
 
         # end the new session
-        self.__data.stop_session()
+        self.database.stop_session()
 
         self.__stop_event.set()
         self.__listen_thread.join()
@@ -106,7 +106,7 @@ class SerialManager(object):
         """
         while not stop_event.is_set():
             # todo - this is fake :/ actually need to send a message to the boards requesting an update
-            self.__data.queue(generate_tcp_server_fixtures())
+            self.database.queue(generate_tcp_server_fixtures())
 
             time.sleep(SerialUpdatePeriod / 4)  # TODO currently 0.25 of serial period to generate lots of data
                                                 # TODO remove the " / 4" later

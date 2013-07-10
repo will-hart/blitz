@@ -5,6 +5,7 @@ import threading
 import time
 
 from blitz.constants import *
+from blitz.io.signals import client_session_list_updated
 
 
 class BaseState(object):
@@ -51,7 +52,6 @@ class ClientInitState(BaseState):
     Handles the client starting up - sends a "logging" query
     to the logger and waits for the response
     """
-
     def enter_state(self, tcp, state):
         """Send a logging query to the logger"""
         self.logger.debug("[TCP] Calling init.enter_state")
@@ -65,7 +65,7 @@ class ClientInitState(BaseState):
             return self.go_to_state(tcp, ClientLoggingState)
         elif msg == CommunicationCodes.Negative:
             # logger is not logging, go to idle
-            return self.go_to_state(tcp, ClientIdleState)
+            return self.go_to_state(tcp, ClientSessionListState)
         else:
             # no other messages are acceptable in this state
             raise Exception("Unable to process the given message from InitState: " + msg)
@@ -84,11 +84,46 @@ class ClientIdleState(BaseState):
         self.logger.debug("[TCP] Calling idle.send_message: " + msg)
         if msg == CommunicationCodes.Start:
             return self.go_to_state(tcp, ClientStartingState)
+        elif msg == CommunicationCodes.GetSessions:
+            return self.go_to_state(tcp, ClientSessionListState)
         elif msg[0:8] == CommunicationCodes.Download:
             tcp._do_send(msg)
             return self.go_to_state(tcp, ClientDownloadingState)
         else:
             raise Exception("Unknown message for IDLE state - " + msg)
+
+class ClientSessionListState(BaseState):
+
+    sessions = []
+
+    def enter_state(self, tcp, state):
+        """Send a logging session list to the logger"""
+        self.sessions = []
+        self.logger.debug("[TCP] Calling session_list.enter_state")
+        tcp._do_send(CommunicationCodes.GetSessions)
+        return self
+
+    def process_message(self, tcp, msg):
+        if msg == CommunicationCodes.Negative:
+            # session list is complete
+            return self.go_to_state(tcp, ClientIdleState)
+
+        # process a session message
+        msg_parts = msg.split(" " )
+        if len(msg_parts) == 3:
+            self.sessions.append(msg_parts)
+            self.logger.debug("Parsed session list message [%s:%s:%s]" % (msg_parts[0], msg_parts[1], msg_parts[2]))
+        else:
+            self.logger.info("Ignoring session list message with incorrect format [%s]" % msg)
+
+        return self
+
+    def go_to_state(self, tcp, state):
+        """
+        sends a signal to save the session list to database, and then calls super go_to_state
+        """
+        client_session_list_updated.send(self.sessions)
+        return super(ClientSessionListState, self).go_to_state(tcp, state)
 
 
 class ClientStartingState(BaseState):

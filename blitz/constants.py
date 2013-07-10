@@ -20,6 +20,7 @@ class CommunicationCodes(object):
     NoBoard = "NOBOARD"
     Ready = "READY"
     IsLogging = "LOGGING"
+    GetSessions = "SESSIONS"
 
     @classmethod
     def composite(cls, base_code, code_id):
@@ -34,7 +35,8 @@ VALID_SERVER_COMMANDS = [
     CommunicationCodes.Update,
     CommunicationCodes.Download,
     CommunicationCodes.Board,
-    CommunicationCodes.IsLogging
+    CommunicationCodes.IsLogging,
+    CommunicationCodes.GetSessions
 ]
 
 # commands that are valid to send TO the client

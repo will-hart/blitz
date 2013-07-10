@@ -1,9 +1,10 @@
-from blitz.utilities import to_blitz_date
+
 
 __author__ = 'Will Hart'
 
 import logging
 import unittest
+import datetime
 
 import sqlalchemy
 from sqlalchemy import orm
@@ -15,7 +16,8 @@ from blitz.io.client_states import *
 from blitz.data.database import *
 from blitz.io.server_states import *
 from blitz.io.tcp import TcpServer
-from blitz.utilities import blitz_timestamp
+from blitz.utilities import blitz_timestamp, to_blitz_date
+
 
 # set up logging globally for tests
 ch = logging.StreamHandler()
@@ -555,6 +557,21 @@ class TestTcpClientStateMachine(unittest.TestCase):
         assert type(self.tcp.current_state) == ClientIdleState, "Expecting Idle state, found %s" % type(
             self.tcp.current_state)
 
+    def test_sessions_status(self):
+        self.tcp.process_message(CommunicationCodes.Negative)
+        assert type(self.tcp.current_state) == ClientIdleState
+
+        self.tcp.request_session_list()
+        assert type(self.tcp.current_state) == ClientSessionListState
+
+        self.tcp.process_message("1 1234567890123 1234567890125")
+        assert type(self.tcp.current_state) == ClientSessionListState
+
+        self.tcp.process_message("1 1234567890126 1234567890127")
+        assert type(self.tcp.current_state) == ClientSessionListState
+
+        self.tcp.process_message(CommunicationCodes.Negative)
+        assert type(self.tcp.current_state) == ClientIdleState
 
 class TestTcpServerStateMachine(unittest.TestCase):
     """

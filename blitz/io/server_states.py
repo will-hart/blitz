@@ -34,6 +34,8 @@ class ServerIdleState(BaseState):
         if msg == CommunicationCodes.Start:
             tcp._do_send(CommunicationCodes.Acknowledge)
             return self.go_to_state(tcp, ServerLoggingState)
+        elif msg == CommunicationCodes.GetSessions:
+            sigs.client_requested_session_list.send()
         elif msg[0:8] == CommunicationCodes.Download:
             return self.go_to_state(tcp, ServerDownloadingState)
 

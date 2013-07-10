@@ -72,6 +72,7 @@ class Session(SQL_BASE):
     __tablename__ = 'session'
 
     id = Column(Integer, primary_key=True)
+    ref_id = Column(Integer, unique=True)
     available = Column(Boolean, default=False)
     timeStarted = Column(Integer)
     timeStopped = Column(Integer)
@@ -79,10 +80,13 @@ class Session(SQL_BASE):
 
     def to_dict(self):
         """
-        Returns the object in json format
+        Returns the object in json format - note that for sessions id is the
+        sequence number of the session created by the logger, NOT the sqlite record ID.
+        This is saved as sql_id
         """
         return {
-            "id": self.id,
+            "id": self.ref_id,
+            "sql_id": self.id,
             "available": self.available,
             "timeStarted": float(self.timeStarted),
             "timeStopped": float(self.timeStopped),

@@ -48,3 +48,9 @@ logging_stopped = signal('logging_stopped')
 
 # called when the client requests a status update from the server
 client_status_request = signal('client_status_request')
+
+# called when the client has requested a status list update, TcpServer as argument
+client_requested_session_list = signal('client_requested_session_list')
+
+# called when the client has a completed session list received from the server
+client_session_list_updated = signal('client_session_list_updated')

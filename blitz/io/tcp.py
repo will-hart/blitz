@@ -123,7 +123,9 @@ class TcpServer(tornadoTCP):
         if type(self.current_state) is ServerDownloadingState:
             self.current_state = self.current_state.download_complete(self)
 
-
+    def send(self, message):
+        """Sends the given message through the current_state ServerState"""
+        self.current_state = self.current_state.send_message(self, message)
 #
 # A threaded TCP client based on
 # http://eli.thegreenplace.net/2011/05/18/code-sample-socket-client-thread-in-python/
@@ -368,6 +370,10 @@ class TcpClient(threading.Thread):
         """
         with self.state_lock:
             self.current_state = self.current_state.send_message(self, CommunicationCodes.Update)
+
+    def request_session_list(self):
+        with self.state_lock:
+            self.current_state = self.current_state.send_message(self, CommunicationCodes.GetSessions)
 
     def request_download(self, session_id):
         """
