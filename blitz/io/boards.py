@@ -1,7 +1,7 @@
 __author__ = 'Will Hart'
 
-import datetime
 import logging
+from math import ceil
 
 from bitstring import BitArray
 
@@ -70,7 +70,7 @@ class BoardManager(object):
         result = board.get_variables()
 
         # get session metadata
-        timeLogged = datetime.datetime.fromtimestamp(board["timestamp"])
+        timeLogged = ceil(board["timestamp"] * 1000)
 
         # write the variables to the database
         for key in result.keys():

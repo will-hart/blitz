@@ -77,7 +77,7 @@ class TestDatabaseClientSetup(unittest.TestCase):
 
         expected = fixture.copy()
         expected['id'] = None
-        expected['timeLogged'] = fixture['timeLogged']
+        expected['timeLogged'] = fixture['timeLogged'] / 1000.0
 
         for k in expected.keys():
             assert k in r_dict.keys()
@@ -120,7 +120,7 @@ class TestDatabaseClientSetup(unittest.TestCase):
 
         expected = fixture.copy()
         expected['id'] = None
-        expected['timeLogged'] = fixture['timeLogged']
+        expected['timeLogged'] = fixture['timeLogged'] / 1000.0
 
         for k in expected.keys():
             assert k in r_dict.keys()
@@ -135,8 +135,8 @@ class TestDatabaseClientSetup(unittest.TestCase):
 
         expected = fixture.copy()
         expected['id'] = None
-        expected['timeStarted'] = fixture['timeStarted']
-        expected['timeStopped'] = fixture['timeStopped']
+        expected['timeStarted'] = fixture['timeStarted'] / 1000.0
+        expected['timeStopped'] = fixture['timeStopped'] / 1000.0
 
         for k in expected.keys():
             assert k in r_dict.keys()

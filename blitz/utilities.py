@@ -17,7 +17,12 @@ def to_blitz_date(given_date):
 
 
 def blitz_timestamp():
-    return ceil(time.time() * 1000) / 1000
+    """
+    Generates the current timestamp in milliseconds since Unix epoch.
+    This is a bit of a cludge to allow storing "decimal" number in sqlite.
+    to convert to javascript datetime, this must be divided by 1000.0
+    """
+    return ceil(time.time() * 1000)
 
 
 def generate_tcp_server_fixtures():

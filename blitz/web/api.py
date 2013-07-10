@@ -75,7 +75,7 @@ class CacheHandler(ApiRequestHandler):
         json_objs = {}
         data_objs = []
 
-        if since is not None:
+        if since > 0:
             result = data.get_cache(since)
         else:
             result = data.get_cache()

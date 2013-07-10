@@ -154,7 +154,7 @@ class DatabaseClient(object):
 
         # loop and build the variables
         for v in cache_vars:
-            if since:
+            if since > 0:
                 qry = sess.query(Cache).filter(Cache.categoryId == v.categoryId).filter(
                     Cache.timeLogged >= since).order_by(Cache.timeLogged.desc())
             else:
