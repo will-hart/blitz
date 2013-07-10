@@ -42,7 +42,11 @@ Blitz.HandleJsonMultiple = function (url, modelClass, callback, initialItems) {
         // console.log("Parsing JSON response for multiple results from " + url);
         response.data.forEach(function (item) {
             var instance = modelClass.create(item);
-            responseVals.addObject(instance);
+
+            // TODO - may be able to remove this check once cached dates are sorted out
+            if (responseVals.findProperty("id", instance.get("id")) === undefined) {
+                responseVals.addObject(instance);
+            }
         });
 
         // run callback, if supplied
@@ -148,14 +152,14 @@ Blitz.Reading = Ember.Object.extend({
      * A property which returns a moment date from the raw timeLogged value
      */
     loggedAt: function () {
-        return moment(this.get('timeLogged'), "DD-MM-YYYY HH:m:s.SSS").toDate();
+        return moment(this.get('timeLogged')).toDate();
     }.property('timeLogged'),
 
     /**
      * Formats the date for chart titles
      */
     titleDate: function () {
-        return moment(this.get('timeLogged'), "DD-MM-YYYY HH:m:s.SSS").format("MMM Do h:mm:ss.SSS");
+        return moment(this.get('timeLogged')).format("MMM Do h:mm:ss.SSS");
     }.property('timeLogged')
 });
 Blitz.Reading.reopenClass({
@@ -406,21 +410,15 @@ Blitz.IndexController = Ember.ArrayController.extend({
         // console.log("New data received - checking for the last update time");
 
         var content = this.get('content'),
-            maxDates = content.mapProperty("loggedAt").sort(),
-            timestamp = 0,
-            theDate = 0,
-            momentDate = 0;
+            maxDates = content.mapProperty("timeLogged").sort(),
+            timestamp = 0;
 
         // check if we have a date
         if (maxDates.length > 0) {
             // get the date from string using moment.js
             timestamp = maxDates[maxDates.length - 1];
-            momentDate = moment(timestamp);//, "DD-MM-YYYY HH:m:s.SSS");
-
-            // convert to unix timestamp
-            theDate = momentDate.valueOf() / 1000.0;
         }
-        this.set('lastUpdated', theDate);
+        this.set('lastUpdated', timestamp);
     },
 
     /**
@@ -573,8 +571,11 @@ Blitz.IndexController = Ember.ArrayController.extend({
      * Connects handlers in the event that errors or the alert buttons change
      */
     reconnectButtonHandlers: function reconnectButtonHandlers() {
-        console.log("Updating handlers");
-    }.observes("errors.length")
+        var errors = this.get("errors");
+        if (errors.length > 0) {
+            console.log("Updating handlers");
+        }
+    }.observes("errors.@each")
 });
 
 Blitz.SessionsController = Ember.ArrayController.extend({});
@@ -813,6 +814,6 @@ Blitz.CategoryLineView = Ember.View.extend({
 /*
  * Formats a date in a template in a human readable format
  */
-Ember.Handlebars.registerBoundHelper("human_date", function(date) {
-    return moment(date, "DD-MM-YYYY HH:mm:ss.SSS").fromNow();
+Ember.Handlebars.registerBoundHelper("human_date", function (date) {
+    return moment(date).fromNow();
 });

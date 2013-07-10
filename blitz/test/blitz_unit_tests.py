@@ -1,8 +1,8 @@
+from blitz.utilities import to_blitz_date
+
 __author__ = 'Will Hart'
 
-import datetime
 import logging
-import time
 import unittest
 
 import sqlalchemy
@@ -15,6 +15,7 @@ from blitz.io.client_states import *
 from blitz.data.database import *
 from blitz.io.server_states import *
 from blitz.io.tcp import TcpServer
+from blitz.utilities import blitz_timestamp
 
 # set up logging globally for tests
 ch = logging.StreamHandler()
@@ -76,7 +77,7 @@ class TestDatabaseClientSetup(unittest.TestCase):
 
         expected = fixture.copy()
         expected['id'] = None
-        expected['timeLogged'] = to_blitz_date(fixture['timeLogged'])
+        expected['timeLogged'] = fixture['timeLogged'] / 1000.0
 
         for k in expected.keys():
             assert k in r_dict.keys()
@@ -119,7 +120,7 @@ class TestDatabaseClientSetup(unittest.TestCase):
 
         expected = fixture.copy()
         expected['id'] = None
-        expected['timeLogged'] = to_blitz_date(fixture['timeLogged'])
+        expected['timeLogged'] = fixture['timeLogged'] / 1000.0
 
         for k in expected.keys():
             assert k in r_dict.keys()
@@ -134,8 +135,8 @@ class TestDatabaseClientSetup(unittest.TestCase):
 
         expected = fixture.copy()
         expected['id'] = None
-        expected['timeStarted'] = to_blitz_date(fixture['timeStarted'])
-        expected['timeStopped'] = to_blitz_date(fixture['timeStopped'])
+        expected['timeStarted'] = fixture['timeStarted'] / 1000.0
+        expected['timeStopped'] = fixture['timeStopped'] / 1000.0
 
         for k in expected.keys():
             assert k in r_dict.keys()
@@ -162,7 +163,7 @@ class TestBasicDatabaseOperations(unittest.TestCase):
         self.db.add_many(generate_objects(Session, SESSION_FIXTURES))
 
     def test_add_one_record(self):
-        c = Cache(timeLogged=datetime.datetime.now(), categoryId=1, value=3)
+        c = Cache(timeLogged=blitz_timestamp(), categoryId=1, value=3)
         res = self.db.add(c)
 
         assert type(res) == Cache
@@ -341,9 +342,7 @@ class TestDatabaseHelpers(unittest.TestCase):
         """
         Test retrieving cached variables since a given time
         """
-        print time2
-        time2_timestamp = time.mktime(time2.timetuple()) + (float(time2.microsecond) / 1000000)
-        res = self.db.get_cache(time2_timestamp)
+        res = self.db.get_cache(time2)
 
         # check lengths
         assert len(res) == 3
@@ -352,7 +351,7 @@ class TestDatabaseHelpers(unittest.TestCase):
         # and double check all the dates are in range
         for x in res:
             assert type(x) == Cache
-            assert x.timeLogged >= time2
+            assert x.timeLogged >= time2, "Expected %s >= %s" % (x.timeLogged, time2)
 
     def test_config_get(self):
         res = self.db.get_config("loggerPort")
@@ -383,29 +382,29 @@ class TestDatabaseHelpers(unittest.TestCase):
 
     def test_add_reading(self):
         session_id = 1
-        timeLogged = datetime.datetime.now()
+        timeLogged = blitz_timestamp()
         category_id = 1
         value = 5.2
         reading = self.db.add_reading(session_id, timeLogged, category_id, value)
 
         result = self.db.get_by_id(Reading, reading.id)
 
-        assert result.sessionId == session_id
-        assert result.timeLogged == timeLogged
-        assert result.categoryId == category_id
-        assert result.value == str(value)
+        assert result.sessionId == session_id, "Expected %s got %s" % (result.sessionId, session_id)
+        assert result.timeLogged == timeLogged, "Expected %s got %s" % (result.timeLogged, timeLogged)
+        assert result.categoryId == category_id, "Expected %s got %s" % (result.categoryId, category_id)
+        assert result.value == str(value), "Expected %s got %s" % (result.value, value)
 
     def test_add_cache(self):
-        timeLogged = datetime.datetime.now()
+        timeLogged = blitz_timestamp()
         category_id = 1
         value = 5.2
         cache = self.db.add_cache(timeLogged, category_id, value)
 
         result = self.db.get_by_id(Cache, cache.id)
 
-        assert result.timeLogged == timeLogged
-        assert result.categoryId == category_id
-        assert result.value == str(value)
+        assert result.timeLogged == timeLogged, "Expected %s got %s" % (result.timeLogged, timeLogged)
+        assert result.categoryId == category_id, "Expected %s got %s" % (result.categoryId, category_id)
+        assert result.value == str(value), "Expected %s got %s" % (result.value, value)
 
         self.db.clear_cache()
         cached = self.db.all(Cache)

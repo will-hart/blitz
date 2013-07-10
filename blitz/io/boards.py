@@ -1,13 +1,14 @@
 __author__ = 'Will Hart'
 
-import datetime
 import logging
+from math import ceil
 
 from bitstring import BitArray
 
 from blitz.constants import BOARD_MESSAGE_MAPPING, PAYLOAD_LENGTH, MESSAGE_BYTE_LENGTH
 from blitz.io.signals import data_line_received, data_line_processed, registering_boards
 from blitz.plugins import Plugin
+from blitz.utilities import blitz_timestamp
 
 
 class BoardManager(object):
@@ -70,7 +71,8 @@ class BoardManager(object):
         result = board.get_variables()
 
         # get session metadata
-        timeLogged = datetime.datetime.fromtimestamp(board["timestamp"])
+        # TODO add timestamp to session start time
+        timeLogged = - board["timestamp"] + blitz_timestamp()
 
         # write the variables to the database
         for key in result.keys():
