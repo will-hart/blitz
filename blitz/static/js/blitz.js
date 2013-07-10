@@ -42,7 +42,11 @@ Blitz.HandleJsonMultiple = function (url, modelClass, callback, initialItems) {
         // console.log("Parsing JSON response for multiple results from " + url);
         response.data.forEach(function (item) {
             var instance = modelClass.create(item);
-            responseVals.addObject(instance);
+
+            // TODO - may be able to remove this check once cached dates are sorted out
+            if (responseVals.findProperty("id", instance.get("id")) === undefined) {
+                responseVals.addObject(instance);
+            }
         });
 
         // run callback, if supplied
@@ -414,7 +418,6 @@ Blitz.IndexController = Ember.ArrayController.extend({
             // get the date from string using moment.js
             timestamp = maxDates[maxDates.length - 1];
         }
-        console.log(timestamp)
         this.set('lastUpdated', timestamp);
     },
 
