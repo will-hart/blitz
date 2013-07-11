@@ -31,7 +31,7 @@ class TcpBase(object):
         self.waiting = False
         self.__poller = zmq.Poller()
         self.__stop_event = threading.Event()
-        self.__state_lock = threading.Lock()
+        self.__state_lock = threading.RLock()
 
     def create_client(self, autorun=True):
         self.__context = zmq.Context(1)
@@ -60,6 +60,22 @@ class TcpBase(object):
 
     def is_logging(self):
         return type(self.current_state) == ClientLoggingState or type(self.current_state) == ServerLoggingState
+
+    def stop(self):
+        self.__stop_event.set()
+        self.__thread.join()
+        self.__stop_event.clear()
+
+    def _do_send(self, message):
+        self.send_queue.put(message)
+
+    def send(self, message):
+        with self.__state_lock:
+            self.current_state = self.current_state.send_message(self, message)
+
+    def process_message(self, message):
+        with self.__state_lock:
+            self.current_state = self.current_state.process_message(self, message)
 
     def run_server(self, stop_event):
         print "Starting Server"
@@ -109,7 +125,7 @@ class TcpBase(object):
         while not stop_event.is_set():
             reply = ""
             request = ""
-            retries = self.REQUEST_TIMEOUT
+            retries = self.REQUEST_RETRIES
             self.waiting = False
 
             # read from the send_queue until a message is received
@@ -159,7 +175,7 @@ class TcpBase(object):
                             "Failed to receive message from client after %s attempts" % self.REQUEST_RETRIES)
 
                     # otherwise recreate the connection and attempt to resend
-                    print "Client attempting resend of message %s" % request
+                    print "Client attempting resend of message %s (#%s)" % (request, retries)
                     # TODO self.create_client(autorun=False)
                     # TODO self.__socket.send(request)
 
@@ -173,20 +189,6 @@ class TcpBase(object):
         self.__context.term()
         print "Client Closed"
 
-    def stop(self):
-        self.__stop_event.set()
-        self.__thread.join()
-        self.__stop_event.clear()
-
-    def _do_send(self, message):
-        self.send_queue.put(message)
-
-    def send(self, message):
-        self.current_state = self.current_state.send_message(self, message)
-
-    def process_message(self, message):
-        with self.__state_lock:
-            self.current_state = self.current_state.process_message(self, message)
 
 class ClientConnection(object):
     """An object which handles a client connection"""
