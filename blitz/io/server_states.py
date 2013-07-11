@@ -21,14 +21,12 @@ class ServerIdleState(BaseState):
 
     def enter_state(self, tcp, state):
         self.logger.debug("[TCP] Calling ServerIdleState.enter_state: " + state.__name__)
-        tcp._do_send(CommunicationCodes.Ready)
         return self
 
     def process_message(self, tcp, msg):
         """
         Handle the various requests from the client including to start and stop logging
         """
-
         self.logger.debug("[TCP] Calling ServerIdleState.process_message: " + msg)
         # check if it is a command which causes a change of state
         if msg == CommunicationCodes.Start:
@@ -36,6 +34,7 @@ class ServerIdleState(BaseState):
             return self.go_to_state(tcp, ServerLoggingState)
         elif msg == CommunicationCodes.GetSessions:
             sigs.client_requested_session_list.send()
+            return self
         elif msg[0:8] == CommunicationCodes.Download:
             return self.go_to_state(tcp, ServerDownloadingState)
 

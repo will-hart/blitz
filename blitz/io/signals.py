@@ -8,8 +8,11 @@ logger_connected = signal('logger_connected')
 # fired when a server TCP connection is closed
 logger_disconnected = signal('logger_disconnected')
 
+# fired when the client receives a line of cached data
+cache_line_received = signal('cache_line_received')
+
 # fired when the expansion board receives a data row for processing
-# allows pre-processing of data
+# during a download.  Allows pre-processing of data
 data_line_received = signal('data_line_received')
 
 # fired when a variable is ready for entry into the database

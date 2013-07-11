@@ -176,8 +176,8 @@ class DatabaseClient(object):
         self.logger.debug("Updating session list")
         for session in sessions_list:
             # check if it exists
-            qry = {"id": session[0]}
-            if len(self.find(Session, qry)) == 0:
+            count = self._session().query(sql.exists().where(Session.ref_id == session[0])).scalar()
+            if count == 0:
                 blitz_session = Session()
                 blitz_session.ref_id = session[0]
                 blitz_session.timeStarted = session[1]

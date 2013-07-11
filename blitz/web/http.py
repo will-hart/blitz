@@ -4,6 +4,7 @@ import json
 import logging
 import os
 
+from blitz.constants import CommunicationCodes
 from blitz.io.tcp import TcpBase, TcpCommunicationException
 from blitz.web.api import ApiRequestHandler
 
@@ -63,7 +64,7 @@ class StartHandler(ApiRequestHandler):
             self.logger.warning("Attempt to start logging on TCP connection failed - there is no TCP connection")
         else:
             self.logger.debug("Web client requested logging start")
-            tcp.request_start()
+            tcp.send(CommunicationCodes.Start)
 
         # clear the cache before starting
         data.clear_cache()

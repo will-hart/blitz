@@ -573,6 +573,7 @@ class TestTcpClientStateMachine(unittest.TestCase):
         self.tcp.process_message(CommunicationCodes.Negative)
         assert type(self.tcp.current_state) == ClientIdleState
 
+
 class TestTcpServerStateMachine(unittest.TestCase):
     """
     Tests whether the state machine for the TcpServer follows the expected process

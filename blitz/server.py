@@ -4,6 +4,7 @@ import json
 import logging
 import os
 
+from blitz.constants import CommunicationCodes
 from blitz.io.serial import SerialManager
 import blitz.io.signals as sigs
 from blitz.io.tcp import TcpBase
@@ -134,7 +135,8 @@ class ApplicationServer(object):
     def update_session_list(self, args):
         self.logger.debug("Server sending out updated session list")
         sessions = self.serial_server.database.build_client_session_list()
-        sessions_string = "\n".join([' '.join(x) for x in sessions])
+        sessions_string = "\n".join([x for x in sessions])
+        sessions_string += "\n" + CommunicationCodes.Negative
         self.tcp.send(sessions_string)
 
     def __del__(self):

@@ -28,9 +28,10 @@ class TcpBase(object):
         self.__port = port
         self.current_state = None
         self.send_queue = Queue.Queue()
-        self.receive_queue = Queue.Queue()
+        self.waiting = False
         self.__poller = zmq.Poller()
         self.__stop_event = threading.Event()
+        self.__state_lock = threading.Lock()
 
     def create_client(self, autorun=True):
         self.__context = zmq.Context(1)
@@ -69,13 +70,13 @@ class TcpBase(object):
                 # there is a message to receive messages from clients
                 # are not multipart so only one recv call is required
                 reply = self.__socket.recv()
-                self.receive_queue.put(reply)
+                self.process_message(reply)
                 sigs.tcp_message_received.send([self, reply])
                 print "Server received: %s" % reply
 
                 # now wait until a response is ready to send
-                waiting_for_response = True
-                while waiting_for_response:
+                self.waiting = False
+                while not self.waiting:
                     response = ""
                     try:
                         response = self.send_queue.get(True, 0.1)
@@ -97,7 +98,7 @@ class TcpBase(object):
                         self.__socket.send(response)
 
                     print "Server sent: %s" % response
-                    waiting_for_response = False
+                    self.waiting = True
 
         self.__socket.close()
         self.__context.term()
@@ -109,22 +110,22 @@ class TcpBase(object):
             reply = ""
             request = ""
             retries = self.REQUEST_TIMEOUT
-            waiting_for_reply = False
+            self.waiting = False
 
             # read from the send_queue until a message is received
-            if not waiting_for_reply:
+            if not self.waiting:
                 try:
                     request = self.send_queue.get(True, 0.1)
                 except Queue.Empty:
                     time.sleep(0.1)
                     continue
 
-                waiting_for_reply = True
+                self.waiting = True
                 self.__socket.send(request)
                 print "Client sent %s" % request
 
             # wait for an incoming reply
-            while waiting_for_reply:
+            while self.waiting:
                 socks = dict(self.__poller.poll(self.REQUEST_TIMEOUT))
 
                 # check if we are receiving
@@ -139,7 +140,7 @@ class TcpBase(object):
 
                     if not self.__socket.getsockopt(zmq.RCVMORE):
                         print "Client message fully received"
-                        waiting_for_reply = False
+                        self.waiting = False
 
                 else:
                     # nothing was received from the server in the timeout period
@@ -152,7 +153,7 @@ class TcpBase(object):
 
                     retries -= 1
 
-                    if retries == 0:
+                    if retries <= 0:
                         self.__stop_event.set()
                         raise TcpCommunicationException(
                             "Failed to receive message from client after %s attempts" % self.REQUEST_RETRIES)
@@ -160,10 +161,10 @@ class TcpBase(object):
                     # otherwise recreate the connection and attempt to resend
                     print "Client attempting resend of message %s" % request
                     # TODO self.create_client(autorun=False)
-                    self.__socket.send(request)
+                    # TODO self.__socket.send(request)
 
             # now handle the reply
-            self.receive_queue.put(reply)
+            self.process_message(reply)
             sigs.tcp_message_received.send([self, reply])
             print "Client received %s" % reply
 
@@ -184,7 +185,8 @@ class TcpBase(object):
         self.current_state = self.current_state.send_message(self, message)
 
     def process_message(self, message):
-        self.current_state = self.current_state.process_message(self, message)
+        with self.__state_lock:
+            self.current_state = self.current_state.process_message(self, message)
 
 class ClientConnection(object):
     """An object which handles a client connection"""

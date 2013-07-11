@@ -5,7 +5,7 @@ import threading
 import time
 
 from blitz.constants import *
-from blitz.io.signals import client_session_list_updated
+import blitz.io.signals as sigs
 
 
 class BaseState(object):
@@ -46,6 +46,7 @@ class BaseState(object):
 
     def __str__(self):
         return "<" + __name__ + ">"
+
 
 class ClientInitState(BaseState):
     """
@@ -92,6 +93,7 @@ class ClientIdleState(BaseState):
         else:
             raise Exception("Unknown message for IDLE state - " + msg)
 
+
 class ClientSessionListState(BaseState):
 
     sessions = []
@@ -104,25 +106,30 @@ class ClientSessionListState(BaseState):
         return self
 
     def process_message(self, tcp, msg):
-        if msg == CommunicationCodes.Negative:
-            # session list is complete
-            return self.go_to_state(tcp, ClientIdleState)
 
-        # process a session message
-        msg_parts = msg.split(" " )
-        if len(msg_parts) == 3:
-            self.sessions.append(msg_parts)
-            self.logger.debug("Parsed session list message [%s:%s:%s]" % (msg_parts[0], msg_parts[1], msg_parts[2]))
-        else:
+        parts = msg.split("\n")
+        delimiter = parts[len(parts) - 1]
+        parts = parts[:-1]
+
+        if delimiter != CommunicationCodes.Negative:
             self.logger.info("Ignoring session list message with incorrect format [%s]" % msg)
 
-        return self
+            # todo there is the potential to get stuck in "sessionList" state here if the first response is malformed
+            return self
+
+        # process a session message
+        for part in parts:
+            msg_parts = part.split(" ")
+            if len(msg_parts) == 3:
+                self.sessions.append(msg_parts)
+                self.logger.debug("Parsed session list message [%s:%s:%s]" % (msg_parts[0], msg_parts[1], msg_parts[2]))
+        return self.go_to_state(self, ClientIdleState)
 
     def go_to_state(self, tcp, state):
         """
         sends a signal to save the session list to database, and then calls super go_to_state
         """
-        client_session_list_updated.send(self.sessions)
+        sigs.client_session_list_updated.send(self.sessions)
         return super(ClientSessionListState, self).go_to_state(tcp, state)
 
 
@@ -178,7 +185,7 @@ class ClientLoggingState(BaseState):
 
     def process_message(self, tcp, msg):
         if len(msg) == 4 or len(msg) >= 28:
-            tcp.parse_reading(msg)
+            sigs.cache_line_received.send(msg)
         else:
             self.logger.warning("Received message of unexpected length: " + msg)
         return self
@@ -188,7 +195,6 @@ class ClientLoggingState(BaseState):
         self.__stop_updater.set()
         self.update_thread.join()
         return super(ClientLoggingState, self).go_to_state(tcp, state)
-
 
 
 class ClientStoppingState(BaseState):
@@ -225,6 +231,6 @@ class ClientDownloadingState(BaseState):
     def go_to_state(self, tcp, state):
         self.logger.debug("[TCP] Calling downloading.go_to_state >> " + state.__name__)
         if type(state) == ClientIdleState:
-            tcp._do_send(CommunicationCodes.Acknowledge) # acknowledge end of download recieved
+            tcp._do_send(CommunicationCodes.Acknowledge)  # acknowledge end of download received
 
         return super(ClientDownloadingState, self).go_to_state(tcp, state)
