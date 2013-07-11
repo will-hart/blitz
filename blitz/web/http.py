@@ -86,7 +86,7 @@ class StopHandler(ApiRequestHandler):
 
         else:
             self.logger.debug("Web client requested logging stop")
-            tcp.request_stop()
+            tcp.send(CommunicationCodes.Stop)
 
         self.content_type = "application/json"
         self.write(json.dumps(self.generate_status_response()))
