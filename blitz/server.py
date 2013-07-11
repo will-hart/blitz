@@ -138,6 +138,7 @@ class ApplicationServer(object):
         sessions_string = "\n".join([x for x in sessions])
         sessions_string += "\n" + CommunicationCodes.Negative
         self.tcp.send(sessions_string)
+        self.logger.debug("Session list queued for sending")
 
     def __del__(self):
         self.logger.warning("Shutting down server Application")
