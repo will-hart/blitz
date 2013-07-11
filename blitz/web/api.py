@@ -14,19 +14,12 @@ class ApiRequestHandler(RequestHandler):
         data = app.settings['data']
 
         if tcp is None:
-            time.sleep(1.5)  # let tcp get populated?
+            time.sleep(1.0)  # let tcp get populated?
             tcp = app.application.settings['socket']
-
-        counter = 0
-        while tcp is not None and tcp.is_busy():
-            counter += 1
-            time.sleep(0.2)
-            if counter > 5:
-                break
 
         response = {
             "logging": False if tcp is None else tcp.is_logging(),
-            "connected": False if tcp is None else tcp.is_connected(),
+            "connected": False if tcp is None else tcp.is_alive(),
             "errors": []
         }
 

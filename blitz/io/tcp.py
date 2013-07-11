@@ -13,11 +13,11 @@ from blitz.io.server_states import *
 import blitz.io.signals as sigs
 
 
-class TcpCommunicationsException(Exception):
+class TcpCommunicationException(Exception):
     pass
 
 
-class NewTcpBase(object):
+class TcpBase(object):
     REQUEST_TIMEOUT = 1500
     REQUEST_RETRIES = 3
     SERVER_ENDPOINT = "tcp://%s:%s"
@@ -36,6 +36,7 @@ class NewTcpBase(object):
         self.__context = zmq.Context(1)
         self.__socket = self.__context.socket(zmq.REQ)
         self.__socket.connect(self.SERVER_ENDPOINT % (self.__host, self.__port))
+        self.current_state = BaseState().go_to_state(self, ClientInitState)
 
         if autorun:
             self.__run_thread(self.run_client)
@@ -44,6 +45,7 @@ class NewTcpBase(object):
         self.__context = zmq.Context(1)
         self.__socket = self.__context.socket(zmq.REP)
         self.__socket.bind(self.SERVER_ENDPOINT % ("*", self.__port))
+        self.current_state = BaseState().go_to_state(self, ServerIdleState)
         self.__run_thread(self.run_server)
 
     def __run_thread(self, thread_target):
@@ -51,6 +53,12 @@ class NewTcpBase(object):
         self.__thread = threading.Thread(target=thread_target, args=[self.__stop_event])
         self.__thread.daemon = True
         self.__thread.start()
+
+    def is_alive(self):
+        return not self.__stop_event.is_set()
+
+    def is_logging(self):
+        return type(self.current_state) == ClientLoggingState or type(self.current_state) == ServerLoggingState
 
     def run_server(self, stop_event):
         print "Starting Server"
@@ -137,20 +145,21 @@ class NewTcpBase(object):
                     # nothing was received from the server in the timeout period
                     # reconnect with the socket and then try resending again a
                     # couple of times before just giving up :)
-                    self.__socket.setsockopt(zmq.LINGER, 0)
+                    # todo disconnect and reconnect the socket
+                    # self.__socket.setsockopt(zmq.LINGER, 0)
                     # self.__poller.unregister(self.__socket)
-                    self.__socket.close()
+                    # self.__socket.close()
 
                     retries -= 1
 
                     if retries == 0:
                         self.__stop_event.set()
-                        raise TcpCommunicationsException(
+                        raise TcpCommunicationException(
                             "Failed to receive message from client after %s attempts" % self.REQUEST_RETRIES)
 
                     # otherwise recreate the connection and attempt to resend
                     print "Client attempting resend of message %s" % request
-                    self.create_client(autorun=False)
+                    # TODO self.create_client(autorun=False)
                     self.__socket.send(request)
 
             # now handle the reply
@@ -168,9 +177,14 @@ class NewTcpBase(object):
         self.__thread.join()
         self.__stop_event.clear()
 
-    def send(self, message):
+    def _do_send(self, message):
         self.send_queue.put(message)
 
+    def send(self, message):
+        self.current_state = self.current_state.send_message(self, message)
+
+    def process_message(self, message):
+        self.current_state = self.current_state.process_message(self, message)
 
 class ClientConnection(object):
     """An object which handles a client connection"""
