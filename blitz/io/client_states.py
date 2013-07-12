@@ -209,7 +209,7 @@ class ClientStoppingState(BaseState):
     def receive_message(self, tcp, msg):
         self.logger.debug("[TCP] Calling stopping.receive_message: " + msg)
         if msg == CommunicationCodes.Acknowledge:
-            return self.go_to_state(tcp, ClientIdleState)
+            return self.go_to_state(tcp, ClientSessionListState)
         return self
 
 
