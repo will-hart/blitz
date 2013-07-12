@@ -19,6 +19,8 @@ class TcpBase(object):
     SERVER_ENDPOINT = "tcp://%s:%s"
     MAX_RESPONSE_LENGTH = 1024
 
+    logger = logging.getLogger(__name__)
+
     def __init__(self, host="localhost", port=None):
         self.__host = host
         self.__port = port
@@ -76,7 +78,7 @@ class TcpBase(object):
             self.current_state = self.current_state.receive_message(self, message)
 
     def run_server(self, stop_event):
-        print "Starting Server"
+        self.logger.debug("Starting Server")
         while not stop_event.is_set():
             socks = dict(self.__poller.poll(100))
 
@@ -86,12 +88,11 @@ class TcpBase(object):
                 reply = self.__socket.recv()
                 self.receive_message(reply)
                 sigs.tcp_message_received.send([self, reply])
-                print "Server received: %s" % reply
+                self.logger.debug("Server received: %s" % reply)
 
                 # now wait until a response is ready to send
                 self.waiting = False
                 while not self.waiting:
-                    response = ""
                     try:
                         response = self.send_queue.get(True, 0.1)
                     except Queue.Empty:
@@ -111,16 +112,16 @@ class TcpBase(object):
                     else:
                         self.__socket.send(response)
 
-                    print "Server sent: %s" % response
+                    self.logger.debug("Server sent: %s" % response)
                     self.waiting = True
 
         self.__socket.close()
         self.__context.term()
         self.current_state = self.current_state.go_to_state(self, ServerClosedState)
-        print "Server Closed"
+        self.logger.info("Server Closed")
 
     def run_client(self, stop_event):
-        print "Client starting"
+        self.logger.info("Client starting")
         while not stop_event.is_set():
             reply = ""
             request = ""
@@ -137,7 +138,7 @@ class TcpBase(object):
 
                 self.waiting = True
                 self.__socket.send(request)
-                print "Client sent %s" % request
+                self.logger.debug("Client sent %s" % request)
 
             # wait for an incoming reply
             while self.waiting:
@@ -146,15 +147,15 @@ class TcpBase(object):
                 # check if we are receiving
                 if socks.get(self.__socket) == zmq.POLLIN:
                     # we are receiving - read the bytes
-                    print "Client received partial message"
+                    self.logger.debug("Client received partial message")
                     reply += self.__socket.recv()
 
                     if not reply:
-                        print "Client message discovered to be empty"
+                        self.logger.debug("Client message discovered to be empty")
                         break
 
                     if not self.__socket.getsockopt(zmq.RCVMORE):
-                        print "Client message fully received"
+                        self.logger.debug("Client message fully received")
                         self.waiting = False
 
                 else:
@@ -170,20 +171,22 @@ class TcpBase(object):
 
                     if retries <= 0:
                         self.__stop_event.set()
+                        self.logger.error(
+                            "Unable to send message after %s attempts: %s" % (self.REQUEST_RETRIES, request))
                         raise TcpCommunicationException(
                             "Failed to receive message from client after %s attempts" % self.REQUEST_RETRIES)
 
                     # otherwise recreate the connection and attempt to resend
-                    print "Client attempting resend of message %s (#%s)" % (request, retries)
+                    self.logger.info("Client attempting resend of message %s (#%s)" % (request, retries))
                     # TODO self.create_client(autorun=False)
                     # TODO self.__socket.send(request)
 
             # now handle the reply
             self.receive_message(reply)
             sigs.tcp_message_received.send([self, reply])
-            print "Client received %s" % reply
+            self.logger.debug("Client received %s" % reply)
 
         # terminate the context before exiting
         self.__socket.close()
         self.__context.term()
-        print "Client Closed"
+        self.logger.info("Client Closed")
