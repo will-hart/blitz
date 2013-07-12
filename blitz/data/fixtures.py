@@ -76,10 +76,10 @@ class TcpClientMock(TcpBase):
         print "[SEND] ", msg
         self.last_sent = msg
 
-    def process_message(self, msg):
+    def receive_message(self, msg):
         """Log then process the message using the super class"""
         print "[RECEIVE] ", msg
-        super(TcpClientMock, self).process_message(msg)
+        super(TcpClientMock, self).receive_message(msg)
 
     def __handle_receive(self, cmd):
         pass

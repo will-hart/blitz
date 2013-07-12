@@ -22,9 +22,9 @@ class BaseState(object):
         self.logger.debug("[TCP] Calling base.enter_state >> " + state.__name__)
         return state()
 
-    def process_message(self, tcp, msg):
+    def receive_message(self, tcp, msg):
         """Called when a message needs processing"""
-        self.logger.debug("[TCP] Calling base.process_message: " + msg)
+        self.logger.debug("[TCP] Calling base.receive_message: " + msg)
         raise NotImplementedError()
 
     def send_message(self, tcp, msg):
@@ -59,14 +59,14 @@ class ClientInitState(BaseState):
         tcp._do_send(CommunicationCodes.IsLogging)
         return self
 
-    def process_message(self, tcp, msg):
-        self.logger.debug("[TCP] Calling init.process_message: " + msg)
+    def receive_message(self, tcp, msg):
+        self.logger.debug("[TCP] Calling init.receive_message: " + msg)
         if msg == CommunicationCodes.Acknowledge:
             # logger is logging, transition to LOGGING state
             return self.go_to_state(tcp, ClientLoggingState)
         elif msg == CommunicationCodes.Negative:
             # logger is not logging, go to idle
-            return self.go_to_state(tcp, ClientSessionListState)
+            return self.go_to_state(tcp, ClientIdleState)
         else:
             # no other messages are acceptable in this state
             raise Exception("Unable to process the given message from InitState: " + msg)
@@ -76,9 +76,9 @@ class ClientIdleState(BaseState):
     """
     Handles the client idling, waiting for further commands
     """
-    def process_message(self, tcp, msg):
+    def receive_message(self, tcp, msg):
         # no server messages are acceptable in this state
-        self.logger.debug("[TCP] Calling idle.process_message: " + msg)
+        self.logger.debug("[TCP] Calling idle.receive_message: " + msg)
         raise Exception("Received unexpected message in IdleState: " + msg)
 
     def send_message(self, tcp, msg):
@@ -105,7 +105,7 @@ class ClientSessionListState(BaseState):
         tcp._do_send(CommunicationCodes.GetSessions)
         return self
 
-    def process_message(self, tcp, msg):
+    def receive_message(self, tcp, msg):
 
         parts = msg.split("\n")
         delimiter = parts[len(parts) - 1]
@@ -140,8 +140,8 @@ class ClientStartingState(BaseState):
         tcp._do_send(CommunicationCodes.Start)
         return self
 
-    def process_message(self, tcp, msg):
-        self.logger.debug("[TCP] Calling starting.process_message: " + msg)
+    def receive_message(self, tcp, msg):
+        self.logger.debug("[TCP] Calling starting.receive_message: " + msg)
         if msg == CommunicationCodes.Acknowledge or msg == CommunicationCodes.InSession:
             return self.go_to_state(tcp, ClientLoggingState)
 
@@ -183,7 +183,7 @@ class ClientLoggingState(BaseState):
             tcp._do_send(msg)
         return self
 
-    def process_message(self, tcp, msg):
+    def receive_message(self, tcp, msg):
         if len(msg) == 4 or len(msg) >= 28:
             sigs.cache_line_received.send(msg)
         else:
@@ -206,8 +206,8 @@ class ClientStoppingState(BaseState):
         tcp._do_send(CommunicationCodes.Stop)
         return self
 
-    def process_message(self, tcp, msg):
-        self.logger.debug("[TCP] Calling stopping.process_message: " + msg)
+    def receive_message(self, tcp, msg):
+        self.logger.debug("[TCP] Calling stopping.receive_message: " + msg)
         if msg == CommunicationCodes.Acknowledge:
             return self.go_to_state(tcp, ClientIdleState)
         return self
@@ -217,15 +217,15 @@ class ClientDownloadingState(BaseState):
     """
     Handles the client in logging state - sends periodic status updates
     """
-    def process_message(self, tcp, msg):
-        self.logger.debug("[TCP] Calling downloading.process_message: " + msg)
+    def receive_message(self, tcp, msg):
+        self.logger.debug("[TCP] Calling downloading.receive_message: " + msg)
         if msg == CommunicationCodes.Negative:
             # the data has been received
             self.send_message(tcp, CommunicationCodes.Acknowledge)
             return self.go_to_state(tcp, ClientIdleState)
 
         # otherwise we save the data row for processing
-        tcp.parse_reading(msg)
+        sigs.data_line_received.send(msg)
         return self
 
     def go_to_state(self, tcp, state):

@@ -23,11 +23,11 @@ class ServerIdleState(BaseState):
         self.logger.debug("[TCP] Calling ServerIdleState.enter_state: " + state.__name__)
         return self
 
-    def process_message(self, tcp, msg):
+    def receive_message(self, tcp, msg):
         """
         Handle the various requests from the client including to start and stop logging
         """
-        self.logger.debug("[TCP] Calling ServerIdleState.process_message: " + msg)
+        self.logger.debug("[TCP] Calling ServerIdleState.receive_message: " + msg)
         # check if it is a command which causes a change of state
         if msg == CommunicationCodes.Start:
             tcp._do_send(CommunicationCodes.Acknowledge)
@@ -56,8 +56,8 @@ class ServerLoggingState(BaseState):
         sigs.logging_started.send()
         return self
 
-    def process_message(self, tcp, msg):
-        self.logger.debug("[TCP] Calling ServerLoggingState.process_message: " + msg)
+    def receive_message(self, tcp, msg):
+        self.logger.debug("[TCP] Calling ServerLoggingState.receive_message: " + msg)
 
         if msg == CommunicationCodes.Stop:
             sigs.logging_stopped.send()
@@ -88,14 +88,28 @@ class ServerDownloadingState(BaseState):
         self.logger.debug("[TCP] Calling ServerLoggingState.download_complete")
         return self.go_to_state(tcp, ServerIdleState)
 
-    def process_message(self, tcp, msg):
-        tcp._do_send(validate_command(msg, VALID_SERVER_COMMANDS))
+    def send_message(self, tcp, msg):
+
+        # blindly send everything
+        tcp._do_send(msg)
+
+        # check if that was the last message (i.e. last four characters are NACK
+        if msg[-len(CommunicationCodes.Negative):] == CommunicationCodes.Negative:
+            return self.go_to_state(tcp, ServerIdleState)
+
+        return self
+
+    def receive_message(self, tcp, msg):
+        # ACK signifies part message received and server should continue sending.
+        # All other messages are in error
+        if msg != CommunicationCodes.Acknowledge:
+            tcp._do_send(validate_command(msg, VALID_SERVER_COMMANDS))
         return self
 
 
 class ServerClosedState(BaseState):
-    def process_message(self, tcp, msg):
-        self.logger.debug("[TCP] Calling ServerClosedState.process_message" + msg)
+    def receive_message(self, tcp, msg):
+        self.logger.debug("[TCP] Calling ServerClosedState.receive_message" + msg)
         raise Exception("Attempted to receive message on closed server" + msg)
 
     def send_message(self, tcp, msg):

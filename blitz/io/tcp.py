@@ -71,9 +71,9 @@ class TcpBase(object):
         with self.__state_lock:
             self.current_state = self.current_state.send_message(self, message)
 
-    def process_message(self, message):
+    def receive_message(self, message):
         with self.__state_lock:
-            self.current_state = self.current_state.process_message(self, message)
+            self.current_state = self.current_state.receive_message(self, message)
 
     def run_server(self, stop_event):
         print "Starting Server"
@@ -84,7 +84,7 @@ class TcpBase(object):
                 # there is a message to receive messages from clients
                 # are not multipart so only one recv call is required
                 reply = self.__socket.recv()
-                self.process_message(reply)
+                self.receive_message(reply)
                 sigs.tcp_message_received.send([self, reply])
                 print "Server received: %s" % reply
 
@@ -179,7 +179,7 @@ class TcpBase(object):
                     # TODO self.__socket.send(request)
 
             # now handle the reply
-            self.process_message(reply)
+            self.receive_message(reply)
             sigs.tcp_message_received.send([self, reply])
             print "Client received %s" % reply
 

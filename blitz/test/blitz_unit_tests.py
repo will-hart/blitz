@@ -465,20 +465,23 @@ class TestTcpClientStateMachine(unittest.TestCase):
     def setUp(self):
         # simulate starting a new connection by entering the init state
         self.tcpMock = TcpClientMock()
-        state = BaseState().go_to_state(self.tcpMock, ClientInitState)
-        self.tcpMock.current_state = state
+        self.tcpMock.current_state = BaseState().go_to_state(self.tcpMock, ClientInitState)
+
+    def tearDown(self):
+        self.tcpMock.stop()
+        self.tcpMock.current_state = None
 
     def test_enter_init_state_on_load(self):
         assert type(self.tcpMock.current_state) == ClientInitState, "Expected INIT state on load, got %s" % type(
             self.tcpMock.current_state)
 
     def test_enter_logging_state_after_init_ack(self):
-        self.tcpMock.process_message(CommunicationCodes.Acknowledge)
+        self.tcpMock.receive_message(CommunicationCodes.Acknowledge)
         assert type(self.tcpMock.current_state) == ClientLoggingState, "Expected Logging state, got %s" % type(
             self.tcpMock.current_state)
 
     def test_enter_idle_state_from_logging_stop(self):
-        self.tcpMock.process_message(CommunicationCodes.Acknowledge)  # enter logging state
+        self.tcpMock.receive_message(CommunicationCodes.Acknowledge)  # enter logging state
         assert type(self.tcpMock.current_state) == ClientLoggingState, "Expected logging state, found %s" % type(
             self.tcpMock.current_state)
 
@@ -486,16 +489,17 @@ class TestTcpClientStateMachine(unittest.TestCase):
         assert type(self.tcpMock.current_state) == ClientStoppingState, "Expected stopping state, found %s" % type(
             self.tcpMock.current_state)
 
-        self.tcpMock.process_message(CommunicationCodes.Acknowledge)  # enter idle state
+        self.tcpMock.receive_message(CommunicationCodes.Acknowledge)  # enter idle state
         assert type(self.tcpMock.current_state) == ClientIdleState, "Expected idle state, found %s" % type(
             self.tcpMock.current_state)
 
     def test_enter_idle_state_after_init_nack(self):
-        self.tcpMock.process_message(CommunicationCodes.Negative)
-        assert type(self.tcpMock.current_state) == ClientIdleState
+        self.tcpMock.receive_message(CommunicationCodes.Negative)
+        assert type(self.tcpMock.current_state) == ClientIdleState, "Expected idle state, found %s" % type(
+            self.tcpMock.current_state)
 
     def test_enter_logging_state_after_idle_start(self):
-        self.tcpMock.process_message(CommunicationCodes.Negative)  # enter idle state
+        self.tcpMock.receive_message(CommunicationCodes.Negative)  # enter idle state
         assert type(self.tcpMock.current_state) == ClientIdleState, "Expected Idle state, got %s" % type(
             self.tcpMock.current_state)
 
@@ -503,12 +507,12 @@ class TestTcpClientStateMachine(unittest.TestCase):
         assert type(self.tcpMock.current_state) == ClientStartingState, "Expected Starting state, got %s" % type(
             self.tcpMock.current_state)
 
-        self.tcpMock.process_message(CommunicationCodes.Acknowledge)
+        self.tcpMock.receive_message(CommunicationCodes.Acknowledge)
         assert type(self.tcpMock.current_state) == ClientLoggingState, "Expected Logging state, got %s" % type(
             self.tcpMock.current_state)
 
     def test_enter_downloading_state_from_idle(self):
-        self.tcpMock.process_message(CommunicationCodes.Negative)  # enter idle state
+        self.tcpMock.receive_message(CommunicationCodes.Negative)  # enter idle state
         assert type(self.tcpMock.current_state) == ClientIdleState, "Expected Idle state, got %s" % type(
             self.tcpMock.current_state)
 
@@ -516,18 +520,18 @@ class TestTcpClientStateMachine(unittest.TestCase):
         assert type(self.tcpMock.current_state) == ClientDownloadingState, "Expected Downloading state, got %s" % type(
             self.tcpMock.current_state)
 
-        self.tcpMock.process_message("adfa32df")
-        self.tcpMock.process_message("12345678")
-        self.tcpMock.process_message("87654321")
+        self.tcpMock.receive_message("adfa32df")
+        self.tcpMock.receive_message("12345678")
+        self.tcpMock.receive_message("87654321")
         assert type(self.tcpMock.current_state) == ClientDownloadingState, "Expected Downloading state, got %s" % type(
             self.tcpMock.current_state)
 
-        self.tcpMock.process_message(CommunicationCodes.Negative)
+        self.tcpMock.receive_message(CommunicationCodes.Negative)
         assert type(self.tcpMock.current_state) == ClientIdleState, "Expected Idle state, got %s" % type(
             self.tcpMock.current_state)
 
     def test_receive_insession_on_start_during_logging(self):
-        self.tcpMock.process_message(CommunicationCodes.Acknowledge)  # enter logging state
+        self.tcpMock.receive_message(CommunicationCodes.Acknowledge)  # enter logging state
         assert type(self.tcpMock.current_state) == ClientLoggingState, "Expected logging but found %s" % type(
             self.tcpMock.current_state)
 
@@ -535,20 +539,25 @@ class TestTcpClientStateMachine(unittest.TestCase):
         assert type(self.tcpMock.current_state) == ClientLoggingState
 
     def test_sessions_status(self):
-        self.tcpMock.process_message(CommunicationCodes.Negative)
-        assert type(self.tcpMock.current_state) == ClientIdleState
+        self.tcpMock.receive_message(CommunicationCodes.Negative)
+        assert type(self.tcpMock.current_state) == ClientIdleState, "Expected idle state but found %s" % type(
+            self.tcpMock.current_state)
 
         self.tcpMock.send(CommunicationCodes.GetSessions)
-        assert type(self.tcpMock.current_state) == ClientSessionListState
+        assert type(self.tcpMock.current_state) == ClientSessionListState, "Expected session list state but found %s" % type(
+            self.tcpMock.current_state)
 
-        self.tcpMock.process_message("1 1234567890123 1234567890125")
-        assert type(self.tcpMock.current_state) == ClientSessionListState
+        self.tcpMock.receive_message("1 1234567890123 1234567890125")
+        assert type(self.tcpMock.current_state) == ClientSessionListState, "Expected session list state but found %s" % type(
+            self.tcpMock.current_state)
 
-        self.tcpMock.process_message("1 1234567890126 1234567890127")
-        assert type(self.tcpMock.current_state) == ClientSessionListState
+        self.tcpMock.receive_message("1 1234567890126 1234567890127")
+        assert type(self.tcpMock.current_state) == ClientSessionListState, "Expected session list state but found %s" % type(
+            self.tcpMock.current_state)
 
-        self.tcpMock.process_message(CommunicationCodes.Negative)
-        assert type(self.tcpMock.current_state) == ClientIdleState
+        self.tcpMock.receive_message(CommunicationCodes.Negative)
+        assert type(self.tcpMock.current_state) == ClientIdleState, "Expected idle state but found %s" % type(
+            self.tcpMock.current_state)
 
 
 class TestTcpServerStateMachine(unittest.TestCase):
@@ -581,47 +590,47 @@ class TestTcpServerStateMachine(unittest.TestCase):
 
     def test_enter_logging_state_on_idle_start(self):
         assert type(self.tcpMock.current_state) == ServerIdleState
-        self.tcpMock.process_message(CommunicationCodes.Start)
+        self.tcpMock.receive_message(CommunicationCodes.Start)
         assert type(self.tcpMock.current_state) == ServerLoggingState
 
     def test_stay_in_idle_when_stop_or_status(self):
         assert type(self.tcpMock.current_state) == ServerIdleState
-        self.tcpMock.process_message(CommunicationCodes.Stop)
+        self.tcpMock.receive_message(CommunicationCodes.Stop)
         assert self.tcpMock.last_sent == CommunicationCodes.NoSession
         assert type(self.tcpMock.current_state) == ServerIdleState
-        self.tcpMock.process_message(CommunicationCodes.Update)
+        self.tcpMock.receive_message(CommunicationCodes.Update)
         assert type(self.tcpMock.current_state) == ServerIdleState
 
     def test_stay_in_idle_on_unknown_command(self):
         assert type(self.tcpMock.current_state) == ServerIdleState
 
-        self.tcpMock.process_message("ASDF")
+        self.tcpMock.receive_message("ASDF")
         assert self.tcpMock.last_sent == CommunicationCodes.composite(CommunicationCodes.Error, 2)
         assert type(self.tcpMock.current_state) == ServerIdleState
 
     def test_stop_logging_on_stop_command(self):
         assert type(self.tcpMock.current_state) == ServerIdleState
-        self.tcpMock.process_message(CommunicationCodes.Start)
+        self.tcpMock.receive_message(CommunicationCodes.Start)
         assert type(self.tcpMock.current_state) == ServerLoggingState
         assert self.tcpMock.last_sent == CommunicationCodes.Acknowledge
-        self.tcpMock.process_message(CommunicationCodes.Stop)
+        self.tcpMock.receive_message(CommunicationCodes.Stop)
         assert type(self.tcpMock.current_state) == ServerIdleState
 
     def test_stay_in_logging_on_status(self):
         assert type(self.tcpMock.current_state) == ServerIdleState
-        self.tcpMock.process_message(CommunicationCodes.Start)
+        self.tcpMock.receive_message(CommunicationCodes.Start)
         assert type(self.tcpMock.current_state) == ServerLoggingState
-        self.tcpMock.process_message(CommunicationCodes.Update)
+        self.tcpMock.receive_message(CommunicationCodes.Update)
         assert type(self.tcpMock.current_state) == ServerLoggingState
 
     def test_in_logging_on_unknown_command(self):
         assert type(self.tcpMock.current_state) == ServerIdleState
-        self.tcpMock.process_message(CommunicationCodes.Start)
+        self.tcpMock.receive_message(CommunicationCodes.Start)
         assert type(self.tcpMock.current_state) == ServerLoggingState
-        self.tcpMock.process_message("ASDF")
+        self.tcpMock.receive_message("ASDF")
         assert self.tcpMock.last_sent == CommunicationCodes.composite(CommunicationCodes.Error, 2)
 
-        self.tcpMock.process_message(CommunicationCodes.composite(CommunicationCodes.Download, 3))
+        self.tcpMock.receive_message(CommunicationCodes.composite(CommunicationCodes.Download, 3))
         assert self.tcpMock.last_sent == CommunicationCodes.composite(CommunicationCodes.Error, 1)
         assert type(self.tcpMock.current_state) == ServerLoggingState
 
@@ -629,22 +638,23 @@ class TestTcpServerStateMachine(unittest.TestCase):
         assert type(self.tcpMock.current_state) == ServerIdleState
 
         # enter downloading state
-        self.tcpMock.process_message(CommunicationCodes.composite(CommunicationCodes.Download, 1))
+        self.tcpMock.receive_message(CommunicationCodes.composite(CommunicationCodes.Download, 1))
         time.sleep(0.2)
         assert type(
             self.tcpMock.current_state) == ServerDownloadingState, "Expected ServerDownloadingState, found %s" % type(
                 self.tcpMock.current_state)
 
         # Stay in downloading state on unknown command
-        self.tcpMock.process_message("ASDF")
+        self.tcpMock.send("ASDF\nACK")
+        self.tcpMock.receive_message("ACK")
         time.sleep(0.2)
-        assert self.tcpMock.last_sent == CommunicationCodes.composite(CommunicationCodes.Error, 2)
         assert type(self.tcpMock.current_state) == ServerDownloadingState, \
             "Expected ServerDownloadingState, found %s" % type(
                 self.tcpMock.current_state)
 
         # leave when download complete
-        self.tcpMock.process_message(CommunicationCodes.Negative)
+        self.tcpMock.send("ASDF\n" + CommunicationCodes.Negative)
+        time.sleep(0.2)
         assert type(self.tcpMock.current_state) == ServerIdleState, \
             "Expected ServerIdleState, found %s" % type(
                 self.tcpMock.current_state)
@@ -652,17 +662,17 @@ class TestTcpServerStateMachine(unittest.TestCase):
     def test_insession_message_on_logging_start(self):
         assert type(self.tcpMock.current_state) == ServerIdleState
 
-        self.tcpMock.process_message(CommunicationCodes.Start)
+        self.tcpMock.receive_message(CommunicationCodes.Start)
         assert type(self.tcpMock.current_state) == ServerLoggingState
 
-        self.tcpMock.process_message(CommunicationCodes.Start)
+        self.tcpMock.receive_message(CommunicationCodes.Start)
         assert self.tcpMock.last_sent == CommunicationCodes.InSession
         assert type(self.tcpMock.current_state) == ServerLoggingState
 
     def test_nosession_message_on_logging_stop(self):
         assert type(self.tcpMock.current_state) == ServerIdleState
 
-        self.tcpMock.process_message(CommunicationCodes.Stop)
+        self.tcpMock.receive_message(CommunicationCodes.Stop)
         assert self.tcpMock.last_sent == CommunicationCodes.NoSession
         assert type(self.tcpMock.current_state) == ServerIdleState
 
