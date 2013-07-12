@@ -182,6 +182,7 @@ class DatabaseClient(object):
                 blitz_session.ref_id = session[0]
                 blitz_session.timeStarted = session[1]
                 blitz_session.timeStopped = session[2]
+                blitz_session.numberOfReadings = session[3]
                 self.add(blitz_session)
 
     def load_fixtures(self, testing=False):
@@ -362,6 +363,7 @@ class DatabaseServer(object):
         for session in sessions:
             session_start = self.__data.get("session_" + str(session) + "_start")
             session_end = self.__data.get("session_" + str(session) + "_end")
-            result.append("%s %s %s" % (session, session_start, session_end))
+            session_count = self.__data.llen("session_" + str(session))
+            result.append("%s %s %s %s" % (session, session_start, session_end, session_count))
 
         return result

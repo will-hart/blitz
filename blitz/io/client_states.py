@@ -120,9 +120,10 @@ class ClientSessionListState(BaseState):
         # process a session message
         for part in parts:
             msg_parts = part.split(" ")
-            if len(msg_parts) == 3:
+            if len(msg_parts) == 4:
                 self.sessions.append(msg_parts)
-                self.logger.debug("Parsed session list message [%s:%s:%s]" % (msg_parts[0], msg_parts[1], msg_parts[2]))
+                self.logger.debug("Parsed session list message [%s:%s:%s:%s]" % (
+                    msg_parts[0], msg_parts[1], msg_parts[2], msg_parts[3]))
         return self.go_to_state(self, ClientIdleState)
 
     def go_to_state(self, tcp, state):
