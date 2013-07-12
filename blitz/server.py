@@ -7,7 +7,7 @@ import os
 from blitz.constants import CommunicationCodes
 from blitz.io.serial import SerialManager
 import blitz.io.signals as sigs
-from blitz.io.tcp import TcpServer
+from blitz.io.tcp import TcpBase
 
 class Config(object):
     """
@@ -98,7 +98,7 @@ class Config(object):
         return self.set(key, value)
 
 
-class ApplicationServer(TcpServer):
+class ApplicationServer(object):
     """
     A basic application which exposes the Api and HTTP request handlers
     provided by Tornado
@@ -108,7 +108,6 @@ class ApplicationServer(TcpServer):
         """
         Create a new client web application, setting defaults
         """
-
 
         # create a file logger and set it up for logging to file
         logging.basicConfig(filename='server_log.txt', level=logging.DEBUG,
@@ -128,14 +127,18 @@ class ApplicationServer(TcpServer):
         sigs.client_requested_session_list.connect(self.update_session_list)
 
         # start the TCP server
-        super(ApplicationServer, self).__init__(self.config['tcp_port'])
+        self.tcp = TcpBase(port=8999)  # todo - load from configuration
+        self.tcp.create_server()
+        self.is_running = True
+        self.logger.info("Started TCP on port %s" % 8999)
 
     def update_session_list(self, args):
         self.logger.debug("Server sending out updated session list")
         sessions = self.serial_server.database.build_client_session_list()
-        for session in sessions:
-            self.send(session)
-        self.send(CommunicationCodes.Negative)
+        sessions_string = "\n".join([x for x in sessions])
+        sessions_string += "\n" + CommunicationCodes.Negative
+        self.tcp.send(sessions_string)
+        self.logger.debug("Session list queued for sending")
 
     def __del__(self):
         self.logger.warning("Shutting down server Application")

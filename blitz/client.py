@@ -9,6 +9,7 @@ import tornado.web
 
 from blitz.data.database import DatabaseClient
 from blitz.io.boards import BoardManager
+import blitz.io.signals as sigs
 import blitz.web.api as blitz_api
 import blitz.web.http as blitz_http
 
@@ -132,6 +133,9 @@ class ApplicationClient(object):
         self.application.settings['data'] = self.data
         self.application.settings['board_manager'] = self.board_manager
 
+        # subscribe to signals
+        sigs.cache_line_received.connect(self.cache_line_received)
+
     def run(self):
         """
         Starts the application
@@ -150,11 +154,15 @@ class ApplicationClient(object):
         finally:
             tcp = self.application.settings['socket']
             if tcp is not None:
-                tcp.disconnect()
+                tcp.stop()
                 self.logger.warning("Stopped TCP Socket")
 
             self.io_loop.add_callback(self.io_loop.stop)
             self.logger.warning("Stopped IO loop with callback")
+
+    def cache_line_received(self, message):
+        self.board_manager.parse_message(message)
+
 
     def __del__(self):
         self.logger.warning("Closing Client Application")

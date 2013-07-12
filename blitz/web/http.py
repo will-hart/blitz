@@ -4,7 +4,8 @@ import json
 import logging
 import os
 
-from blitz.io.tcp import TcpClient
+from blitz.constants import CommunicationCodes
+from blitz.io.tcp import TcpBase, TcpCommunicationException
 from blitz.web.api import ApiRequestHandler
 
 
@@ -27,12 +28,18 @@ class ConnectHandler(ApiRequestHandler):
         if tcp is None:
             # we are connecting
             self.logger.debug("Created TCP connection at client request")
-            tcp = TcpClient("127.0.0.1", 8999)  # TODO get from config
-            tcp.start()
-            tcp.connect()
+            try:
+                tcp = TcpBase("127.0.0.1", 8999)  # TODO get from config
+                tcp.create_client()
+            except TcpCommunicationException as tce:
+                data = self.application.settings['data']
+                data.log_error("Communication error with the board - connection closed")
+                tcp.stop()
+                tcp = None
+
             self.application.settings['socket'] = tcp
         else:
-            tcp.disconnect()
+            tcp.stop()
             self.logger.debug("Closed TCP connection at client request")
             self.application.settings['socket'] = None
 
@@ -57,7 +64,7 @@ class StartHandler(ApiRequestHandler):
             self.logger.warning("Attempt to start logging on TCP connection failed - there is no TCP connection")
         else:
             self.logger.debug("Web client requested logging start")
-            tcp.request_start()
+            tcp.send(CommunicationCodes.Start)
 
         # clear the cache before starting
         data.clear_cache()
@@ -79,7 +86,7 @@ class StopHandler(ApiRequestHandler):
 
         else:
             self.logger.debug("Web client requested logging stop")
-            tcp.request_stop()
+            tcp.send(CommunicationCodes.Stop)
 
         self.content_type = "application/json"
         self.write(json.dumps(self.generate_status_response()))

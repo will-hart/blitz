@@ -1,7 +1,7 @@
 __author__ = 'Will Hart'
 
 from blitz.io.boards import BaseExpansionBoard
-from blitz.io.tcp import TcpClient
+from blitz.io.tcp import TcpBase
 from blitz.utilities import blitz_timestamp
 
 time0 = blitz_timestamp()
@@ -63,24 +63,23 @@ def generate_objects(model, fixtures):
     return res
 
 
-class TcpClientMock(TcpClient):
+class TcpClientMock(TcpBase):
     """
     A class for mocking TCP operations (client side) during unit testing
     """
+    def __init__(self):
+        self.last_sent = ""
+        super(TcpClientMock, self).__init__(host="*", port="12345")
 
     def _do_send(self, msg):
         """Mocks sending a TCP message by printing to stdout"""
         print "[SEND] ", msg
+        self.last_sent = msg
 
-    def parse_reading(self, msg):
-        """Mocks processing a data message by printing message to stdout, then pass to super class"""
-        print "[PARSE] ", msg
-        super(TcpClientMock, self).parse_reading(msg)
-
-    def process_message(self, msg):
+    def receive_message(self, msg):
         """Log then process the message using the super class"""
         print "[RECEIVE] ", msg
-        super(TcpClientMock, self).process_message(msg)
+        super(TcpClientMock, self).receive_message(msg)
 
     def __handle_receive(self, cmd):
         pass

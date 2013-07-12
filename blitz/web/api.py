@@ -8,25 +8,24 @@ from blitz.data.models import *
 
 
 class ApiRequestHandler(RequestHandler):
-    def generate_status_response(app):
+    def generate_status_response(self):
         """generates a status response"""
-        tcp = app.application.settings['socket']
-        data = app.settings['data']
+        tcp = self.application.settings['socket']
+        data = self.settings['data']
 
         if tcp is None:
-            time.sleep(1.5)  # let tcp get populated?
-            tcp = app.application.settings['socket']
+            time.sleep(1.0)  # let tcp get populated?
+            tcp = self.application.settings['socket']
 
-        counter = 0
-        while tcp is not None and tcp.is_busy():
-            counter += 1
-            time.sleep(0.2)
-            if counter > 5:
-                break
+        # if the tcp is doing something, wait for it to finish before checking status
+        # but don't wait too long or the browser will get bored :)
+        wait_counter = 0
+        while tcp is not None and tcp.waiting and wait_counter < 20:
+            time.sleep(0.1)
 
         response = {
             "logging": False if tcp is None else tcp.is_logging(),
-            "connected": False if tcp is None else tcp.is_connected(),
+            "connected": False if tcp is None else tcp.is_alive(),
             "errors": []
         }
 

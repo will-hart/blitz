@@ -2,26 +2,17 @@ __author__ = 'Will Hart'
 
 from blinker import signal
 
-# fired when a new web client device connects
-web_client_connected = signal('client_connected')
-
-# fired when a web client disconnects
-web_client_disconnected = signal('client_disconnected')
-
-# fired when a new TCP client device connects
-tcp_client_connected = signal('tcp_client_connected')
-
-# fired when a TCP client disconnects
-tcp_client_disconnected = signal('tcp_client_disconnected')
-
 # fired when a server TCP connection is established
 logger_connected = signal('logger_connected')
 
 # fired when a server TCP connection is closed
 logger_disconnected = signal('logger_disconnected')
 
+# fired when the client receives a line of cached data
+cache_line_received = signal('cache_line_received')
+
 # fired when the expansion board receives a data row for processing
-# allows pre-processing of data
+# during a download.  Allows pre-processing of data
 data_line_received = signal('data_line_received')
 
 # fired when a variable is ready for entry into the database
@@ -54,3 +45,7 @@ client_requested_session_list = signal('client_requested_session_list')
 
 # called when the client has a completed session list received from the server
 client_session_list_updated = signal('client_session_list_updated')
+
+# a signal fired to let subscribers know a message is ready to be received
+# from the reply queue.  Normally should only be subscribed to by the Application
+tcp_message_received = signal('tcp_message_received')
