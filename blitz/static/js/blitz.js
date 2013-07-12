@@ -345,6 +345,7 @@ Blitz.IndexController = Ember.ArrayController.extend({
     needs: ['category', 'config'],
     client_errors: [],
     updateInterval: 10000,
+    updateTimeoutId: undefined,
 
     /* true if we are connected to the logger via TCP */
     connected: false,
@@ -456,10 +457,17 @@ Blitz.IndexController = Ember.ArrayController.extend({
     handleSettings: function handleSettings(response) {
         // parse the response
         var currentConnected = this.get('connected'),
-            currentLogging = this.get('logging');
+            currentLogging = this.get('logging'),
+            updateTimeoutId = this.get('updateTimeoutId');
 
         if (currentConnected !== response.connected || currentLogging !== response.logging) {
             this.set('updateInterval', 10000);
+        }
+
+        // clear and reset the update timeout if we are logging
+        if (response.logging) {
+            clearTimeout(updateTimeoutId);
+            this.getUpdates();
         }
 
         this.set("connected", response.connected);
@@ -543,9 +551,9 @@ Blitz.IndexController = Ember.ArrayController.extend({
         // reset the timeout
         // TODO - get the timeout from CONFIG
         if (this.get("logging")) {
-            setTimeout(function () {
+            self.set("updateTimeoutId", setTimeout(function () {
                 self.getUpdates();
-            }, 1500);
+            }, 1500));
         }
     },
 
@@ -553,7 +561,7 @@ Blitz.IndexController = Ember.ArrayController.extend({
      * Gets the status from the server - i.e. is the logger connected and logging?
      */
     getStatus: function getStatus() {
-        console.log("Requesting status update from client");
+        // console.log("Requesting status update from client");
 
         var self = this,
             updateInterval = this.get("updateInterval");
