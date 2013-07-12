@@ -184,15 +184,18 @@ class DatabaseClient(object):
                 blitz_session.timeStopped = session[2]
                 self.add(blitz_session)
 
-    def load_fixtures(self):
+    def load_fixtures(self, testing=False):
         """
         Loads fixtures from blitz.data.fixtures
         """
-        self.add_many(generate_objects(Category, CATEGORY_FIXTURES))
-        self.add_many(generate_objects(Cache, CACHE_FIXTURES))
-        self.add_many(generate_objects(Config, CONFIG_FIXTURES))
-        self.add_many(generate_objects(Reading, READING_FIXTURES))
-        self.add_many(generate_objects(Session, SESSION_FIXTURES))
+        for config in CONFIG_FIXTURES:
+            self.set_config(config['key'], config['value'], False)
+
+        if testing:
+            self.add_many(generate_objects(Category, CATEGORY_FIXTURES))
+            self.add_many(generate_objects(Cache, CACHE_FIXTURES))
+            self.add_many(generate_objects(Reading, READING_FIXTURES))
+            self.add_many(generate_objects(Session, SESSION_FIXTURES))
 
     def get_config(self, key):
         """
@@ -200,15 +203,15 @@ class DatabaseClient(object):
         """
         return self.get(Config, {"key": key})
 
-    def set_config(self, key, value):
+    def set_config(self, key, value, do_update=True):
         """
-        Sets a config value in the database, adding or
+        Sets a config value in the database, adding or updating as required
         """
         config = self.get_config(key)
 
         if config is None:
             self.add(Config(key=key, value=value))
-        else:
+        elif do_update:
             config.value = value
             self._session().commit()
 

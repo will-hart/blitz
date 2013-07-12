@@ -58,16 +58,28 @@ class TestDatabaseClientSetup(unittest.TestCase):
         assert set(SQL_BASE.metadata.tables.keys()) == {"cache", "reading", "category", "config", "session",
                                                         "notifications"}
 
-    def test_load_fixtures(self):
+    def test_load_test_fixtures(self):
 
         self.db.create_tables(True)
-        self.db.load_fixtures()
+        self.db.load_fixtures(testing=True)
 
         assert len(self.db.all(Cache)) == len(CACHE_FIXTURES)
         assert len(self.db.all(Category)) == len(CATEGORY_FIXTURES)
         assert len(self.db.all(Config)) == len(CONFIG_FIXTURES)
         assert len(self.db.all(Reading)) == len(READING_FIXTURES)
         assert len(self.db.all(Session)) == len(SESSION_FIXTURES)
+        assert len(self.db.all(Notification)) == 0
+
+    def test_load_production_fixtures(self):
+
+        self.db.create_tables(True)
+        self.db.load_fixtures()
+
+        assert len(self.db.all(Cache)) == 0
+        assert len(self.db.all(Category)) == 0
+        assert len(self.db.all(Config)) == len(CONFIG_FIXTURES)
+        assert len(self.db.all(Reading)) == 0
+        assert len(self.db.all(Session)) == 0
         assert len(self.db.all(Notification)) == 0
 
     def test_cache_model_serialisation(self):
@@ -136,14 +148,16 @@ class TestDatabaseClientSetup(unittest.TestCase):
         r_dict = r.to_dict()
 
         expected = fixture.copy()
-        expected['id'] = None
+        del expected['ref_id']
+        expected['id'] = 1
+        expected['sql_id'] = None
         expected['timeStarted'] = fixture['timeStarted']
         expected['timeStopped'] = fixture['timeStopped']
 
         for k in expected.keys():
             assert k in r_dict.keys(), "Couldn't find %s in the dictionary [%s]" % \
                                        (k, ','.join([x for x in r_dict.keys()]))
-            assert r_dict[k] == expected[k], "Expected %s but found %s" % (r_dict[k], expected[k])
+            assert r_dict[k] == expected[k], "Expected %s but found %s for key %s" % (expected[k], r_dict[k], k)
 
         assert str(r) == json.dumps(r_dict)
 

@@ -38,8 +38,8 @@ CATEGORY_FIXTURES = [
 ]
 
 SESSION_FIXTURES = [
-    {"available": True, "timeStarted": time4, "timeStopped": time2, "numberOfReadings": 2},
-    {"available": False, "timeStarted": time2, "timeStopped": time0, "numberOfReadings": 2}
+    {"available": True, "ref_id": 1, "timeStarted": time4, "timeStopped": time2, "numberOfReadings": 2},
+    {"available": False, "ref_id": 2, "timeStarted": time2, "timeStopped": time0, "numberOfReadings": 2}
 ]
 
 CONFIG_FIXTURES = [

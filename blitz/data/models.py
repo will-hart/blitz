@@ -88,8 +88,8 @@ class Session(SQL_BASE):
             "id": self.ref_id,
             "sql_id": self.id,
             "available": self.available,
-            "timeStarted": float(self.timeStarted),
-            "timeStopped": float(self.timeStopped),
+            "timeStarted": 0.0 if self.timeStarted == "None" else float(self.timeStarted),
+            "timeStopped": 0.0 if self.timeStopped == "None" else float(self.timeStopped),
             "numberOfReadings": self.numberOfReadings
         }
 
