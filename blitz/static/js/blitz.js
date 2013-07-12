@@ -344,7 +344,7 @@ Blitz.IndexController = Ember.ArrayController.extend({
     chartDirty: false,
     needs: ['category', 'config'],
     client_errors: [],
-    updatesWithoutStatus: 0,
+    updateInterval: 5000,
 
     /* true if we are connected to the logger via TCP */
     connected: false,
@@ -455,6 +455,13 @@ Blitz.IndexController = Ember.ArrayController.extend({
      */
     handleSettings: function handleSettings(response) {
         // parse the response
+        var currentConnected = this.get('connected'),
+            currentLogging = this.get('logging');
+
+        if (currentConnected !== response.connected || currentLogging !== response.logging) {
+            this.set('updateInterval', 5000);
+        }
+
         this.set("connected", response.connected);
         this.set("logging", response.logging);
         this.set("client_errors", response.errors);
@@ -465,6 +472,7 @@ Blitz.IndexController = Ember.ArrayController.extend({
      */
     connectToLogger: function connectToLogger() {
         var self = this;
+        self.set('updateInterval', 1000);
         Blitz.HandleJsonRaw("connect", function (response) {
             self.handleSettings(response);
         });
@@ -474,14 +482,15 @@ Blitz.IndexController = Ember.ArrayController.extend({
      * Starts logging, or marks as disconnected if logging was unable to start
      */
     startLogging: function startLogging() {
+        var self = this;
 
-        // check f we are currently logging
+        // check if we are currently logging
         if (this.get("logging")) {
             console.log("Unable to start logging - logging is already underway!");
             return;
         }
 
-        var self = this;
+        this.set('updateInterval', 1000);
         Blitz.HandleJsonRaw("start", function (response) {
 
             // handle the settings response
@@ -502,14 +511,16 @@ Blitz.IndexController = Ember.ArrayController.extend({
      * Stops the current logging session
      */
     stopLogging: function stopLogging() {
-        // check f we are currently logging
+        var self = this;
+
+        // check if we are currently logging
         if (!this.get("logging")) {
             console.log("Unable to stop logging - logging is not underway");
             this.set("logging", false);
             return;
         }
 
-        var self = this;
+        this.set('updateInterval', 1000);
         Blitz.HandleJsonRaw("stop", function (response) {
             self.handleSettings(response);
         });
@@ -531,16 +542,6 @@ Blitz.IndexController = Ember.ArrayController.extend({
             self.set("chartDataDirty", true);
         }, this.get('content'));
 
-        // check if we need to do a status request (should be done every 10th "update")
-        if (updateCount >= 10) {
-            Blitz.HandleJsonRaw("status", function (response) {
-                self.handleSettings(response);
-            });
-            this.set("updatesWithoutStatus", 0);
-        } else {
-            this.set("updatesWithoutStatus", updateCount + 1);
-        }
-
         // reset the timeout
         // TODO - get the timeout from CONFIG
         if (this.get("logging")) {
@@ -548,6 +549,24 @@ Blitz.IndexController = Ember.ArrayController.extend({
                 self.getUpdates();
             }, 2000);
         }
+    },
+
+    /**
+     * Gets the status from the server - i.e. is the logger connected and logging?
+     */
+    getStatus: function getStatus() {
+        console.log("Requesting status update from client");
+
+        var self = this,
+            updateInterval = this.get("updateInterval");
+
+        Blitz.HandleJsonRaw("status", function (response) {
+            self.handleSettings(response);
+        });
+
+        setTimeout(function () {
+            self.getStatus();
+        }, updateInterval);
     },
 
     /*
@@ -669,6 +688,9 @@ Blitz.IndexView = Ember.View.extend({
 
         var indexController = this.get('controller'),
             rendered;
+
+        // start the updating loop on the index controller
+        indexController.getStatus();
 
         if (indexController === undefined) {
             return;
