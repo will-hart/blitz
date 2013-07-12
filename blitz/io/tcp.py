@@ -28,6 +28,7 @@ class TcpBase(object):
         self.__poller = zmq.Poller()
         self.__stop_event = threading.Event()
         self.__state_lock = threading.RLock()
+        self.__thread = None
 
     def create_client(self, autorun=True):
         self.__context = zmq.Context(1)
@@ -59,7 +60,8 @@ class TcpBase(object):
 
     def stop(self):
         self.__stop_event.set()
-        self.__thread.join()
+        if self.__thread is not None:
+            self.__thread.join()
         self.__stop_event.clear()
 
     def _do_send(self, message):
@@ -114,6 +116,7 @@ class TcpBase(object):
 
         self.__socket.close()
         self.__context.term()
+        self.current_state = self.current_state.go_to_state(self, ServerClosedState)
         print "Server Closed"
 
     def run_client(self, stop_event):
