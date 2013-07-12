@@ -36,6 +36,12 @@ class ServerIdleState(BaseState):
             sigs.client_requested_session_list.send()
             return self
         elif msg[0:8] == CommunicationCodes.Download:
+            msg_parts = msg.split(" ")
+            if len(msg_parts) != 2:
+                tcp.send(CommunicationCodes.Negative)
+                return self
+
+            sigs.client_requested_download.send(int(msg_parts[1]))
             return self.go_to_state(tcp, ServerDownloadingState)
 
         if msg == CommunicationCodes.Stop or msg == CommunicationCodes.Update:
@@ -70,7 +76,7 @@ class ServerLoggingState(BaseState):
 
             # TODO replace with REAL data :)
             fixture = generate_tcp_server_fixtures()
-            tcp._do_send(fixture.hex)
+            tcp._do_send("0x" + fixture.hex)
 
         elif msg == CommunicationCodes.Start:
             tcp._do_send(CommunicationCodes.InSession)
@@ -84,9 +90,6 @@ class ServerLoggingState(BaseState):
 
 
 class ServerDownloadingState(BaseState):
-    def download_complete(self, tcp):
-        self.logger.debug("[TCP] Calling ServerLoggingState.download_complete")
-        return self.go_to_state(tcp, ServerIdleState)
 
     def send_message(self, tcp, msg):
 
@@ -94,7 +97,7 @@ class ServerDownloadingState(BaseState):
         tcp._do_send(msg)
 
         # check if that was the last message (i.e. last four characters are NACK
-        if msg[-len(CommunicationCodes.Negative):] == CommunicationCodes.Negative:
+        if msg[-4:] == CommunicationCodes.Negative:
             return self.go_to_state(tcp, ServerIdleState)
 
         return self

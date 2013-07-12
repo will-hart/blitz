@@ -88,7 +88,7 @@ class TcpBase(object):
                 reply = self.__socket.recv()
                 self.receive_message(reply)
                 sigs.tcp_message_received.send([self, reply])
-                self.logger.debug("Server received: %s" % reply)
+                self.logger.info("Server handled receipt of message: %s" % reply)
 
                 # now wait until a response is ready to send
                 self.waiting = False
@@ -112,7 +112,6 @@ class TcpBase(object):
                     else:
                         self.__socket.send(response)
 
-                    self.logger.debug("Server sent: %s" % response)
                     self.waiting = True
 
         self.__socket.close()
@@ -138,7 +137,6 @@ class TcpBase(object):
 
                 self.waiting = True
                 self.__socket.send(request)
-                self.logger.debug("Client sent %s" % request)
 
             # wait for an incoming reply
             while self.waiting:
@@ -147,15 +145,13 @@ class TcpBase(object):
                 # check if we are receiving
                 if socks.get(self.__socket) == zmq.POLLIN:
                     # we are receiving - read the bytes
-                    self.logger.debug("Client received partial message")
                     reply += self.__socket.recv()
 
                     if not reply:
-                        self.logger.debug("Client message discovered to be empty")
+                        self.logger.info("Client received empty message")
                         break
 
                     if not self.__socket.getsockopt(zmq.RCVMORE):
-                        self.logger.debug("Client message fully received")
                         self.waiting = False
 
                 else:
@@ -184,7 +180,7 @@ class TcpBase(object):
             # now handle the reply
             self.receive_message(reply)
             sigs.tcp_message_received.send([self, reply])
-            self.logger.debug("Client received %s" % reply)
+            self.logger.info("Client handled received message: %s" % reply)
 
         # terminate the context before exiting
         self.__socket.close()

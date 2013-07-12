@@ -7,6 +7,7 @@ import tornado.httpserver
 import tornado.ioloop
 import tornado.web
 
+from blitz.constants import CommunicationCodes
 from blitz.data.database import DatabaseClient
 from blitz.io.boards import BoardManager
 import blitz.io.signals as sigs
@@ -135,6 +136,7 @@ class ApplicationClient(object):
 
         # subscribe to signals
         sigs.cache_line_received.connect(self.cache_line_received)
+        sigs.client_requested_download.connect(self.send_download_request)
 
     def run(self):
         """
@@ -163,6 +165,17 @@ class ApplicationClient(object):
     def cache_line_received(self, message):
         self.board_manager.parse_message(message)
 
+    def send_download_request(self, session_id):
+        self.logger.debug("Handling client download request")
+        tcp = self.application.settings['socket']
+
+        if tcp is None:
+            self.logger.debug("Failed to handle client download request - no TCP connection")
+            self.data.log_error(
+                "Unable to request download for session #%s as the logger is not connected" % session_id)
+            return
+
+        tcp.send(CommunicationCodes.composite(CommunicationCodes.Download, session_id))
 
     def __del__(self):
         self.logger.warning("Closing Client Application")

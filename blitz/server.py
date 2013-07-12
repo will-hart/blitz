@@ -9,6 +9,7 @@ from blitz.io.serial import SerialManager
 import blitz.io.signals as sigs
 from blitz.io.tcp import TcpBase
 
+
 class Config(object):
     """
     Holds configuration for a client application
@@ -125,6 +126,7 @@ class ApplicationServer(object):
 
         # hook up signals
         sigs.client_requested_session_list.connect(self.update_session_list)
+        sigs.client_requested_download.connect(self.serve_client_download)
 
         # start the TCP server
         self.tcp = TcpBase(port=8999)  # todo - load from configuration
@@ -140,7 +142,19 @@ class ApplicationServer(object):
         self.tcp.send(sessions_string)
         self.logger.debug("Session list queued for sending")
 
+    def serve_client_download(self, session_id):
+        self.logger.debug("Handling client download of session #%s" % session_id)
+        session_data = self.serial_server.database.get_all_from_session(session_id)
+
+        # split into rows of 100 readings
+        split_session_data = [session_data[i:i + 100] for i in range(0, len(session_data), 100)]
+
+        # write the messages
+        for count, session in enumerate(split_session_data, start=1):
+            message = "\n".join([x for x in session]) + "\n"
+            message += CommunicationCodes.Acknowledge if count < len(
+                split_session_data) else CommunicationCodes.Negative
+            self.tcp.send(message)
+
     def __del__(self):
         self.logger.warning("Shutting down server Application")
-
-

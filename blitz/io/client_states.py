@@ -89,7 +89,9 @@ class ClientIdleState(BaseState):
             return self.go_to_state(tcp, ClientSessionListState)
         elif msg[0:8] == CommunicationCodes.Download:
             tcp._do_send(msg)
-            return self.go_to_state(tcp, ClientDownloadingState)
+            new_state = self.go_to_state(tcp, ClientDownloadingState)
+            new_state.session_id = int(msg.split(" ")[1])
+            return new_state
         else:
             raise Exception("Unknown message for IDLE state - " + msg)
 
@@ -218,15 +220,25 @@ class ClientDownloadingState(BaseState):
     """
     Handles the client in logging state - sends periodic status updates
     """
+
+    session_id = -1
+
     def receive_message(self, tcp, msg):
         self.logger.debug("[TCP] Calling downloading.receive_message: " + msg)
-        if msg == CommunicationCodes.Negative:
+        if msg[-4:] == CommunicationCodes.Negative:
             # the data has been received
-            self.send_message(tcp, CommunicationCodes.Acknowledge)
             return self.go_to_state(tcp, ClientIdleState)
 
-        # otherwise we save the data row for processing
-        sigs.data_line_received.send(msg)
+        # otherwise we split up the downloaded rows and process them (removing the command message)
+        msg_parts = msg.split("\n")
+        if msg_parts[-1][0:2] != "0x":
+            del msg_parts[-1]
+
+        for part in msg_parts:
+            sigs.data_line_received.send((part, self.session_id))
+
+        # and then request the next dump from the server
+        tcp.send(CommunicationCodes.Acknowledge)
         return self
 
     def go_to_state(self, tcp, state):

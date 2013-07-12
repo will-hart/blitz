@@ -5,6 +5,7 @@ import time
 from tornado.web import RequestHandler
 
 from blitz.data.models import *
+import blitz.io.signals as sigs
 
 
 class ApiRequestHandler(RequestHandler):
@@ -98,24 +99,11 @@ class DownloadHandler(ApiRequestHandler):
         logging session.
         """
 
-        data = self.settings['data']
-        json_objs = {}
-        data_objs = []
-        readings = data.get_session_readings(session_id)
-        session = data.get_by_id(Session, session_id)
-
-        for r in readings:
-            data_objs.append(r.to_dict())
-
-        json_objs['sessionId'] = session_id
-        json_objs['timeStarted'] = session.timeStarted
-        json_objs['timeStopped'] = session.timeStopped
-        json_objs['numberOfReadings'] = len(data_objs)
-        json_objs['data'] = data_objs
+        sigs.client_requested_download.send(session_id)
 
         self.content_type = "application/json"
         self.set_header("Cache-control", "no-cache")
-        self.write(json.dumps(json_objs))
+        self.write(json.dumps({"response": "processing"}))
 
 
 class SessionsHandler(ApiRequestHandler):

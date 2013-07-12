@@ -49,3 +49,6 @@ client_session_list_updated = signal('client_session_list_updated')
 # a signal fired to let subscribers know a message is ready to be received
 # from the reply queue.  Normally should only be subscribed to by the Application
 tcp_message_received = signal('tcp_message_received')
+
+# Fired when a client requests a download of a particular session
+client_requested_download = signal('client_requested_download')

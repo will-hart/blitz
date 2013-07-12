@@ -31,7 +31,7 @@ class BoardManager(object):
         registering_boards.send(self)
 
         # connect the data line received message
-        data_line_received.connect(self.parse_message)
+        data_line_received.connect(self.parse_session_message)
 
     def register_board(self, board_id, board):
         """
@@ -46,18 +46,26 @@ class BoardManager(object):
         self.logger.info("Registered expansion board [%s: %s]" % (board_id, board.description))
         self.boards[board_id] = board
 
-    def parse_message(self, message, board_id=None, session_id=None):
+    def parse_session_message(self, message_tuple):
+        """
+        Passes the received message to the board manager message parser with the appropriate session id
+        """
+
+        msg, session = message_tuple
+        return self.parse_message(msg, session_id=session)
+
+    def parse_message(self, message, session_id=None, board_id=None):
         """
         Gets a variable dictionary from a board and save to database
         :rtype : bool
         :return: True if successfully parsed, False if unable to parse
         :param message: The raw message to parse
-        :param board_id: The id of the board to parse the message
         :param session_id: The session ID of the message (ignore if getting cached variables)
+        :param board_id: The id of the board to parse the message
         """
 
         if board_id is None:
-            board_id = int(message[0:2], 16)
+            board_id = int(message[2:4], 16)
 
         try:
             board = self.boards[board_id]
@@ -146,7 +154,7 @@ class BaseExpansionBoard(Plugin):
                     raw_message, len(raw_message))
             )
 
-        self.__message = BitArray(hex="0x" + raw_message)
+        self.__message = BitArray(hex=raw_message)
 
         # parse all the variables to match the mapping
         for key in self.__mapping.keys():
