@@ -608,7 +608,11 @@ Blitz.SessionsController = Ember.ArrayController.extend({
     sortAscending: false
 });
 
-Blitz.SessionController = Ember.ObjectController.extend({});
+Blitz.SessionController = Ember.ObjectController.extend({
+    downloadSession: function downloadSession(session_id) {
+        Blitz.HandleJsonRaw("download/" + session_id);
+    }
+});
 
 Blitz.CategoryController = Ember.ArrayController.extend({
 
