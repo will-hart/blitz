@@ -185,7 +185,7 @@
 
             <div id="browse_pane">
                 <ul class="session_list">
-                {{#each sess in model}}
+                {{#each sess in arrangedContent}}
                     <li>{{#linkTo session sess classBinding="sess.isDownloadable::downloadable"}}Session #{{sess.id}}{{/linkTo}}</li>
                 {{/each}}
                 </ul>

@@ -344,7 +344,7 @@ Blitz.IndexController = Ember.ArrayController.extend({
     chartDirty: false,
     needs: ['category', 'config'],
     client_errors: [],
-    updateInterval: 5000,
+    updateInterval: 10000,
 
     /* true if we are connected to the logger via TCP */
     connected: false,
@@ -459,7 +459,7 @@ Blitz.IndexController = Ember.ArrayController.extend({
             currentLogging = this.get('logging');
 
         if (currentConnected !== response.connected || currentLogging !== response.logging) {
-            this.set('updateInterval', 5000);
+            this.set('updateInterval', 10000);
         }
 
         this.set("connected", response.connected);
@@ -532,9 +532,7 @@ Blitz.IndexController = Ember.ArrayController.extend({
      */
     getUpdates: function getUpdates() {
 
-        // find out when the updates are required
-        var self = this,
-            updateCount = this.get('updatesWithoutStatus');
+        var self = this;
 
         // request updates
         Blitz.Reading.findUpdated(this.get('lastUpdated'), function () {
@@ -547,7 +545,7 @@ Blitz.IndexController = Ember.ArrayController.extend({
         if (this.get("logging")) {
             setTimeout(function () {
                 self.getUpdates();
-            }, 2000);
+            }, 1500);
         }
     },
 
@@ -597,7 +595,10 @@ Blitz.IndexController = Ember.ArrayController.extend({
     }.observes("errors.@each")
 });
 
-Blitz.SessionsController = Ember.ArrayController.extend({});
+Blitz.SessionsController = Ember.ArrayController.extend({
+    sortProperties: ['timeStarted'],
+    sortAscending: false
+});
 
 Blitz.SessionController = Ember.ObjectController.extend({});
 
