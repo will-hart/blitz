@@ -5,6 +5,7 @@ import logging
 from bitstring import BitArray
 
 from blitz.constants import BOARD_MESSAGE_MAPPING, PAYLOAD_LENGTH, MESSAGE_BYTE_LENGTH
+from blitz.data.models import Reading
 from blitz.io.signals import data_line_received, data_line_processed, registering_boards
 from blitz.plugins import Plugin
 from blitz.utilities import blitz_timestamp
@@ -51,8 +52,17 @@ class BoardManager(object):
         Passes the received message to the board manager message parser with the appropriate session id
         """
 
-        msg, session = message_tuple
-        return self.parse_message(msg, session_id=session)
+        messages, session_id = message_tuple
+        decoded_vars = []
+
+        for msg in messages:
+            decoded_vars += self.parse_message(msg, session_id=session_id)
+
+        # perform a single database transaction
+        self.data.add_many(decoded_vars)
+
+        # work out if the session is fully downloaded
+        self.data.update_session_availability(session_id)
 
     def parse_message(self, message, session_id=None, board_id=None):
         """
@@ -64,6 +74,8 @@ class BoardManager(object):
         :param board_id: The id of the board to parse the message
         """
 
+        readings = []
+
         if board_id is None:
             board_id = int(message[2:4], 16)
 
@@ -71,7 +83,7 @@ class BoardManager(object):
             board = self.boards[board_id]
         except KeyError:
             self.logger.warning("Ignoring message (%s) for unknown board id - %s" % (message, board_id))
-            return False
+            return []
 
         # use the board to parse the message
         board.parse_message(message)
@@ -86,12 +98,13 @@ class BoardManager(object):
             category_id = self.data.get_or_create_category(key)
             if session_id:
                 # adding a reading
-                self.data.add_reading(session_id, timeLogged, category_id, result[key])
+                readings.append(
+                    Reading(sessionId=session_id, timeLogged=timeLogged, categoryId=category_id, value=result[key]))
             else:
                 # adding to cache
                 self.data.add_cache(timeLogged, category_id, result[key])
 
-        return True
+        return result
 
 
 class BaseExpansionBoard(Plugin):
@@ -167,7 +180,7 @@ class BaseExpansionBoard(Plugin):
                 self[key] = self.__message[self.__mapping[key]["start"]]
 
         # get the payload into a bit_array
-        self._payload_array = BitArray(uint=self["payload"], length=PAYLOAD_LENGTH + (len(raw_message)- 28) * 4)
+        self._payload_array = BitArray(uint=self["payload"], length=PAYLOAD_LENGTH + (len(raw_message) - 28) * 4)
 
         # create a flags array
         self['flags'] = [

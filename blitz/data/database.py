@@ -106,6 +106,17 @@ class DatabaseClient(object):
         sess = self._session()
         return sess.query(model).filter_by(**query)
 
+    def update_session_availability(self, session_id):
+        sess = self._session()
+        session = sess.query(Session).find_by({"ref_id": session_id})
+        item_count = sess.query(Reading).find_by({"session_id": session_id}).count()
+
+        if session.numberOfReadings == item_count:
+            session.available = True
+        else:
+            session.available = False
+        sess.commit()
+
     def get_session_variables(self, session_id):
         """
         Gets the variables associated with a given session

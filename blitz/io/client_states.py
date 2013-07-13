@@ -225,18 +225,17 @@ class ClientDownloadingState(BaseState):
 
     def receive_message(self, tcp, msg):
         self.logger.debug("[TCP] Calling downloading.receive_message: " + msg)
-        if msg[-4:] == CommunicationCodes.Negative:
-            # the data has been received
-            return self.go_to_state(tcp, ClientIdleState)
 
-        # otherwise we split up the downloaded rows and process them (removing the command message)
+        # removing the command message and send the remainder off for processing via a signal
         msg_parts = msg.split("\n")
         if msg_parts[-1][0:2] != "0x":
             del msg_parts[-1]
 
-        for part in msg_parts:
-            sigs.data_line_received.send((part, self.session_id))
+        sigs.data_line_received.send((msg_parts, self.session_id))
 
+        if msg[-4:] == CommunicationCodes.Negative:
+            # the data has been received
+            return self.go_to_state(tcp, ClientIdleState)
         # and then request the next dump from the server
         tcp.send(CommunicationCodes.Acknowledge)
         return self
