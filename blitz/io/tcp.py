@@ -1,7 +1,8 @@
 __author__ = 'Will Hart'
 
-import Queue
+import logging
 import threading
+import Queue
 import zmq
 
 from blitz.io.client_states import *
@@ -29,14 +30,14 @@ class TcpBase(object):
         self.waiting = False
         self.__poller = zmq.Poller()
         self.__stop_event = threading.Event()
-        self.__state_lock = threading.RLock()
         self.__thread = None
+        self.__state_machine = None
 
     def create_client(self, autorun=True):
         self.__context = zmq.Context(1)
         self.__socket = self.__context.socket(zmq.REQ)
         self.__socket.connect(self.SERVER_ENDPOINT % (self.__host, self.__port))
-        self.current_state = BaseState().go_to_state(self, ClientInitState)
+        self.__state_machine = TcpStateMachine(self, self.__stop_event, ClientInitState)
 
         if autorun:
             self.__run_thread(self.run_client)
@@ -45,7 +46,7 @@ class TcpBase(object):
         self.__context = zmq.Context(1)
         self.__socket = self.__context.socket(zmq.REP)
         self.__socket.bind(self.SERVER_ENDPOINT % ("*", self.__port))
-        self.current_state = BaseState().go_to_state(self, ServerIdleState)
+        self.__state_machine = TcpStateMachine(self, self.__stop_event, ServerIdleState)
         self.__run_thread(self.run_server)
 
     def __run_thread(self, thread_target):
@@ -58,24 +59,24 @@ class TcpBase(object):
         return not self.__stop_event.is_set()
 
     def is_logging(self):
-        return type(self.current_state) == ClientLoggingState or type(self.current_state) == ServerLoggingState
+        return self.__state_machine is not None and self.__state_machine.is_logging()
 
     def stop(self):
         self.__stop_event.set()
         if self.__thread is not None:
             self.__thread.join()
+        if self.__state_machine is not None:
+            self.__state_machine.join()
         self.__stop_event.clear()
 
     def _do_send(self, message):
         self.send_queue.put(message)
 
     def send(self, message):
-        with self.__state_lock:
-            self.current_state = self.current_state.send_message(self, message)
+        self.__state_machine.queue_send(message)
 
     def receive_message(self, message):
-        with self.__state_lock:
-            self.current_state = self.current_state.receive_message(self, message)
+        self.__state_machine.queue_receive(message)
 
     def run_server(self, stop_event):
         self.logger.debug("Starting Server")
@@ -186,3 +187,73 @@ class TcpBase(object):
         self.__socket.close()
         self.__context.term()
         self.logger.info("Client Closed")
+
+
+class TcpStateAction(object):
+    """
+    Manages a TCP action which is queued with the state machine.
+
+    The TcpSTateMachine provides convenience methods for creating and queueing instances
+    """
+
+    # command types
+    SEND = 0
+    RECEIVE = 1
+
+    def __init__(self, command_type, command):
+        self.command_type = command_type
+        self.command = command
+
+    def is_send(self):
+        """Returns true if this is a send command"""
+        return self.command_type == TcpStateAction.SEND
+
+
+class TcpStateMachine(object):
+    """
+    Manages TCP state and ensures the messages are processed in a thread safe manner, one at a time
+    """
+
+    def __init__(self, tcp, stop_event, initial_state):
+        self.logger = logging.getLogger(__name__)
+        self.__current_state = BaseState().go_to_state(tcp, initial_state)
+        self.__commands = Queue.Queue()
+        self.__tcp = tcp
+        self.__thread = threading.Thread(target=self.run, args=[stop_event])
+
+        # start the state machine thread
+        self.__thread.daemon = True
+        self.__thread.start()
+
+    def queue_send(self, command):
+        """Queues a send message"""
+        self.__commands.put(TcpStateAction(TcpStateAction.SEND, command))
+
+    def queue_receive(self, command):
+        """Queues a receive message"""
+        self.__commands.put(TcpStateAction(TcpStateAction.RECEIVE, command))
+
+    def run(self, stop_event):
+        self.logger.info("Starting TCP state machine")
+        while not stop_event.is_set():
+            # poll queue for messages
+            try:
+                request = self.__commands.get(True, 0.1)
+            except Queue.Empty:
+                time.sleep(0.1)
+                continue
+
+            # process the request
+            if request.is_send():
+                self.__current_state = self.__current_state.send_message(self.__tcp, request.command)
+            else:
+                self.__current_state = self.__current_state.receive_message(self.__tcp, request.command)
+
+        self.logger.info("Stopping TCP state machine")
+
+    def join(self):
+        self.__thread.join()
+
+    def is_logging(self):
+        return self.__thread.is_alive() and (
+            type(self.__current_state) == ClientLoggingState or type(self.__current_state) == ServerLoggingState)

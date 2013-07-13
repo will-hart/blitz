@@ -96,8 +96,6 @@ class ServerDownloadingState(BaseState):
     def enter_state(self, tcp, state, session_id=None):
         self.logger.debug("[TCP] Calling ServerDownloadingState.enter_state")
 
-        # TODO: hack-city way to ensure current state is this before signal is sent
-        tcp.current_state = self
         self.send_index = 0
         self.session_data = []
         sigs.client_requested_download.send(session_id)
