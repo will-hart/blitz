@@ -175,6 +175,9 @@ class ApplicationClient(object):
                 "Unable to request download for session #%s as the logger is not connected" % session_id)
             return
 
+        # delete old session data
+        data = self.application.settings['data']
+        data.clear_session_data(session_id)
         tcp.send(CommunicationCodes.composite(CommunicationCodes.Download, session_id))
 
     def __del__(self):

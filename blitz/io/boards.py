@@ -104,7 +104,7 @@ class BoardManager(object):
                 # adding to cache
                 self.data.add_cache(timeLogged, category_id, result[key])
 
-        return result
+        return readings
 
 
 class BaseExpansionBoard(Plugin):

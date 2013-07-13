@@ -108,8 +108,8 @@ class DatabaseClient(object):
 
     def update_session_availability(self, session_id):
         sess = self._session()
-        session = sess.query(Session).find_by({"ref_id": session_id})
-        item_count = sess.query(Reading).find_by({"session_id": session_id}).count()
+        session = self.get(Session, {"ref_id": session_id})
+        item_count = self.find(Reading, {"sessionId": session_id}).count()
 
         if session.numberOfReadings == item_count:
             session.available = True
@@ -294,6 +294,14 @@ class DatabaseClient(object):
         """Clears all variables from the cache"""
         sess = self._session()
         sess.query(Cache).delete()
+        sess.commit()
+
+    def clear_session_data(self, session_id):
+        """
+        Clears historic session data for the given session (ref) id
+        """
+        sess = self._session()
+        sess.query(Reading).filter_by(**{"sessionId": session_id}).delete()
         sess.commit()
 
 
