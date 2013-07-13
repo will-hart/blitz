@@ -5,6 +5,12 @@ SHORT_COMMAND_MESSAGE_BYTES = 2
 
 
 class CommunicationCodes(object):
+    """
+    Provides "static" communication codes for Tcp Communication.  Usage is::
+
+        from blitz.constants import CommunicationCodes
+        tcp.send(CommunicationCodes.Acknowledge)
+    """
 
     Acknowledge = "ACK"
     Negative = "NACK"
@@ -24,6 +30,15 @@ class CommunicationCodes(object):
 
     @classmethod
     def composite(cls, base_code, code_id):
+        """
+        A class method which builds a communication code of more than one part
+        such as a download or error command.
+
+        Usage:
+
+            >>> CommunicationCodes.composite(CommunicationCodes.Download, 1)
+            "DOWNLOAD 1"
+        """
         return base_code + " " + str(code_id)
 
 
