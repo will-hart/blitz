@@ -106,15 +106,13 @@ class DatabaseClient(object):
         sess = self._session()
         return sess.query(model).filter_by(**query)
 
-    def update_session_availability(self, session_id):
+    def update_session_availability(self, session_id, messages_received=-1):
         sess = self._session()
         session = self.get(Session, {"ref_id": session_id})
-        item_count = self.find(Reading, {"sessionId": session_id}).count()
+        count = self._session().query(sql.exists().where(Reading.sessionId == session_id)).scalar()
 
-        if session.numberOfReadings == item_count:
-            session.available = True
-        else:
-            session.available = False
+        # check all lines were received and set "available" accordingly
+        session.available = count > 0
         sess.commit()
 
     def get_session_variables(self, session_id):
@@ -185,16 +183,25 @@ class DatabaseClient(object):
         This replaces the existing session list
         """
         self.logger.debug("Updating session list")
+
+        sess = self._session()
+        sess.query(Session).delete()
+        sess.commit()
+
+        sessions = []
+
         for session in sessions_list:
-            # check if it exists
-            count = self._session().query(sql.exists().where(Session.ref_id == session[0])).scalar()
-            if count == 0:
-                blitz_session = Session()
-                blitz_session.ref_id = session[0]
-                blitz_session.timeStarted = session[1]
-                blitz_session.timeStopped = session[2]
-                blitz_session.numberOfReadings = session[3]
-                self.add(blitz_session)
+
+            count = self._session().query(sql.exists().where(Reading.sessionId == session[0])).scalar()
+            blitz_session = Session()
+            blitz_session.ref_id = session[0]
+            blitz_session.timeStarted = session[1]
+            blitz_session.timeStopped = session[2]
+            blitz_session.numberOfReadings = session[3]
+            blitz_session.available = count > 0
+            sessions.append(blitz_session)
+
+        self.add_many(sessions)
 
     def load_fixtures(self, testing=False):
         """
@@ -301,7 +308,7 @@ class DatabaseClient(object):
         Clears historic session data for the given session (ref) id
         """
         sess = self._session()
-        sess.query(Reading).filter_by(**{"sessionId": session_id}).delete()
+        sess.query(Reading).filter(Reading.sessionId == session_id).delete()
         sess.commit()
 
 

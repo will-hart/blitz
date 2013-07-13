@@ -62,7 +62,7 @@ class BoardManager(object):
         self.data.add_many(decoded_vars)
 
         # work out if the session is fully downloaded
-        self.data.update_session_availability(session_id)
+        self.data.update_session_availability(session_id, len(messages))
 
     def parse_message(self, message, session_id=None, board_id=None):
         """

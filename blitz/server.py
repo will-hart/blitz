@@ -143,18 +143,13 @@ class ApplicationServer(object):
         self.logger.debug("Session list queued for sending")
 
     def serve_client_download(self, session_id):
-        self.logger.debug("Handling client download of session #%s" % session_id)
+        # get all the session data from the database
         session_data = self.serial_server.database.get_all_from_session(session_id)
 
-        # split into rows of 100 readings
+        # split into rows of 100 readings then pass to the state manager for dispatch
+        # todo set the '100' value to a constant
         split_session_data = [session_data[i:i + 100] for i in range(0, len(session_data), 100)]
-
-        # write the messages
-        for count, session in enumerate(split_session_data, start=1):
-            message = "\n".join([x for x in session]) + "\n"
-            message += CommunicationCodes.Acknowledge if count < len(
-                split_session_data) else CommunicationCodes.Negative
-            self.tcp.send(message)
+        self.tcp.send(split_session_data)
 
     def __del__(self):
         self.logger.warning("Shutting down server Application")

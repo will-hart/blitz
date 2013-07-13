@@ -17,7 +17,7 @@ class BaseState(object):
 
     logger = logging.getLogger(__name__)
 
-    def enter_state(self, tcp, state):
+    def enter_state(self, tcp, state, args=None):
         """Called when entering the state"""
         self.logger.debug("[TCP] Calling base.enter_state >> " + state.__name__)
         return state()
@@ -31,18 +31,18 @@ class BaseState(object):
         """
         Send the passed message over TCP and return the current state
         """
-        self.logger.debug("[TCP] Calling base.send_message: " + msg)
+        self.logger.debug("[TCP] Calling base.send_message: " + str(msg))
         tcp._do_send(msg)
         return self
 
-    def go_to_state(self, tcp, state):
+    def go_to_state(self, tcp, state, args=None):
         """
         Transition to a new state and call enter_state on it
 
         :return: the new state
         """
         self.logger.debug("[TCP] Calling base.go_to_state >> " + state.__name__)
-        return state().enter_state(tcp, state)
+        return state().enter_state(tcp, state, args)
 
     def __str__(self):
         return "<" + __name__ + ">"
@@ -53,7 +53,7 @@ class ClientInitState(BaseState):
     Handles the client starting up - sends a "logging" query
     to the logger and waits for the response
     """
-    def enter_state(self, tcp, state):
+    def enter_state(self, tcp, state, args=None):
         """Send a logging query to the logger"""
         self.logger.debug("[TCP] Calling init.enter_state")
         tcp._do_send(CommunicationCodes.IsLogging)
@@ -89,8 +89,7 @@ class ClientIdleState(BaseState):
             return self.go_to_state(tcp, ClientSessionListState)
         elif msg[0:8] == CommunicationCodes.Download:
             tcp._do_send(msg)
-            new_state = self.go_to_state(tcp, ClientDownloadingState)
-            new_state.session_id = int(msg.split(" ")[1])
+            new_state = self.go_to_state(tcp, ClientDownloadingState, int(msg.split(" ")[1]))
             return new_state
         else:
             raise Exception("Unknown message for IDLE state - " + msg)
@@ -100,7 +99,7 @@ class ClientSessionListState(BaseState):
 
     sessions = []
 
-    def enter_state(self, tcp, state):
+    def enter_state(self, tcp, state, args=None):
         """Send a logging session list to the logger"""
         self.sessions = []
         self.logger.debug("[TCP] Calling session_list.enter_state")
@@ -128,7 +127,7 @@ class ClientSessionListState(BaseState):
                     msg_parts[0], msg_parts[1], msg_parts[2], msg_parts[3]))
         return self.go_to_state(self, ClientIdleState)
 
-    def go_to_state(self, tcp, state):
+    def go_to_state(self, tcp, state, args=None):
         """
         sends a signal to save the session list to database, and then calls super go_to_state
         """
@@ -138,7 +137,7 @@ class ClientSessionListState(BaseState):
 
 class ClientStartingState(BaseState):
     """Handles logging starting - waits for ACK from server"""
-    def enter_state(self, tcp, state):
+    def enter_state(self, tcp, state, args=None):
         self.logger.debug("[TCP] Calling starting.enter_state: " + state.__name__)
         tcp._do_send(CommunicationCodes.Start)
         return self
@@ -155,7 +154,7 @@ class ClientLoggingState(BaseState):
     """
     Handles the client in logging state - sends periodic status updates
     """
-    def enter_state(self, tcp, state):
+    def enter_state(self, tcp, state, args=None):
         """sets up a timer which periodically polls the data logger for updates"""
         self.logger.debug("[TCP] Calling logging.enter_state")
         self.__stop_updater = threading.Event()
@@ -193,7 +192,7 @@ class ClientLoggingState(BaseState):
             self.logger.warning("Received message of unexpected length: " + msg)
         return self
 
-    def go_to_state(self, tcp, state):
+    def go_to_state(self, tcp, state, args=None):
         self.logger.debug("[TCP] Calling logging.go_to_state: " + state.__name__)
         self.__stop_updater.set()
         self.update_thread.join()
@@ -204,7 +203,7 @@ class ClientStoppingState(BaseState):
     """
     Handles waiting for acknowledgement from a client before entering IDLE state
     """
-    def enter_state(self, tcp, state):
+    def enter_state(self, tcp, state, args=None):
         self.logger.debug("[TCP] Calling stopping.enter_state: " + state.__name__)
         tcp._do_send(CommunicationCodes.Stop)
         return self
@@ -221,7 +220,12 @@ class ClientDownloadingState(BaseState):
     Handles the client in logging state - sends periodic status updates
     """
 
-    session_id = -1
+    session_id = 0
+
+    def enter_state(self, tcp, state, session_id=None):
+        self.logger.debug("[TCP] Calling downloading.enter_state with session ID " + str(session_id))
+        self.session_id = session_id
+        return self
 
     def receive_message(self, tcp, msg):
         self.logger.debug("[TCP] Calling downloading.receive_message: " + msg)
@@ -240,9 +244,6 @@ class ClientDownloadingState(BaseState):
         tcp.send(CommunicationCodes.Acknowledge)
         return self
 
-    def go_to_state(self, tcp, state):
+    def go_to_state(self, tcp, state, args=None):
         self.logger.debug("[TCP] Calling downloading.go_to_state >> " + state.__name__)
-        if type(state) == ClientIdleState:
-            tcp._do_send(CommunicationCodes.Acknowledge)  # acknowledge end of download received
-
         return super(ClientDownloadingState, self).go_to_state(tcp, state)
