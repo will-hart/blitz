@@ -700,18 +700,19 @@ Blitz.IndexView = Ember.View.extend({
     didInsertElement: function () {
 
         var indexController = this.get('controller'),
-            rendered;
+            rendered = indexController !== undefined ? indexController.get("chartDirty") : null,
+            pageBody = $("body");
 
-        // start the updating loop on the index controller
-        indexController.getStatus();
-
+        // if we can't find the index controller, don't go any further
         if (indexController === undefined) {
             return;
         }
-        rendered = indexController.get("chartDirty");
+        // start the updating loop on the index controller
+        indexController.getStatus();
+
 
         // show the variables pane on clicking the handle
-        $("#variables_handle").on("click", function (e) {
+        pageBody.on("click", "#variables_handle", function (e) {
             e.preventDefault();
 
             // fade in the element
@@ -726,7 +727,7 @@ Blitz.IndexView = Ember.View.extend({
         });
 
         // when clicking the route button divs, click the enclosed link automatically
-        $(".slide_out_handle").on("click", function (e) {
+        pageBody.on("click", ".slide_out_handle", function (e) {
             // no need to handle the click event of a link!
             if (e.target.tagName !== "A") {
                 $(this).find("a").click();
@@ -751,7 +752,7 @@ Blitz.IndexView = Ember.View.extend({
 });
 
 Blitz.ConfigView = Ember.View.extend({
-    classNameBindings: [':settings-container'],
+    classNameBindings: [':settings-container']/*,
 
     didInsertElement: function () {
         // when clicking the route button divs, click the enclosed link automatically
@@ -761,18 +762,18 @@ Blitz.ConfigView = Ember.View.extend({
                 $(this).find("a").click();
             }
         });
-    }
+    }*/
 });
 
 Blitz.SessionsView = Ember.View.extend({
     didInsertElement: function () {
         // when clicking the route button divs, click the enclosed link automatically
-        $(".slide_out_handle").on("click", function (e) {
+        /*$(".slide_out_handle").on("click", function (e) {
             // no need to handle the click event of a link!
             if (e.target.tagName !== "A") {
                 $(this).find("a").click();
             }
-        });
+        });*/
     }
 });
 
