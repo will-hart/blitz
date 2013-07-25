@@ -4,6 +4,7 @@
 *.pyc
 *.db
 
+doc/build/
 blitz/test/.coverage
 
 config.json
