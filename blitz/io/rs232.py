@@ -9,10 +9,9 @@ from redis import ConnectionError
 import serial
 from serial.tools.list_ports import comports
 
-from blitz.constants import SerialUpdatePeriod
+from blitz.constants import SerialUpdatePeriod, SerialCommands
 from blitz.data.database import DatabaseServer
 from blitz.io.signals import logging_started, logging_stopped
-from blitz.utilities import generate_tcp_server_fixtures
 
 
 class SerialManager(object):
@@ -26,7 +25,6 @@ class SerialManager(object):
     database = None
     serial_mapping = None
     __serial_thread = None
-    __listen_thread = None
 
     logger = logging.getLogger(__name__)
 
@@ -103,44 +101,68 @@ class SerialManager(object):
                 ports.append(port[0])
 
         for port in ports:
-            id = self.send_id_request(port)
-            if id is not None:
-                self.serial_mapping[id] = port
+            board_id = self.send_id_request(port)
+            if board_id is not None:
+                self.serial_mapping[hex(board_id)[2:].zfill(2)] = port
 
         return self.serial_mapping
+
+    def create_serial_connection(self, port_name, baud_rate=57600, read_timeout=3):
+        """
+        Creates a serial port connection, opens it and returns it
+        """
+        return serial.Serial(port_name, baudrate=baud_rate, timeout=read_timeout)
+
+    def receive_serial_data(self, board_id, port_name):
+        """
+        Requests a transmission from the specified board and
+        saves the returned data to the database
+        """
+        port = self.create_serial_connection(port_name)
+
+        # send the transmit request
+        port.write(board_id + SerialCommands['TRANSMIT'] + "\n")
+
+        # readlines until no more lines left (will read for the timeout period)
+        lines = port.readlines()
+        for line in lines:
+            line_size = len(line)
+            if line_size < 4:
+                pass  # too short, ignore
+            elif line_size == 4:
+                # a short message
+                command = line[2:]
+                if command == SerialCommands['ACK']:
+                    break  # all done, ignore the rest
+            else:
+                # a data message, save it for later
+                self.database.queue(line)
+
+        port.close()
 
     def send_id_request(self, port_name):
         """
         Requests an ID from the serial port name and returns it.
         If no ID is found, return None
         """
-        s = serial.Serial(port_name, baudrate=57600, timeout=3)
-        id = None
-        buffer = ""
+        port = self.create_serial_connection(port_name)
+        board_id = None
+        serial_buffer = ""
 
         # clear out any junk in the board's serial buffer and ignore the response
-        s.write("\n")
-        self.readline(s)
+        port.write("\n")
+        port.readline()
 
         # send the ID request
-        s.write("0081\n");
-        buffer = self.readline(s)
+        port.write("00" + SerialCommands['ID'] + "\n")
+        serial_buffer = port.readline()
+        port.close()
 
         # check if a valid id was returned
-        if len(buffer) > 2:
-            id = int(buffer[0:2], 16)
+        if len(serial_buffer) > 2:
+            board_id = int(serial_buffer[0:2], 16)
 
-        return id
-
-    def readline(self, serial_port):
-        buffer = ""
-        while True:
-            c = serial_port.read()
-            if c == '' or c == '\n':
-                break
-
-            buffer += c
-        return buffer
+        return board_id
 
     def start(self, signal_args):
         """
@@ -150,14 +172,8 @@ class SerialManager(object):
         # enter a new session
         session_id = self.database.start_session()
 
-        # start a thread for listening to the serial ports
-        self.__stop_event = threading.Event()
-        self.__listen_thread = threading.Thread(target=self.__listen_serial, args=[self.__stop_event])
-        self.__listen_thread.daemon = True
-        self.__listen_thread.start()
-        self.logger.debug("Started serial listening thread: %s" % self.__listen_thread.name)
-
         # Start a thread for polling serial for updates
+        self.__stop_event = threading.Event()
         self.__serial_thread = threading.Thread(target=self.__poll_serial, args=[self.__stop_event])
         self.__serial_thread.daemon = True
         self.__serial_thread.start()
@@ -173,32 +189,18 @@ class SerialManager(object):
 
         # end the new session
         self.database.stop_session()
-
-        self.__stop_event.set()
-        self.__listen_thread.join()
-        self.logger.debug("Stopped listening for new serial messages")
         self.__serial_thread.join()
-        self.logger.info("All serial threads have now stopped")
+        self.logger.info("Serial polling thread stopped")
 
     def __poll_serial(self, stop_event):
         """
         A thread which periodically polls a serial connection until a stop_event is received
         """
         while not stop_event.is_set():
-            # todo - this is fake :/ actually need to send a message to the boards requesting an update
-            self.database.queue(generate_tcp_server_fixtures())
+            # enumerate each port
+            for k in self.serial_mapping.keys():
+                self.receive_serial_data(k, self.serial_mapping[k])
 
-            time.sleep(SerialUpdatePeriod / 4)  # TODO currently 0.25 of serial period to generate lots of data
-                                                # TODO remove the " / 4" later
+            time.sleep(SerialUpdatePeriod)
 
         self.logger.debug("Exited poll serial thread")
-
-    def __listen_serial(self, stop_event):
-        """
-        A threaded function that listens on a serial port and queues any received messages into the inbox
-        """
-        while not stop_event.is_set():
-            # todo - something useful
-            time.sleep(0.5)
-
-        self.logger.debug("Exited listen serial thread")
