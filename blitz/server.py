@@ -5,7 +5,7 @@ import logging
 import os
 
 from blitz.constants import CommunicationCodes
-from blitz.io.serial import SerialManager
+from blitz.io.rs232 import SerialManager
 import blitz.io.signals as sigs
 from blitz.io.tcp import TcpBase
 
