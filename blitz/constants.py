@@ -84,3 +84,9 @@ BOARD_MESSAGE_MAPPING = {
 }
 
 SerialUpdatePeriod = 1.0  # serial update period in seconds
+
+SerialCommands = {
+    'ACK': '40',
+    'TRANSMIT': 'C0',
+    'ID': '81'
+}
