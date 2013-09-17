@@ -41,7 +41,6 @@ class SerialManager(object):
         else:
             return cls.__instance
 
-
     def __init__(self):
         """
         Follows a singleton pattern and prevents instantiation of more than one Serial Manager.
@@ -120,6 +119,7 @@ class SerialManager(object):
 
         :return: An open serial port object
         """
+        self.logger.debug("Creating and opening serial port, %s @ %s" % (port_name, baud_rate))
         return serial.Serial(port_name, baudrate=baud_rate, timeout=read_timeout)
 
     def receive_serial_data(self, board_id, port_name):
@@ -138,20 +138,24 @@ class SerialManager(object):
         port.write(board_id + SerialCommands['TRANSMIT'] + "\n")
 
         # readlines until no more lines left (will read for the timeout period)
-        lines = port.readlines()
+        lines = port.readlines().replace('\n', '').replace('\r','')
         for line in lines:
             line_size = len(line)
             if line_size < 4:
-                pass  # too short, ignore
+                self.logger.debug("Received short message (%s) from board %s, ignoring" % (line, board_id))
+                pass
             elif line_size == 4:
                 # a short message
                 command = line[2:]
                 if command == SerialCommands['ACK']:
+                    self.logger.debug("Received serial ACK from board %s" % board_id)
                     break  # all done, ignore the rest
             else:
                 # a data message, save it for later
+                self.logger.debug("Received serial message from board %s: %s" % (board_id, line))
                 self.database.queue(line)
 
+        self.logger.debug("Finished receiving data from board %s" % board_id)
         port.close()
 
     def send_id_request(self, port_name):
@@ -168,17 +172,18 @@ class SerialManager(object):
         serial_buffer = ""
 
         # clear out any junk in the board's serial buffer and ignore the response
-        port.write("\n")
+        port.write('\n')
         port.readline()
 
         # send the ID request
-        port.write("00" + SerialCommands['ID'] + "\n")
+        port.write('00' + SerialCommands['ID'] + '\n')
         serial_buffer = port.readline()
         port.close()
 
         # check if a valid id was returned
         if len(serial_buffer) > 2:
             board_id = int(serial_buffer[0:2], 16)
+            self.logger.debug("Received serial ID %s from port %s" % (board_id, port_name))
 
         return board_id
 
@@ -195,13 +200,22 @@ class SerialManager(object):
         :returns: the board response if an error was received, or None if ACK was received
         """
         port = self.create_serial_connection(port_name)
+
+        # clear existing
+        port.write('\n')
+        port.readline()
+
+        # write the command
         port.write(board_id + command)
 
-        serial_buffer = port.readline()
+        # read the response
+        serial_buffer = port.readline().replace('\n', '').replace('\r', '')
+        port.close()
 
         # TODO: properly handle errors
+        self.logger.debug("Sent %s on serial to %s @ %s, received %s" % (command, board_id, port_name, serial_buffer))
 
-        if serial_buffer.length != 4 or serial_buffer[2:] != SerialCommands['ACK']:
+        if len(serial_buffer) != 4 or serial_buffer[2:] != SerialCommands['ACK']:
             return serial_buffer
 
         return None
@@ -224,7 +238,7 @@ class SerialManager(object):
 
             # log errors for now
             if not success is None:
-                self.logger.warn("Did not receive a valid ACK response from board ID %s on START request" % k)
+                self.logger.warn("Received '%s' instead of ACK from board ID %s on START" % (success, k))
 
         # Start a thread for polling serial for updates
         self.__stop_event = threading.Event()
@@ -253,7 +267,7 @@ class SerialManager(object):
 
             # log errors for now
             if not success is None:
-                self.logger.warn("Did not receive a valid ACK response from board ID %s on STOP request" % k)
+                self.logger.warn("Received '%s' instead of ACK from board ID %s on STOP" % (success, k))
 
         # end the new session
         self.database.stop_session()
