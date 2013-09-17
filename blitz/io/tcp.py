@@ -25,7 +25,6 @@ class TcpBase(object):
     def __init__(self, host="localhost", port=None):
         self.__host = host
         self.__port = port
-        self.current_state = None
         self.send_queue = Queue.Queue()
         self.waiting = False
         self.__poller = zmq.Poller()
@@ -117,7 +116,7 @@ class TcpBase(object):
 
         self.__socket.close()
         self.__context.term()
-        self.current_state = self.current_state.go_to_state(self, ServerClosedState)
+        self.__state_machine.force_state(ServerClosedState)
         self.logger.info("Server Closed")
 
     def run_client(self, stop_event):
@@ -257,3 +256,6 @@ class TcpStateMachine(object):
     def is_logging(self):
         return self.__thread.is_alive() and (
             type(self.__current_state) == ClientLoggingState or type(self.__current_state) == ServerLoggingState)
+
+    def force_state(self, state, args=None):
+        self.__current_state.go_to_state(state, args)
