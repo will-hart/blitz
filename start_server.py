@@ -5,8 +5,6 @@ import time
 
 from blitz.server import ApplicationServer
 
-app = None
-
 def run_app():
     app = ApplicationServer()
 
@@ -17,6 +15,8 @@ def run_app():
 def do_shutdown():
     app.shutdown()
 
-signal.signal(signal.SIGTERM, do_shutdown)
 
-run_app()
+if __name__ == "__main__":
+    app = None
+    signal.signal(signal.SIGTERM, do_shutdown)
+    run_app()

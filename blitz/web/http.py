@@ -10,6 +10,9 @@ from blitz.web.api import ApiRequestHandler
 
 
 class IndexHandler(ApiRequestHandler):
+    """
+    Handles requests to the main page, and shows the main data logger IO
+    """
 
     def get(self):
         # just read the file in to prevent tornado from processing handlebars
@@ -18,6 +21,9 @@ class IndexHandler(ApiRequestHandler):
 
 
 class ConnectHandler(ApiRequestHandler):
+    """
+    Handles connection requests from the client and forwards the request on to the logger
+    """
 
     logger = logging.getLogger(__name__)
 
@@ -52,6 +58,9 @@ class ConnectHandler(ApiRequestHandler):
 
 
 class StartHandler(ApiRequestHandler):
+    """
+    Handles a start logging request from the client by forwarding the request to the server
+    """
 
     logger = logging.getLogger(__name__)
 
@@ -74,6 +83,9 @@ class StartHandler(ApiRequestHandler):
 
 
 class StopHandler(ApiRequestHandler):
+    """
+    Handles a stop logging request from the client by forwarding the request to the server
+    """
 
     logger = logging.getLogger(__name__)
 
