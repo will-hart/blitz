@@ -2,7 +2,7 @@ __author__ = 'Will Hart'
 
 import logging
 
-import blitz.io.signals as signals
+import blitz.io.signals as sigs
 
 
 class PluginMount(type):
@@ -50,7 +50,7 @@ class PluginMount(type):
             cls.logger.debug("No signals to register for plugin %s" % instance.description)
 
         # fire the connected signal
-        signals.plugin_loaded.send(instance)
+        sigs.plugin_loaded.send(instance)
         cls.logger.debug("Finished loading plugin: %s" % instance.description)
 
 
