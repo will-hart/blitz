@@ -89,7 +89,7 @@ class TcpBase(object):
                 reply = self.__socket.recv()
                 self.receive_message(reply)
                 sigs.tcp_message_received.send([self, reply])
-                self.logger.info("Server handled receipt of message: %s" % reply)
+                self.logger.info("Server processed message: %s" % reply)
 
                 # now wait until a response is ready to send
                 self.waiting = False
@@ -181,7 +181,7 @@ class TcpBase(object):
             # now handle the reply
             self.receive_message(reply)
             sigs.tcp_message_received.send([self, reply])
-            self.logger.info("Client handled received message: %s" % reply)
+            self.logger.info("Client processed message: %s" % reply)
 
         # terminate the context before exiting
         self.__socket.close()
