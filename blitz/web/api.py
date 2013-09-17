@@ -9,6 +9,10 @@ import blitz.io.signals as sigs
 
 
 class ApiRequestHandler(RequestHandler):
+    """
+    A base API request handler class
+    """
+
     def generate_status_response(self):
         """generates a status response"""
         tcp = self.application.settings['socket']
@@ -38,11 +42,11 @@ class ApiRequestHandler(RequestHandler):
 
 
 class CategoriesHandler(ApiRequestHandler):
+    """
+    handles a GET request to /categories by writing a
+    JSON list of categories currently in the cache
+    """
     def get(self):
-        """
-        handles a GET request to /categories by writing a
-        JSON list of categories currently in the cache
-        """
 
         data = self.settings['data']
         result = data.get_cache_variables()
@@ -62,14 +66,14 @@ class CategoriesHandler(ApiRequestHandler):
 
 
 class CacheHandler(ApiRequestHandler):
-    def get(self, since=None):
-        """
-        handles a GET request to /cache by writing a
-        JSON list of the last 50 values for each variable.
+    """
+    handles a GET request to /cache by writing a
+    JSON list of the last 50 values for each variable.
 
-        If an argument is provided for "since" then only
-        return values since that date. Otherwise return last 50
-        """
+    If an argument is provided for "since" then only
+    return values since that date. Otherwise return last 50
+    """
+    def get(self, since=None):
 
         data = self.settings['data']
         json_objs = {}
@@ -91,13 +95,13 @@ class CacheHandler(ApiRequestHandler):
 
 
 class DownloadHandler(ApiRequestHandler):
+    """
+    handles a GET request to /download/{id} by requesting a download
+    from the data logger for the given session ID and then returning a
+    complete list of variable and values that were recorded during this
+    logging session.
+    """
     def get(self, session_id):
-        """
-        handles a GET request to /download/{id} by requesting a download
-        from the data logger for the given session ID and then returning a
-        complete list of variable and values that were recorded during this
-        logging session.
-        """
 
         sigs.client_requested_download.send(session_id)
 
@@ -107,11 +111,11 @@ class DownloadHandler(ApiRequestHandler):
 
 
 class SessionsHandler(ApiRequestHandler):
+    """
+    handles a GET request to /sessions and returns a complete
+    list of logging sessions that are available for view or download
+    """
     def get(self):
-        """
-        handles a GET request to /sessions and returns a complete
-        list of logging sessions that are available for view or download
-        """
         data = self.settings['data']
         json_objs = {}
         data_objs = []
@@ -128,11 +132,11 @@ class SessionsHandler(ApiRequestHandler):
 
 
 class SessionHandler(ApiRequestHandler):
+    """
+    handles a GET request to /session/{id} and returns
+    a complete list of data relating to this session
+    """
     def get(self, session_id):
-        """
-        handles a GET request to /session/{id} and returns
-        a complete list of data relating to this session
-        """
 
         data = self.settings['data']
         json_objs = {}
@@ -149,6 +153,10 @@ class SessionHandler(ApiRequestHandler):
 
 
 class ConfigHandler(ApiRequestHandler):
+    """
+    An API handler which allows setting and retrieving of config settings
+    """
+
     def get(self):
         """
         handles a GET request to /config and returns
@@ -186,16 +194,15 @@ class ConfigHandler(ApiRequestHandler):
 
 
 class StatusHandler(ApiRequestHandler):
-
+    """Get the current system status"""
     def get(self):
-        """Get the current system status"""
         self.content_type = "application/json"
         self.set_header("Cache-control", "no-cache")
         self.write(json.dumps(self.generate_status_response()))
 
 
 class ErrorHandler(ApiRequestHandler):
-
+    """Handles error messages"""
     def get(self, error_id):
         data = self.settings['data']
         data.handle_error(error_id)
