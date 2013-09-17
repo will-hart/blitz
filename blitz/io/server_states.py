@@ -3,7 +3,6 @@ __author__ = 'Will Hart'
 from blitz.constants import *
 from blitz.io.client_states import BaseState
 import blitz.io.signals as sigs
-from blitz.utilities import generate_tcp_server_fixtures
 
 
 def validate_command(msg, commands):
@@ -66,17 +65,13 @@ class ServerLoggingState(BaseState):
         self.logger.debug("[TCP] Calling ServerLoggingState.receive_message: " + msg)
 
         if msg == CommunicationCodes.Stop:
-            sigs.logging_stopped.send()
             self.logger.debug("[TCP] [SIGNAL] Stop logging")
             tcp._do_send(CommunicationCodes.Acknowledge)
+            sigs.logging_stopped.send()
             return self.go_to_state(tcp, ServerIdleState)
 
         if msg == CommunicationCodes.Update:
             sigs.client_status_request.send(tcp)
-
-            # TODO replace with REAL data :)
-            fixture = generate_tcp_server_fixtures()
-            tcp._do_send("0x" + fixture.hex)
 
         elif msg == CommunicationCodes.Start:
             tcp._do_send(CommunicationCodes.InSession)
