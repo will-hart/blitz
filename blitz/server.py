@@ -5,7 +5,7 @@ import logging
 import os
 
 from blitz.constants import CommunicationCodes
-from blitz.io.serial import SerialManager
+from blitz.io.rs232 import SerialManager
 import blitz.io.signals as sigs
 from blitz.io.tcp import TcpBase
 
@@ -126,6 +126,7 @@ class ApplicationServer(object):
 
         # hook up signals
         sigs.client_requested_session_list.connect(self.update_session_list)
+        sigs.client_status_request.connect(self.serve_client_status)
         sigs.client_requested_download.connect(self.serve_client_download)
 
         # start the TCP server
@@ -135,12 +136,21 @@ class ApplicationServer(object):
         self.logger.info("Started TCP on port %s" % 8999)
 
     def update_session_list(self, args):
+        """
+        Sends the client the list of logged sessions
+        """
         self.logger.debug("Server sending out updated session list")
         sessions = self.serial_server.database.build_client_session_list()
         sessions_string = "\n".join([x for x in sessions])
         sessions_string += "\n" + CommunicationCodes.Negative
         self.tcp.send(sessions_string)
         self.logger.debug("Session list queued for sending")
+
+    def serve_client_status(self, args):
+        """
+        Sends the client the last ten serial messages received
+        """
+        self.tcp.send(CommunicationCodes.Acknowledge)
 
     def serve_client_download(self, session_id):
         # get all the session data from the database

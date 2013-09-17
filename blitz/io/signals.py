@@ -2,53 +2,117 @@ __author__ = 'Will Hart'
 
 from blinker import signal
 
-# fired when a server TCP connection is established
+#: Fired when a server TCP connection is established
 logger_connected = signal('logger_connected')
 
-# fired when a server TCP connection is closed
+#: Fired when a server TCP connection is closed
 logger_disconnected = signal('logger_disconnected')
 
-# fired when the client receives a line of cached data
+#: Fired when the client receives a line of cached data
+#:
+#: Subscribed to by:
+#:  - :mod:`ApplicationClient`.__init__ >> ApplicationClient.cache_line_received
+#:
+#: Sent by:
+#:  - :mod:`ClientLoggingState`.receive_message
 cache_line_received = signal('cache_line_received')
 
-# fired when the expansion board receives a data row for processing
-# during a download.  Allows pre-processing of data
+#: Fired when the expansion board receives a data row for processing
+#: during a download.  Allows pre-processing of data
+#:
+#: Subscribed to by:
+#:  - :mod:`BoardManager`.__init__ >> BoardManager.parse_session_message
+#:
+#: Sent by:
+#:  - :mod:`BaseExpansionBoard`.parse_message
+#:  - :mod:`ClientDownloadingState`.receive_message
 data_line_received = signal('data_line_received')
 
-# fired when a variable is ready for entry into the database
-# allows post processing of data
+#: fired when a variable is ready for entry into the database.
+#: allows post processing of data
 data_variable_decoded = signal('data_variable_decoded')
 
-# fired when a board has finished processing a data line
+#: Fired when a board has finished processing a data line
 data_line_processed = signal('data_line_processed')
 
-# called when an expansion board is registered
+#: Fired when an expansion board is registered
 expansion_board_registered = signal('expansion_board_registered')
 
-# called when expansion boards should be registered with the board manager
+#: Fired when expansion boards should be registered with the board manager
+#:
+#: Subscribed to by:
+#:  - [Expansion Boards].register_signals >> BaseExpansionBoard.register_board
+#:
+#: Sent by:
+#:  - :mod:`BaseExpansionBoard`.__init__
 registering_boards = signal('registering_boards')
 
-# called when plugins are loaded
+#: Fired when plugins are loaded
+#:
+#: Sent by:
+#:  - :mod:`PluginMount`.register_plugin
 plugin_loaded = signal('plugin_loaded')
 
-# called when logging starts on the server
+#: Fired when logging starts on the server
+#:
+#: Subscribed to by:
+#:  - :mod:`SerialManager`.__init__ >> SerialManager.start
+#:
+#: Sent by:
+#:  - :mod:`ServerLoggingState`.enter_state
 logging_started = signal('logging_started')
 
-# called when logging stops on the server
+#: Fired when logging stops on the server
+#:
+#: Subscribed to by:
+#:  - :mod:`SerialManager`.__init__ >> SerialManager.stop
+#:
+#: Sent by:
+#:  - :mod:`ServerLoggingState`.receive_message
 logging_stopped = signal('logging_stopped')
 
-# called when the client requests a status update from the server
+#: Fired when the client requests a status update from the server
+#:
+#: Subscribed to by:
+#:  - ApplicationServer.__init__ >> ApplicationServer.serve_client_status
+#:
+#: Sent by:
+#:  - :mod:`ServerLoggingState`.receive_message
 client_status_request = signal('client_status_request')
 
-# called when the client has requested a status list update, TcpServer as argument
+#: Fired when the client has requested a status list update, TcpServer as argument
+#:
+#: Subscribed to by:
+#:  - :mod:`ApplicationServer`.__init__ >> ApplicationServer.update_session_list
+#:
+#: Sent by:
+#:  - :mod:`ServerIdleState.receive_message
 client_requested_session_list = signal('client_requested_session_list')
 
-# called when the client has a completed session list received from the server
+#: Fired when the client has a completed session list received from the server
+#:
+#: Subscribed to by:
+#:  - :mod:`DatabaseClient`.__init__ >> DatabaseClient.update_session_list
+#:
+#: Sent by:
+#:  - :mod:`ClientSessionListState.go_to_state
 client_session_list_updated = signal('client_session_list_updated')
 
-# a signal fired to let subscribers know a message is ready to be received
-# from the reply queue.  Normally should only be subscribed to by the Application
+#: Fired to let subscribers know a message is ready to be received
+#: from the reply queue.  Normally should only be subscribed to by the Application
+#:
+#: Sent by:
+#:  - :mod:`TcpBase`.run_server
+#:  - :mod:`TcpBase`.run_client
 tcp_message_received = signal('tcp_message_received')
 
-# Fired when a client requests a download of a particular session
+#: Fired when a client requests a download of a particular session
+#:
+#: Subscribed to by:
+#:  - :mod:`ApplicationServer`.__init__ >> ApplicationServer.serve_client_download
+#:  - :mod:`ApplicationClient`.__init__ >> ApplicationClient.send_download_request
+#:
+#: Sent by:
+#:  - :mod:`ServerDownloadingState`.enter_state
+#:  - :mod:`DownloadHandler`.get
 client_requested_download = signal('client_requested_download')

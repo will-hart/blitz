@@ -245,7 +245,7 @@ class BlitzBasicExpansionBoard(BaseExpansionBoard):
         """load the correct description for the board"""
         BaseExpansionBoard.__init__(self, description)
         self.do_not_register = False
-        self.id = 1
+        self.id = 8
         self.description = description
 
     def register_signals(self):
