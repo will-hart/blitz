@@ -138,8 +138,9 @@ class SerialManager(object):
         port.write(board_id + SerialCommands['TRANSMIT'] + "\n")
 
         # readlines until no more lines left (will read for the timeout period)
-        lines = port.readlines().replace('\n', '').replace('\r','')
+        lines = port.readlines()
         for line in lines:
+            line = line.replace('\n', '').replace('\r','')
             line_size = len(line)
             if line_size < 4:
                 self.logger.debug("Received short message (%s) from board %s, ignoring" % (line, board_id))
@@ -260,6 +261,9 @@ class SerialManager(object):
         """
 
         self.logger.debug("Received signal to stop logging")
+        self.__stop_event.set()
+        self.__serial_thread.join()
+        self.logger.info("Serial polling stopped")
 
         # send a stop signal to all boards
         for k in self.serial_mapping.keys():
@@ -268,11 +272,12 @@ class SerialManager(object):
             # log errors for now
             if not success is None:
                 self.logger.warn("Received '%s' instead of ACK from board ID %s on STOP" % (success, k))
+            else:
+                self.logger.debug("Board %s has stopped logging" % k)
 
         # end the new session
         self.database.stop_session()
-        self.__serial_thread.join()
-        self.logger.info("Serial polling thread stopped")
+        self.logger.debug("Database server session stopped")
 
     def __poll_serial(self, stop_event):
         """
