@@ -1,9 +1,9 @@
-serial
+rs232
 ======
 
 SerialManager
 +++++++++++++
 
-.. autoclass:: blitz.io.serial.SerialManager
+.. autoclass:: blitz.io.rs232.SerialManager
    :members:
 

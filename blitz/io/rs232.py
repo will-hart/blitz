@@ -32,6 +32,8 @@ class SerialManager(object):
     def Instance(cls):
         """
         Returns a reference to a single SerialManager instance
+
+        :returns: The SerialManager singleton instance
         """
         cls.logger.debug("SerialManager Instance called")
         if cls.__instance is None:
@@ -43,6 +45,8 @@ class SerialManager(object):
     def __init__(self):
         """
         Follows a singleton pattern and prevents instantiation of more than one Serial Manager.
+
+        :returns: Nothing
         """
 
         if SerialManager.__instance is not None:
@@ -72,9 +76,9 @@ class SerialManager(object):
     def get_available_ports(self):
         """
         Generates a list of available serial ports, mapping their ID to
-        the COM* or /dev/tty* reference.
+        the COM* or /dev/tty* reference.  Adapted from http://stackoverflow.com/a/14224477/233608
 
-        Adapted from http://stackoverflow.com/a/14224477/233608
+        :returns: Nothing
         """
         self.logger.info("Scanning for available serial ports")
         self.serial_mapping = {}
@@ -106,11 +110,15 @@ class SerialManager(object):
                 self.logger.info("Found board ID %s at %s" % (board_id, port))
                 self.serial_mapping[hex(board_id)[2:].zfill(2)] = port
 
-        return self.serial_mapping
-
     def create_serial_connection(self, port_name, baud_rate=57600, read_timeout=3):
         """
         Creates a serial port connection, opens it and returns it
+
+        :param port_name: the name of the port to open (for instance COM3)
+        :param baud_rate: the baud rate of the serial connection (default 57600)
+        :param read_timeout: the timeout to use for reading from ports (default 3 seconds)
+
+        :return: An open serial port object
         """
         return serial.Serial(port_name, baudrate=baud_rate, timeout=read_timeout)
 
@@ -118,6 +126,11 @@ class SerialManager(object):
         """
         Requests a transmission from the specified board and
         saves the returned data to the database
+
+        :param board_id: the ID of the board in hex form, (e.g. "08" for board with ID 8)
+        :param port_name: the name of the port to open (for instance COM3)
+
+        :returns: Nothing
         """
         port = self.create_serial_connection(port_name)
 
@@ -145,6 +158,10 @@ class SerialManager(object):
         """
         Requests an ID from the serial port name and returns it.
         If no ID is found, return None
+
+        :param port_name: the name of the port to open (for instance COM3)
+
+        :returns: A two digit hex board ID, or None if no ID was found
         """
         port = self.create_serial_connection(port_name)
         board_id = None
@@ -170,6 +187,12 @@ class SerialManager(object):
         Sends the given command over the serial port and checks for
         an ACK response.  Returns None if the ACK was received, and the
         received message otherwise
+
+        :param command: the string command to send over the serial port, from the SerialCommands constant
+        :param board_id: the ID of the board in hex form, (e.g. "08" for board with ID 8)
+        :param port_name: the name of the port to open (for instance COM3)
+
+        :returns: the board response if an error was received, or None if ACK was received
         """
         port = self.create_serial_connection(port_name)
         port.write(board_id + command)
@@ -186,6 +209,10 @@ class SerialManager(object):
     def start(self, signal_args):
         """
         Starts listening on the serial ports and polling for updates every SerialUpdatePeriod seconds
+
+        :param signal_args: the arguments provided by the blinker signal (unused)
+
+        :returns: Nothing
         """
 
         # enter a new session
@@ -210,7 +237,13 @@ class SerialManager(object):
         self.logger.info("Commenced logging session %s" % session_id)
 
     def stop(self, signal_args):
-        """Stops logging threads"""
+        """
+        Stops logging data and sends a STOP request to all boards
+
+        :param signal_args: the arguments provided by the blinker signal (unused)
+
+        :returns: Nothing
+        """
 
         self.logger.debug("Received signal to stop logging")
 
@@ -230,6 +263,10 @@ class SerialManager(object):
     def __poll_serial(self, stop_event):
         """
         A thread which periodically polls a serial connection until a stop_event is received
+
+        :param stop_event: the threading Event which triggers stopping serial listening
+
+        :returns: Nothing
         """
         while not stop_event.is_set():
             # enumerate each port
