@@ -15,7 +15,7 @@ class TcpCommunicationException(Exception):
 
 
 class TcpBase(object):
-    REQUEST_TIMEOUT = 2000
+    REQUEST_TIMEOUT = 3000
     REQUEST_RETRIES = 3
     SERVER_ENDPOINT = "tcp://%s:%s"
     MAX_RESPONSE_LENGTH = 1024
