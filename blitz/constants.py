@@ -88,5 +88,7 @@ SerialUpdatePeriod = 1.0  # serial update period in seconds
 SerialCommands = {
     'ACK': '40',
     'TRANSMIT': 'C0',
-    'ID': '81'
+    'ID': '81',
+    'START': '00',
+    'STOP': '20'
 }

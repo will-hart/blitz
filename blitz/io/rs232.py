@@ -103,6 +103,7 @@ class SerialManager(object):
         for port in ports:
             board_id = self.send_id_request(port)
             if board_id is not None:
+                self.logger.info("Found board ID %s at %s" % (board_id, port))
                 self.serial_mapping[hex(board_id)[2:].zfill(2)] = port
 
         return self.serial_mapping
@@ -164,6 +165,24 @@ class SerialManager(object):
 
         return board_id
 
+    def send_command_with_ack(self, command, board_id, port_name):
+        """
+        Sends the given command over the serial port and checks for
+        an ACK response.  Returns None if the ACK was received, and the
+        received message otherwise
+        """
+        port = self.create_serial_connection(port_name)
+        port.write(board_id + command)
+
+        serial_buffer = port.readline()
+
+        # TODO: properly handle errors
+
+        if serial_buffer.length != 4 or serial_buffer[2:] != SerialCommands['ACK']:
+            return serial_buffer
+
+        return None
+
     def start(self, signal_args):
         """
         Starts listening on the serial ports and polling for updates every SerialUpdatePeriod seconds
@@ -171,6 +190,14 @@ class SerialManager(object):
 
         # enter a new session
         session_id = self.database.start_session()
+
+        # send a start signal to all boards
+        for k in self.serial_mapping.keys():
+            success = self.send_command_with_ack(SerialCommands['START'], k, self.serial_mapping[k])
+
+            # log errors for now
+            if not success is None:
+                self.logger.warn("Did not receive a valid ACK response from board ID %s on START request" % k)
 
         # Start a thread for polling serial for updates
         self.__stop_event = threading.Event()
@@ -186,6 +213,14 @@ class SerialManager(object):
         """Stops logging threads"""
 
         self.logger.debug("Received signal to stop logging")
+
+        # send a stop signal to all boards
+        for k in self.serial_mapping.keys():
+            success = self.send_command_with_ack(SerialCommands['STOP'], k, self.serial_mapping[k])
+
+            # log errors for now
+            if not success is None:
+                self.logger.warn("Did not receive a valid ACK response from board ID %s on STOP request" % k)
 
         # end the new session
         self.database.stop_session()
