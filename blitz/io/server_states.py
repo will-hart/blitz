@@ -47,6 +47,7 @@ class ServerIdleState(BaseState):
             # huh? We are not logging!?
             tcp._do_send(CommunicationCodes.NoSession)
         elif msg == CommunicationCodes.IsLogging:
+            self.logger.debug("Responding with NACK, server not currently logging")
             tcp._do_send(CommunicationCodes.Negative)
         else:
             tcp._do_send(validate_command(msg, VALID_SERVER_COMMANDS))
@@ -79,8 +80,10 @@ class ServerLoggingState(BaseState):
 
         elif msg == CommunicationCodes.Start:
             tcp._do_send(CommunicationCodes.InSession)
+
         elif msg == CommunicationCodes.IsLogging:
-            tcp._do_send(CommunicationCodes.Negative)
+            self.logger.debug("Responding with ACK, server is currently logging")
+            tcp._do_send(CommunicationCodes.Acknowledge)
 
         else:
             tcp._do_send(validate_command(msg, VALID_SERVER_COMMANDS))
