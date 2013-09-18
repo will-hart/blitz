@@ -2,7 +2,6 @@ __author__ = 'Will Hart'
 
 import logging
 import os.path
-import signal
 import tornado.httpserver
 import tornado.ioloop
 import tornado.web
@@ -70,13 +69,12 @@ class Config(object):
         return self.set(key, value)
 
 
-class WebClient(object):
+class BaseApplicationClient(object):
     """
-    A basic application which exposes the Api and HTTP request handlers
-    provided by Tornado
+    A basic application which provides access method agnostic functionality
+    for running a Blitz client side application.  Can be inherited to run
+    web or desktop type applications
     """
-
-    io_loop = None
 
     def __init__(self):
         """
@@ -96,17 +94,79 @@ class WebClient(object):
         # create a database connection
         self.data = DatabaseClient(path=self.config['database_path'])
         self.data.clear_errors()
-
-        # todo remove fixture loading
-        try:
-            self.data.load_fixtures()
-        except Exception:
-            pass  # for now just load fixtures damnit
-
         self.logger.info("Initialised DatabaseClient")
 
         # create a board manager
         self.board_manager = BoardManager(self.data)
+
+        # save variables for later
+        self.config['socket'] = None
+        self.config['data'] = self.data
+        self.config['board_manager'] = self.board_manager
+
+        # subscribe to signals
+        sigs.cache_line_received.connect(self.cache_line_received)
+        sigs.client_requested_download.connect(self.send_download_request)
+
+    def run(self):
+        """
+        Starts the application.  Should be provided by implementation
+        """
+        pass
+
+    def cache_line_received(self, message):
+        """
+        Handles receiving a line of information from the logger,
+        and writing and parsing this to the temporary cache
+        """
+        self.board_manager.parse_message(message)
+
+    def send_download_request(self, session_id):
+        """
+        Sends a request for downloading a given session ID to the data logger
+        """
+        self.logger.debug("Handling client download request")
+        tcp = self.config['socket']
+
+        if tcp is None:
+            self.logger.debug("Failed to handle client download request - no TCP connection")
+            self.data.log_error(
+                "Unable to request download for session #%s as the logger is not connected" % session_id)
+            return
+
+        # delete old session data
+        data = self.config['data']
+        data.clear_session_data(session_id)
+        tcp.send(CommunicationCodes.composite(CommunicationCodes.Download, session_id))
+
+    def __del__(self):
+        """
+        A destructor, run when the application is closing
+        """
+        self.logger.warning("Closing Client Application")
+
+
+class WebApplicationClient(BaseApplicationClient):
+    """
+    A basic application which exposes the Api and HTTP request handlers
+    provided by Tornado
+    """
+
+    io_loop = None
+
+    def __init__(self):
+        """
+        Create a new client web application, setting defaults
+        """
+
+        super(WebApplicationClient, self).__init__()
+
+        # todo remove fixture loading
+        try:
+            self.data.load_fixtures()
+            self.logger.info("Loaded fixtures")
+        except Exception:
+            pass
 
         # create an application
         self.application = tornado.web.Application([
@@ -134,10 +194,6 @@ class WebClient(object):
         self.application.settings['data'] = self.data
         self.application.settings['board_manager'] = self.board_manager
 
-        # subscribe to signals
-        sigs.cache_line_received.connect(self.cache_line_received)
-        sigs.client_requested_download.connect(self.send_download_request)
-
     def run(self):
         """
         Starts the application
@@ -162,33 +218,5 @@ class WebClient(object):
             self.io_loop.add_callback(self.io_loop.stop)
             self.logger.warning("Stopped IO loop with callback")
 
-    def cache_line_received(self, message):
-        self.board_manager.parse_message(message)
-
-    def send_download_request(self, session_id):
-        self.logger.debug("Handling client download request")
-        tcp = self.application.settings['socket']
-
-        if tcp is None:
-            self.logger.debug("Failed to handle client download request - no TCP connection")
-            self.data.log_error(
-                "Unable to request download for session #%s as the logger is not connected" % session_id)
-            return
-
-        # delete old session data
-        data = self.application.settings['data']
-        data.clear_session_data(session_id)
-        tcp.send(CommunicationCodes.composite(CommunicationCodes.Download, session_id))
-
-    def __del__(self):
-        self.logger.warning("Closing Client Application")
-
-
-def close_io_loop():
-    """Closes an IO loop if sigterm is received"""
-    instance = tornado.ioloop.IOLoop.instance()
-    instance.add_callback(instance.stop)
-
-signal.signal(signal.SIGTERM, close_io_loop)
 
 
