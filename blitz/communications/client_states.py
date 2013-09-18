@@ -114,8 +114,7 @@ class ClientSessionListState(BaseState):
 
         if delimiter != CommunicationCodes.Negative:
             self.logger.info("Ignoring session list message with incorrect format [%s]" % msg)
-
-            # todo there is the potential to get stuck in "sessionList" state here if the first response is malformed
+            self.go_to_state(tcp, ClientIdleState)
             return self
 
         # process a session message
@@ -189,7 +188,12 @@ class ClientLoggingState(BaseState):
         if len(msg) == 4 or len(msg) >= 28:
             sigs.cache_line_received.send(msg)
         else:
-            self.logger.warning("Received message of unexpected length: " + msg)
+            if len(msg) >= 5 and msg[0:5] == CommunicationCodes.Error:
+                self.logger.error("Received error code from logger [%s], stopping logging" % msg)
+                return self.go_to_state(tcp, ClientStoppingState)
+            else:
+                self.logger.warning("Ignoring unknnown message [%s] in logging state" % msg)
+
         return self
 
     def go_to_state(self, tcp, state, args=None):

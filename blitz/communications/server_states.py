@@ -58,7 +58,7 @@ class ServerLoggingState(BaseState):
 
     def enter_state(self, tcp, state, args=None):
         self.logger.debug("[TCP] Calling ServerLoggingState.enter_state: " + state.__name__)
-        sigs.logging_started.send()
+        sigs.logging_started.send(tcp)
         return self
 
     def receive_message(self, tcp, msg):

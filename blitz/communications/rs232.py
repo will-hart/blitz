@@ -9,7 +9,7 @@ from redis import ConnectionError
 import serial
 from serial.tools.list_ports import comports
 
-from blitz.constants import SerialUpdatePeriod, SerialCommands
+from blitz.constants import CommunicationCodes, SerialUpdatePeriod, SerialCommands
 from blitz.data.database import DatabaseServer
 from blitz.communications.signals import logging_started, logging_stopped
 
@@ -25,6 +25,7 @@ class SerialManager(object):
     database = None
     serial_mapping = None
     __serial_thread = None
+    __stop_event = None
 
     logger = logging.getLogger(__name__)
 
@@ -221,7 +222,7 @@ class SerialManager(object):
 
         return None
 
-    def start(self, signal_args):
+    def start(self, tcp):
         """
         Starts listening on the serial ports and polling for updates every SerialUpdatePeriod seconds
 
@@ -229,6 +230,11 @@ class SerialManager(object):
 
         :returns: Nothing
         """
+
+        if self.database is None:
+            # unable to start a session if no local database is present
+            tcp.send(CommunicationCodes.composite(CommunicationCodes.Error, 3))
+            return
 
         # enter a new session
         session_id = self.database.start_session()
@@ -261,23 +267,26 @@ class SerialManager(object):
         """
 
         self.logger.debug("Received signal to stop logging")
-        self.__stop_event.set()
-        self.__serial_thread.join()
-        self.logger.info("Serial polling stopped")
 
-        # send a stop signal to all boards
-        for k in self.serial_mapping.keys():
-            success = self.send_command_with_ack(SerialCommands['STOP'], k, self.serial_mapping[k])
+        if self.__stop_event is not None:
+            self.__stop_event.set()
+            self.__serial_thread.join()
+            self.logger.info("Serial polling stopped")
 
-            # log errors for now
-            if not success is None:
-                self.logger.warn("Received '%s' instead of ACK from board ID %s on STOP" % (success, k))
-            else:
-                self.logger.debug("Board %s has stopped logging" % k)
+            # send a stop signal to all boards
+            for k in self.serial_mapping.keys():
+                success = self.send_command_with_ack(SerialCommands['STOP'], k, self.serial_mapping[k])
+
+                # log errors for now
+                if not success is None:
+                    self.logger.warn("Received '%s' instead of ACK from board ID %s on STOP" % (success, k))
+                else:
+                    self.logger.debug("Board %s has stopped logging" % k)
 
         # end the new session
-        self.database.stop_session()
-        self.logger.debug("Database server session stopped")
+        if self.database is not None:
+            self.database.stop_session()
+            self.logger.debug("Database server session stopped")
 
     def __poll_serial(self, stop_event):
         """

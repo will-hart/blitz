@@ -258,4 +258,4 @@ class TcpStateMachine(object):
             type(self.__current_state) == ClientLoggingState or type(self.__current_state) == ServerLoggingState)
 
     def force_state(self, state, args=None):
-        self.__current_state.go_to_state(state, args)
+        self.__current_state.go_to_state(self.__tcp, state, args)
