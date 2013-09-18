@@ -1,7 +1,7 @@
 __author__ = 'Will Hart'
 
-from blitz.client import ApplicationClient
+from blitz.client import WebClient
 
 if __name__ == "__main__":
-    app = ApplicationClient()
+    app = WebClient()
     app.run()

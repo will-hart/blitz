@@ -70,7 +70,7 @@ class Config(object):
         return self.set(key, value)
 
 
-class ApplicationClient(object):
+class WebClient(object):
     """
     A basic application which exposes the Api and HTTP request handlers
     provided by Tornado
