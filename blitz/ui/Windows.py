@@ -1,6 +1,9 @@
 import sys
 import PySide.QtGui as Qt
+
 from blitz.ui.mixins import BlitzGuiMixin
+
+
 
 class MainBlitzApplication(Qt.QApplication):
 
