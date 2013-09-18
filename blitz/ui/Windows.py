@@ -1,6 +1,6 @@
 import sys
 import PySide.QtGui as Qt
-
+from blitz.ui.mixins import BlitzGuiMixin
 
 class MainBlitzApplication(Qt.QApplication):
 
@@ -14,11 +14,42 @@ class MainBlitzApplication(Qt.QApplication):
         sys.exit(self.exec_())
 
 
-class MainBlitzWindow(Qt.QMainWindow):
-    def __init__(self, app):
-        self.app = app
+class BlitzLoggingWidget(Qt.QWidget):
+    """
+    A widget which handles logger display of data
+    """
 
+    def __init__(self):
+        """
+        Initialises the graph widget
+        """
+
+        super(BlitzLoggingWidget, self).__init__()
+
+        # create widgets
+        self.button1 = Qt.QPushButton('button1', self)
+        self.grid = Qt.QGridLayout()
+
+        # layout widgets
+        self.grid.setSpacing(10)
+        self.grid.addWidget(self.button1, 0, 0)
+        self.grid.addWidget(Qt.QLabel(''), 0, 1, 1, 3)
+
+        # Save the layout
+        self.setLayout(self.grid)
+
+
+class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
+    """
+    Contains a Qt Main Window that handles user interactions on the Blitz Logger desktop software
+    """
+    def __init__(self, app):
+        """
+        Initialises the main window
+        """
         super(MainBlitzWindow, self).__init__()
+
+        self.app = app
 
         self.initialise_window()
 
@@ -40,8 +71,7 @@ class MainBlitzWindow(Qt.QMainWindow):
         self.setWindowTitle("Blitz Data Logger")
 
         # size
-        self.resize(640, 480)
-        #self.center()
+        self.resize(1024, 768)
 
         # fonts
         Qt.QToolTip.setFont(Qt.QFont('SansSerif', 10))
@@ -53,7 +83,8 @@ class MainBlitzWindow(Qt.QMainWindow):
         Automatically created by __init__
         """
         # status bar
-        self.statusBar().showMessage("Blitz Logger is ready")
+        self.status_bar = self.statusBar()
+        self.status_bar.showMessage("Blitz Logger is ready")
 
         ##
         # menu bar actions
@@ -100,6 +131,9 @@ class MainBlitzWindow(Qt.QMainWindow):
         # the toolbar at the top of the window
         self.main_toolbar = self.addToolBar('Main')
 
+        # main graphing widget
+        self.main_widget = BlitzLoggingWidget()
+
     def layout_window(self):
         """
         Adds the widgets for the window and generates the layout.
@@ -122,6 +156,9 @@ class MainBlitzWindow(Qt.QMainWindow):
         self.main_toolbar.addAction(self.start_session_action)
         self.main_toolbar.addAction(self.stop_session_action)
 
+        # set the central widget
+        self.setCentralWidget(self.main_widget)
+
     def run_window(self):
         """
         Connects the required signals and displays the window
@@ -130,36 +167,3 @@ class MainBlitzWindow(Qt.QMainWindow):
         """
         # go go go
         self.show()
-
-    def connect_to_logger(self):
-        """
-        Connects the application to the data logger via a TCP connection
-        """
-        self.connect_action.setEnabled(False)
-        self.disconnect_action.setEnabled(True)
-        self.start_session_action.setEnabled(True)
-        self.statusBar().showMessage("Connected to logger")
-
-    def disconnect_from_logger(self):
-        """
-        Disconnects the application from the data logger
-        """
-        self.connect_action.setEnabled(True)
-        self.disconnect_action.setEnabled(False)
-        self.start_session_action.setEnabled(False)
-        self.stop_session_action.setEnabled(False)
-        self.statusBar().showMessage("Disconnected from logger")
-
-    def start_session(self):
-        """
-        Disconnects the application from the data logger
-        """
-
-        self.statusBar().showMessage("Starting session")
-
-    def stop_session(self):
-        """
-        Disconnects the application from the data logger
-        """
-
-        self.statusBar().showMessage("Stopping session")
