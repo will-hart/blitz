@@ -1,17 +1,11 @@
 __author__ = 'Will Hart'
 
-import gtk
+import sys
 
-from blitz.ui.Windows import MainBlitzWindow
-
-
-class LoggerWindow(MainBlitzWindow):
-    def __init__(self):
-        super(LoggerWindow, self).__init__()
+from blitz.ui.Windows import MainBlitzApplication
 
 
 if __name__ == "__main__":
 
     # create the logger
-    app = LoggerWindow()
-    gtk.main()
+    app = MainBlitzApplication(sys.argv)
