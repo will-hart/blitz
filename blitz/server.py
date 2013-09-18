@@ -140,11 +140,16 @@ class ApplicationServer(object):
         Sends the client the list of logged sessions
         """
         self.logger.debug("Server sending out updated session list")
-        sessions = self.serial_server.database.build_client_session_list()
-        sessions_string = "\n".join([x for x in sessions])
-        sessions_string += "\n" + CommunicationCodes.Negative
-        self.tcp.send(sessions_string)
-        self.logger.debug("Session list queued for sending")
+
+        if self.serial_server.database is None:
+            self.logger.warn("Unable to generate session list - no database")
+            self.tcp.send(CommunicationCodes.Negative)
+        else:
+            sessions = self.serial_server.database.build_client_session_list()
+            sessions_string = "\n".join([x for x in sessions])
+            sessions_string += "\n" + CommunicationCodes.Negative
+            self.tcp.send(sessions_string)
+            self.logger.debug("Session list queued for sending")
 
     def serve_client_status(self, args):
         """
