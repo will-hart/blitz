@@ -5,7 +5,7 @@ import logging
 import os
 
 from blitz.constants import CommunicationCodes
-from blitz.io.tcp import TcpBase, TcpCommunicationException
+from blitz.communications.tcp import TcpBase, TcpCommunicationException
 from blitz.web.api import ApiRequestHandler
 
 

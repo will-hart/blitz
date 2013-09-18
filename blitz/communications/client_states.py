@@ -5,7 +5,7 @@ import threading
 import time
 
 from blitz.constants import *
-import blitz.io.signals as sigs
+import blitz.communications.signals as sigs
 
 
 class BaseState(object):

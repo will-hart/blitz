@@ -1,7 +1,7 @@
 __author__ = 'Will Hart'
 
-from blitz.io.boards import BaseExpansionBoard
-from blitz.io.tcp import TcpBase
+from blitz.communications.boards import BaseExpansionBoard
+from blitz.communications.tcp import TcpBase
 from blitz.utilities import blitz_timestamp
 
 time0 = blitz_timestamp()

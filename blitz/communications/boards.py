@@ -6,7 +6,7 @@ from bitstring import BitArray
 
 from blitz.constants import BOARD_MESSAGE_MAPPING, PAYLOAD_LENGTH, MESSAGE_BYTE_LENGTH
 from blitz.data.models import Reading
-from blitz.io.signals import data_line_received, data_line_processed, registering_boards
+from blitz.communications.signals import data_line_received, data_line_processed, registering_boards
 from blitz.plugins import Plugin
 from blitz.utilities import blitz_timestamp
 

@@ -6,7 +6,7 @@ A simple script for debugging the TCP client / server
 
 import time
 
-from blitz.io.tcp import TcpClient, TcpServer
+from blitz.communications.tcp import TcpClient, TcpServer
 
 
 # set up objects

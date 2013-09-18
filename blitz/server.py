@@ -5,9 +5,9 @@ import logging
 import os
 
 from blitz.constants import CommunicationCodes
-from blitz.io.rs232 import SerialManager
-import blitz.io.signals as sigs
-from blitz.io.tcp import TcpBase
+from blitz.communications.rs232 import SerialManager
+import blitz.communications.signals as sigs
+from blitz.communications.tcp import TcpBase
 
 
 class Config(object):

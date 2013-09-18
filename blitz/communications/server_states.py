@@ -1,8 +1,8 @@
 __author__ = 'Will Hart'
 
 from blitz.constants import *
-from blitz.io.client_states import BaseState
-import blitz.io.signals as sigs
+from blitz.communications.client_states import BaseState
+import blitz.communications.signals as sigs
 
 
 def validate_command(msg, commands):

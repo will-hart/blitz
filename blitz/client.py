@@ -9,8 +9,8 @@ import tornado.web
 
 from blitz.constants import CommunicationCodes
 from blitz.data.database import DatabaseClient
-from blitz.io.boards import BoardManager
-import blitz.io.signals as sigs
+from blitz.communications.boards import BoardManager
+import blitz.communications.signals as sigs
 import blitz.web.api as blitz_api
 import blitz.web.http as blitz_http
 

@@ -7,7 +7,7 @@ import redis
 
 from blitz.data.models import *
 from blitz.data.fixtures import *
-import blitz.io.signals as sigs
+import blitz.communications.signals as sigs
 from blitz.utilities import blitz_timestamp
 
 

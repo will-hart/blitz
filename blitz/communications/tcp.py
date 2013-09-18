@@ -5,9 +5,9 @@ import threading
 import Queue
 import zmq
 
-from blitz.io.client_states import *
-from blitz.io.server_states import *
-import blitz.io.signals as sigs
+from blitz.communications.client_states import *
+from blitz.communications.server_states import *
+import blitz.communications.signals as sigs
 
 
 class TcpCommunicationException(Exception):

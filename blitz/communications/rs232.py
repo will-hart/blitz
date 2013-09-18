@@ -11,7 +11,7 @@ from serial.tools.list_ports import comports
 
 from blitz.constants import SerialUpdatePeriod, SerialCommands
 from blitz.data.database import DatabaseServer
-from blitz.io.signals import logging_started, logging_stopped
+from blitz.communications.signals import logging_started, logging_stopped
 
 
 class SerialManager(object):

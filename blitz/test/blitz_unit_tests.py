@@ -9,10 +9,10 @@ from sqlalchemy import orm
 
 from blitz.data.fixtures import *
 from blitz.data.models import *
-from blitz.io.boards import *
-from blitz.io.client_states import *
+from blitz.communications.boards import *
+from blitz.communications.client_states import *
 from blitz.data.database import *
-from blitz.io.server_states import *
+from blitz.communications.server_states import *
 from blitz.utilities import blitz_timestamp, to_blitz_date
 
 
