@@ -2,11 +2,17 @@ __author__ = 'Will Hart'
 
 from blinker import signal
 
-#: Fired when a server TCP connection is established
-logger_connected = signal('logger_connected')
+#: Fired when the client has requested a connection to the data logger
+#:
+#: Subscribed to by:
+#:  - BaseApplicationClient.__init__ >> BaseApplicationClient.connect_to_logger()
+#:
+#: Sent by:
+#:  - ConnectHandler.get()
+logger_connecting = signal('logger_connected')
 
-#: Fired when a server TCP connection is closed
-logger_disconnected = signal('logger_disconnected')
+#: Fired when the client has requested a disconnection from the data logger
+logger_disconnecting = signal('logger_disconnected')
 
 #: Fired when the client receives a line of cached data
 #:
@@ -78,7 +84,7 @@ logging_stopped = signal('logging_stopped')
 #:
 #: Sent by:
 #:  - :mod:`ServerLoggingState`.receive_message
-client_status_request = signal('client_status_request')
+server_status_request = signal('server_status_request')
 
 #: Fired when the client has requested a status list update, TcpServer as argument
 #:

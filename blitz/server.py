@@ -126,7 +126,7 @@ class ApplicationServer(object):
 
         # hook up signals
         sigs.client_requested_session_list.connect(self.update_session_list)
-        sigs.client_status_request.connect(self.serve_client_status)
+        sigs.server_status_request.connect(self.serve_client_status)
         sigs.client_requested_download.connect(self.serve_client_download)
 
         # start the TCP server
