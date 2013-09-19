@@ -13,7 +13,7 @@ Contents:
 
    blitz_constants
    blitz_data
-   blitz_io
+   blitz_communications
    blitz_web
 
 Indices and tables
