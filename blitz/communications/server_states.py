@@ -71,7 +71,7 @@ class ServerLoggingState(BaseState):
             return self.go_to_state(tcp, ServerIdleState)
 
         if msg == CommunicationCodes.Update:
-            sigs.client_status_request.send(tcp)
+            sigs.server_status_request.send(tcp)
 
         elif msg == CommunicationCodes.Start:
             tcp._do_send(CommunicationCodes.InSession)
