@@ -1,8 +1,13 @@
-import sys
+import matplotlib
+matplotlib.use('Qt4Agg')
+matplotlib.rcParams['backend.qt4']='PySide'
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.widgets import Cursor as MplCursor
 import PySide.QtGui as Qt
+import sys
 
 from blitz.ui.mixins import BlitzGuiMixin
-
 
 
 class MainBlitzApplication(Qt.QApplication):
@@ -12,7 +17,7 @@ class MainBlitzApplication(Qt.QApplication):
         Creates a new desktop application and initialises it
         """
         super(MainBlitzApplication, self).__init__(args)
-
+        self.setStyle("plastique")
         self.window = MainBlitzWindow(self)
         sys.exit(self.exec_())
 
@@ -30,16 +35,62 @@ class BlitzLoggingWidget(Qt.QWidget):
         super(BlitzLoggingWidget, self).__init__()
 
         # create widgets
-        self.button1 = Qt.QPushButton('button1', self)
-        self.grid = Qt.QGridLayout()
+        self.figure = Figure(figsize=(600,600), dpi=72, facecolor=(1,1,1), edgecolor=(1,0,0))
+
+        # create a plot
+        self.axis = self.figure.add_subplot(111)
+        #FOR CHECKBOXES self.figure.subplots_adjust(left=0.2)
+
+        # add the lines
+        self.lines = []
+        self.lines += self.axis.plot([0, 1, 1.5, 6, 3, 3.2, 3.8, 4.8, 5.3, 5.2, 5.1, 3, 2, 0])
+        self.lines += self.axis.plot([1, 1.5, 6, 3, 3.2, 3.8, 4.8, 5.3, 5.2, 5.1, 3, 2, 0, 0])
+
+        # create the canvas
+        self.canvas = FigureCanvas(self.figure)
+
+        # initialise the data point label
+        self.data_point_label = Qt.QLabel('X: 0.000000, Y: 0.000000')
+
+        # conect up the canvas
+        self.canvas.mpl_connect('motion_notify_event', self.mouse_over_event)
+
+        # add checkboxes for selecting visible series
+        #FOR CHECKBOXES self.checkbox_labels = ('Item One', 'Item Two')
+        #FOR CHECKBOXES visible = (True, True)
+        #FOR CHECKBOXES also need to draw the checkboxes on a separate axes
+        #FOR CHECKBOXES self.series_checkbox = MplCheckButtons(self.axis, self.checkbox_labels, visible)
+        #FOR CHECKBOXES self.series_checkbox.on_clicked(self.toggle_series_visibility)
+
+        # create a cursor
+        self.data_cursor = MplCursor(self.axis, useblit=True, color='blue', linewidth=1)
 
         # layout widgets
-        self.grid.setSpacing(10)
-        self.grid.addWidget(self.button1, 0, 0)
-        self.grid.addWidget(Qt.QLabel(''), 0, 1, 1, 3)
+        self.grid = Qt.QGridLayout()
+        self.grid.addWidget(self.canvas, 0, 0, 1, 3)
+        self.grid.addWidget(self.data_point_label, 1, 0)
 
         # Save the layout
         self.setLayout(self.grid)
+
+    def mouse_over_event(self, event):
+        """
+        Handles the mouse rolling over the plot
+        """
+
+        if not event.inaxes:
+            self.data_point_label.setText('X: 0.000000, Y: 0.000000')
+        else:
+            self.data_point_label.setText(self.axis.format_coord(event.xdata, event.ydata))
+
+    def toggle_series_visibility(self, label):
+        """
+        Toggles the visibility of a data series when its checkbox is clicked
+        """
+        i = self.checkbox_labels.index(label)
+        self.lines[i].set_visible(not self.lines[i].get_visible())
+        self.canvas.draw()
+
 
 
 class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
