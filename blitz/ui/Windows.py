@@ -7,10 +7,11 @@ from matplotlib.widgets import Cursor as MplCursor
 import PySide.QtGui as Qt
 import sys
 
+from blitz.client import BaseApplicationClient
 from blitz.ui.mixins import BlitzGuiMixin
 
 
-class MainBlitzApplication(Qt.QApplication):
+class MainBlitzApplication(Qt.QApplication, BaseApplicationClient):
 
     def __init__(self, args):
         """
