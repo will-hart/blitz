@@ -1,9 +1,9 @@
-blitz.io
-========
+blitz.communications
+====================
 
 .. automodule:: blitz.communications
 
-The IO module provides a variety of IO operations for TCP, serial, I2C for both the client and server applications.
+The Communications module provides a variety of IO operations for TCP, serial, I2C for both the client and server applications.
 
  - :mod:`blitz.communications.boards` provides BoardManager and ExpansionBoard classes for decoding serial messages on the client
  - :mod:`blitz.communications.client_states` provides the states for the client TcpStateMachine
