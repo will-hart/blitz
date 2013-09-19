@@ -11,16 +11,18 @@ from blitz.client import BaseApplicationClient
 from blitz.ui.mixins import BlitzGuiMixin
 
 
-class MainBlitzApplication(Qt.QApplication, BaseApplicationClient):
+class MainBlitzApplication(BaseApplicationClient):
 
     def __init__(self, args):
         """
         Creates a new desktop application and initialises it
         """
-        super(MainBlitzApplication, self).__init__(args)
-        self.setStyle("plastique")
-        self.window = MainBlitzWindow(self)
-        sys.exit(self.exec_())
+        super(MainBlitzApplication, self).__init__()
+
+        self.gui_application = Qt.QApplication(args)
+        self.gui_application.setStyle("plastique")
+        self.gui_application.window = MainBlitzWindow(self)
+        sys.exit(self.gui_application.exec_())
 
 
 class BlitzLoggingWidget(Qt.QWidget):
@@ -104,7 +106,7 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         """
         super(MainBlitzWindow, self).__init__()
 
-        self.app = app
+        self.application = app
 
         self.initialise_window()
 
