@@ -92,7 +92,7 @@ server_status_request = signal('server_status_request')
 #:  - :mod:`ApplicationServer`.__init__ >> ApplicationServer.update_session_list
 #:
 #: Sent by:
-#:  - :mod:`ServerIdleState.receive_message
+#:  - :mod:`ServerIdleState`.receive_message
 client_requested_session_list = signal('client_requested_session_list')
 
 #: Fired when the client has a completed session list received from the server
@@ -101,7 +101,7 @@ client_requested_session_list = signal('client_requested_session_list')
 #:  - :mod:`DatabaseClient`.__init__ >> DatabaseClient.update_session_list
 #:
 #: Sent by:
-#:  - :mod:`ClientSessionListState.go_to_state
+#:  - :mod:`ClientSessionListState`.go_to_state
 client_session_list_updated = signal('client_session_list_updated')
 
 #: Fired to let subscribers know a message is ready to be received
