@@ -10,6 +10,7 @@ from blitz.constants import CommunicationCodes
 from blitz.data.database import DatabaseClient
 from blitz.communications.boards import BoardManager
 import blitz.communications.signals as sigs
+from blitz.communications.tcp import TcpCommunicationException, TcpBase
 import blitz.web.api as blitz_api
 import blitz.web.http as blitz_http
 
@@ -96,12 +97,13 @@ class BaseApplicationClient(object):
         self.data.clear_errors()
         self.logger.info("Initialised DatabaseClient")
 
+        # create an empty TCP connection
+        self.tcp = None
+
         # create a board manager
         self.board_manager = BoardManager(self.data)
 
         # save variables for later
-        self.config['socket'] = None
-        self.config['data'] = self.data
         self.config['board_manager'] = self.board_manager
 
         # subscribe to signals
@@ -126,18 +128,63 @@ class BaseApplicationClient(object):
         Sends a request for downloading a given session ID to the data logger
         """
         self.logger.debug("Handling client download request")
-        tcp = self.config['socket']
 
-        if tcp is None:
+        if self.tcp is None:
             self.logger.debug("Failed to handle client download request - no TCP connection")
             self.data.log_error(
                 "Unable to request download for session #%s as the logger is not connected" % session_id)
             return
 
         # delete old session data
-        data = self.config['data']
-        data.clear_session_data(session_id)
-        tcp.send(CommunicationCodes.composite(CommunicationCodes.Download, session_id))
+        self.data.clear_session_data(session_id)
+        self.tcp.send(CommunicationCodes.composite(CommunicationCodes.Download, session_id))
+
+    def connect_to_logger(self, args=None):
+        """
+        Handles a connection request from the client and establishes a TCP connection
+        with the data logger.  If a connection already exists, close it and reopen
+        """
+
+        if self.tcp is None:
+            # we are connecting
+            self.logger.debug("Created TCP connection at client request")
+            try:
+                self.tcp = TcpBase("127.0.0.1", 8999)  # TODO get from config
+                self.tcp.create_client()
+            except TcpCommunicationException as tce:
+                self.data.log_error("Communication error with the board - connection closed")
+                self.tcp.stop()
+                self.tcp = None
+
+        else:
+            self.tcp.stop()
+            self.logger.debug("Closed TCP connection at client request")
+
+            # write a connection error to database for the user
+            self.data.log_error("Unable to connect to the network")
+
+    def start_logging(self, args=None):
+        """
+        Sends a 'start logging' signal to the data logger
+        """
+
+        if self.tcp is None:
+            self.logger.warning("Attempt to start logging on TCP connection failed - there is no TCP connection")
+        else:
+            self.logger.debug("Web client requested logging start")
+            self.tcp.send(CommunicationCodes.Start)
+
+    def stop_logging(self, args=None):
+        """
+        Sends a 'stop logging' signal to the data logger
+        """
+
+        if self.tcp is None:
+            self.logger.warning("Attempt to stop logging on TCP connection failed - there is no TCP connection")
+
+        else:
+            self.logger.debug("Web client requested logging stop")
+            self.tcp.send(CommunicationCodes.Stop)
 
     def __del__(self):
         """
@@ -217,6 +264,18 @@ class WebApplicationClient(BaseApplicationClient):
 
             self.io_loop.add_callback(self.io_loop.stop)
             self.logger.warning("Stopped IO loop with callback")
+
+    def connect_to_logger(self, args):
+        """
+        Extend the BaseApplicationClient.connect_to_logger method to save the
+        TCP socket to application settings
+        """
+
+        # handle the connection through the BaseApplicationClient
+        super(WebApplicationClient, self).connect_to_logger(args)
+
+        # save off the socket for later use in the application
+        self.application.settings['socket'] = self.tcp
 
 
 
