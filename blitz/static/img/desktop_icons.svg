@@ -219,6 +219,16 @@
        y1="395.39072"
        x2="425.30286"
        y2="500.61383" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3953"
+       id="linearGradient4372"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(1.4385399,0,0,1.5007993,-78.76397,2227.8473)"
+       x1="176.05905"
+       y1="-756.0083"
+       x2="176.08223"
+       y2="-611.9917" />
   </defs>
   <sodipodi:namedview
      id="base"
@@ -229,7 +239,7 @@
      inkscape:pageshadow="2"
      inkscape:zoom="1.6172305"
      inkscape:cx="285.8968"
-     inkscape:cy="-33.618341"
+     inkscape:cy="-107.81926"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -389,28 +399,24 @@
        id="path3842"
        d="m 148.72514,1037.7647 -14.6856,0 3.65208,3.6521"
        style="fill:none;stroke:#aa0000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
-    <g
-       id="g4362"
-       transform="translate(-262.1766,191.60329)"
-       inkscape:export-filename="C:\Users\mecharius\Dropbox\blitz\blitz\static\img\desktop_splash.png"
-       inkscape:export-xdpi="86.864662"
-       inkscape:export-ydpi="86.864662">
-      <rect
-         style="fill:url(#linearGradient4366);fill-opacity:1;stroke:none"
-         id="rect3162"
-         width="362.63217"
-         height="216.14"
-         x="261.10648"
-         y="901.62738"
-         ry="0" />
-      <rect
-         y="901.62573"
-         x="465.95349"
-         height="216.14172"
-         width="157.78607"
-         id="rect5126"
-         style="fill:#004cff;fill-opacity:1;stroke:none" />
-    </g>
+    <rect
+       ry="0"
+       y="1093.2307"
+       x="-1.0701241"
+       height="216.14"
+       width="362.63217"
+       id="rect3162"
+       style="fill:url(#linearGradient4372);fill-opacity:1;stroke:none"
+       inkscape:export-xdpi="86.860001"
+       inkscape:export-ydpi="86.860001"
+       inkscape:export-filename="C:\Users\mecharius\Dropbox\blitz\blitz\static\img\desktop_splash.png" />
+    <rect
+       style="fill:#333333;fill-opacity:1;stroke:none"
+       id="rect5126"
+       width="157.78607"
+       height="216.14172"
+       x="203.77689"
+       y="1093.229" />
     <g
        id="g4334"
        inkscape:export-filename="C:\Users\mecharius\Dropbox\blitz\blitz\static\img\desktop_splash.png"
