@@ -106,6 +106,10 @@ class BaseApplicationClient(object):
         # save variables for later
         self.config['board_manager'] = self.board_manager
 
+        # set up a cache
+        self.cache = self.data.get_cache()
+        self.variable_cache = self.data.get_cache_variables()
+
         # subscribe to signals
         sigs.cache_line_received.connect(self.cache_line_received)
         sigs.client_requested_download.connect(self.send_download_request)
