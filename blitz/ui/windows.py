@@ -148,34 +148,34 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         ##
 
         # connects to the logger
-        self.connect_action = Qt.QAction('&Connect', self)
+        self.connect_action = Qt.QAction(Qt.QIcon('blitz/static/img/desktop_connect.png'), '&Connect', self)
         self.connect_action.setShortcut('Ctrl+C')
         self.connect_action.setStatusTip("Connects to the data logger over the network")
         self.connect_action.triggered.connect(self.connect_to_logger)
 
         # disconnects from the logger
-        self.disconnect_action = Qt.QAction('&Disconnect', self)
+        self.disconnect_action = Qt.QAction(Qt.QIcon('blitz/static/img/desktop_disconnect.png'), '&Disconnect', self)
         self.disconnect_action.setShortcut('Ctrl+Shift+C')
         self.disconnect_action.setStatusTip("Disconnect from the data logger")
         self.disconnect_action.triggered.connect(self.disconnect_from_logger)
         self.disconnect_action.setEnabled(False)
 
         # starts a logging session
-        self.start_session_action = Qt.QAction('&Start', self)
+        self.start_session_action = Qt.QAction(Qt.QIcon('blitz/static/img/desktop_start.png'), '&Start', self)
         self.start_session_action.setShortcut('F5')
         self.start_session_action.setStatusTip("Starts a logging session")
         self.start_session_action.triggered.connect(self.start_session)
         self.start_session_action.setEnabled(False)
 
         # stops a logging session
-        self.stop_session_action = Qt.QAction('S&top', self)
+        self.stop_session_action = Qt.QAction(Qt.QIcon('blitz/static/img/desktop_stop.png'), 'S&top', self)
         self.stop_session_action.setShortcut('Shift+F5')
         self.stop_session_action.setStatusTip("Stops a logging session")
         self.stop_session_action.triggered.connect(self.stop_session)
         self.stop_session_action.setEnabled(False)
 
         # exits the application
-        self.exit_action = Qt.QAction('&Exit', self)  # Qt.QIcon('exit.png'), '&Exit', self)
+        self.exit_action = Qt.QAction(Qt.QIcon('blitz/static/img/desktop_exit.png'),'&Exit', self)  # Qt.QIcon('exit.png'), '&Exit', self)
         self.exit_action.setShortcut('Alt+F4')
         self.exit_action.setStatusTip('Exit application')
         self.exit_action.triggered.connect(self.close)
