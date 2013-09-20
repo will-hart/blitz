@@ -95,7 +95,6 @@ class BlitzLoggingWidget(Qt.QWidget):
         self.canvas.draw()
 
 
-
 class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
     """
     Contains a Qt Main Window that handles user interactions on the Blitz Logger desktop software
