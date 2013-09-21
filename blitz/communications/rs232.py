@@ -110,9 +110,12 @@ class SerialManager(object):
                 self.logger.info("Found board ID %s at %s" % (board_id, port))
                 self.serial_mapping[hex(board_id)[2:].zfill(2)] = port
 
-    def create_serial_connection(self, port_name, baud_rate=57600, read_timeout=3):
+    def create_serial_connection(self, port_name, baud_rate=57600, read_timeout=3, reset_on_connect=False):
         """
-        Creates a serial port connection, opens it and returns it
+        Creates a serial port connection, opens it and returns it.  Note if you are using USB serial and
+        an Arduino you may need to put a resistor between 5V or 3.3V and the RESET pin to prevent auto reset.
+        This should only be required during development using a PC. Check the interwebs for the correct
+        resistance value (this is a known issue)
 
         :param port_name: the name of the port to open (for instance COM3)
         :param baud_rate: the baud rate of the serial connection (default 57600)
@@ -120,7 +123,25 @@ class SerialManager(object):
 
         :return: An open serial port object
         """
-        return serial.Serial(port_name, baudrate=baud_rate, timeout=read_timeout)
+        s = serial.Serial(port=port_name, baudrate=baud_rate, timeout=read_timeout)
+
+        if reset_on_connect:
+            # if requested, we can toggle DTR to reset the board
+            s.setDTR(False)
+            time.sleep(0.03)
+            s.setDTR(True)
+
+        return s
+
+    def reset_expansion_board(self, port_name):
+        """
+        Resets the (Arduino Based) expansion board on the given port by toggling the DTR line.
+        Only works for Arduino based expansion boards
+
+        :param port_name: the serial port to send the reset command to
+        """
+        s = create_serial_connection(port_name, reset_on_connect=True)
+        s.close()
 
     def receive_serial_data(self, board_id, port_name):
         """
@@ -279,9 +300,14 @@ class SerialManager(object):
 
             # send a stop signal to all boards
             for k in self.serial_mapping.keys():
+
+                # clear out the serial buffer
+                self.receive_serial_data(k, self.serial_mapping[k])
+
+                # then stop the board
                 success = self.send_command_with_ack(SerialCommands['STOP'], k, self.serial_mapping[k])
 
-                # log errors for now
+                # log errors for now instead of doing something about them
                 if not success is None:
                     self.logger.warn("Received '%s' instead of ACK from board ID %s on STOP" % (success, k))
                 else:
