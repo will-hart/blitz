@@ -23,6 +23,15 @@ logger_disconnecting = signal('logger_disconnected')
 #:  - :mod:`ClientLoggingState`.receive_message
 cache_line_received = signal('cache_line_received')
 
+#: Fired when the local cache is updated to trigger a UI update
+#:
+#: Subscribed to by:
+#:  -
+#:
+#: Sent by:
+#:  -
+cache_updated = signal('cache_updated')
+
 #: Fired when the expansion board receives a data row for processing
 #: during a download.  Allows pre-processing of data
 #:
