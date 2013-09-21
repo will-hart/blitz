@@ -155,7 +155,9 @@ class ApplicationServer(object):
         """
         Sends the client the last ten serial messages received
         """
-        self.tcp.send(CommunicationCodes.Acknowledge)
+
+        # TODO send a real message
+        self.tcp.send("08bf0000985a00007b8000000000")
 
     def serve_client_download(self, session_id):
         # get all the session data from the database
