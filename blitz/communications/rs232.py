@@ -92,7 +92,7 @@ class SerialManager(object):
             for i in range(256):
                 try:
                     portname = "COM%s" % (i + 1)
-                    s = serial.Serial(portname)
+                    s = self.create_serial_connection(portname)
                     s.close()
                     ports.append(portname)
 
@@ -120,7 +120,6 @@ class SerialManager(object):
 
         :return: An open serial port object
         """
-        self.logger.debug("Creating and opening serial port, %s @ %s" % (port_name, baud_rate))
         return serial.Serial(port_name, baudrate=baud_rate, timeout=read_timeout)
 
     def receive_serial_data(self, board_id, port_name):
@@ -134,9 +133,11 @@ class SerialManager(object):
         :returns: Nothing
         """
         port = self.create_serial_connection(port_name)
+        self.logger.debug("Sending '%s' on '%s' for board status update" % (
+            board_id + SerialCommands['TRANSMIT'], port_name))
 
         # send the transmit request
-        port.write(board_id + SerialCommands['TRANSMIT'] + "\n")
+        port.write(board_id + SerialCommands['TRANSMIT'] + '\n')
 
         # readlines until no more lines left (will read for the timeout period)
         lines = port.readlines()
@@ -145,16 +146,17 @@ class SerialManager(object):
             line_size = len(line)
             if line_size < 4:
                 self.logger.debug("Received short message (%s) from board %s, ignoring" % (line, board_id))
-                pass
+
             elif line_size == 4:
                 # a short message
                 command = line[2:]
                 if command == SerialCommands['ACK']:
                     self.logger.debug("Received serial ACK from board %s" % board_id)
                     break  # all done, ignore the rest
+
             else:
                 # a data message, save it for later
-                self.logger.debug("Received serial message from board %s: %s" % (board_id, line))
+                self.logger.debug("Received serial data from board %s: %s" % (board_id, line))
                 self.database.queue(line)
 
         self.logger.debug("Finished receiving data from board %s" % board_id)
@@ -208,14 +210,14 @@ class SerialManager(object):
         port.readline()
 
         # write the command
-        port.write(board_id + command)
+        port.write(board_id + command + '\n')
 
         # read the response
         serial_buffer = port.readline().replace('\n', '').replace('\r', '')
         port.close()
 
         # TODO: properly handle errors
-        self.logger.debug("Sent %s on serial to %s @ %s, received %s" % (command, board_id, port_name, serial_buffer))
+        self.logger.debug("Sent '%s' on %s, received %s" % (board_id + command, port_name, serial_buffer))
 
         if len(serial_buffer) != 4 or serial_buffer[2:] != SerialCommands['ACK']:
             return serial_buffer
@@ -246,6 +248,8 @@ class SerialManager(object):
             # log errors for now
             if not success is None:
                 self.logger.warn("Received '%s' instead of ACK from board ID %s on START" % (success, k))
+            else:
+                self.logger.debug("Board %s has started logging" % k)
 
         # Start a thread for polling serial for updates
         self.__stop_event = threading.Event()
@@ -296,6 +300,9 @@ class SerialManager(object):
 
         :returns: Nothing
         """
+
+        self.logger.debug("Commencing Serial polling loop")
+
         while not stop_event.is_set():
             # enumerate each port
             for k in self.serial_mapping.keys():
