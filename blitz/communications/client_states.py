@@ -192,7 +192,7 @@ class ClientLoggingState(BaseState):
                 self.logger.error("Received error code from logger [%s], stopping logging" % msg)
                 return self.go_to_state(tcp, ClientStoppingState)
             else:
-                self.logger.warning("Ignoring unknnown message [%s] in logging state" % msg)
+                self.logger.warning("Ignoring unknown message [%s] in logging state" % msg)
 
         return self
 
