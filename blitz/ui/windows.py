@@ -1,4 +1,5 @@
 import matplotlib
+matplotlib.rc_file('matplotlibrc')
 matplotlib.use('Qt4Agg')
 matplotlib.rcParams['backend.qt4']='PySide'
 from matplotlib.figure import Figure
@@ -30,7 +31,7 @@ class BlitzLoggingWidget(Qt.QWidget):
     A widget which handles logger display of data
     """
 
-    def __init__(self):
+    def __init__(self, cache, visibility):
         """
         Initialises the graph widget
         """
@@ -46,8 +47,9 @@ class BlitzLoggingWidget(Qt.QWidget):
 
         # add the lines
         self.lines = []
-        self.lines += self.axis.plot([0, 1, 1.5, 6, 3, 3.2, 3.8, 4.8, 5.3, 5.2, 5.1, 3, 2, 0], 'o-')
-        self.lines += self.axis.plot([1, 1.5, 6, 3, 3.2, 3.8, 4.8, 5.3, 5.2, 5.1, 3, 2, 0, 0], 'o-')
+        for series in cache:
+            x, y = series
+            self.lines += self.axis.plot(x, y, 'o-', linewidth=2)
 
         # create the canvas
         self.canvas = FigureCanvas(self.figure)
@@ -60,9 +62,8 @@ class BlitzLoggingWidget(Qt.QWidget):
 
         # add checkboxes for selecting visible series
         #FOR CHECKBOXES self.checkbox_labels = ('Item One', 'Item Two')
-        #FOR CHECKBOXES visible = (True, True)
         #FOR CHECKBOXES also need to draw the checkboxes on a separate axes
-        #FOR CHECKBOXES self.series_checkbox = MplCheckButtons(self.axis, self.checkbox_labels, visible)
+        #FOR CHECKBOXES self.series_checkbox = MplCheckButtons(self.axis, self.checkbox_labels, visibility)
         #FOR CHECKBOXES self.series_checkbox.on_clicked(self.toggle_series_visibility)
 
         # create a cursor
@@ -94,6 +95,34 @@ class BlitzLoggingWidget(Qt.QWidget):
         self.lines[i].set_visible(not self.lines[i].get_visible())
         self.canvas.draw()
 
+    def redraw(self, new_data, append=True):
+        """
+        Redraws the graph when new cached data is supplied
+
+        :param new_data: A list of lists containing new data to be added
+        """
+
+        if not append:
+            # draw a new plot
+            matplotlib.cla()
+
+            self.lines = []
+            for series in new_data:
+                x, y = series
+                self.lines += self.axis.plot(x, y, 'o-')
+
+        else:
+            # append data to existing plots
+            i = 0
+            for line in self.lines:
+                line.set_xdata(numpy.append(line.get_xdata(), new_data[i][0]))
+                line.set_ydata(numpy.append(line.get_ydata(), new_data[i][1]))
+                i += 1
+
+        self.axis.relim()
+        self.axis.autoscale_view()
+        self.canvas.draw()
+
 
 class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
     """
@@ -105,6 +134,10 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         """
         super(MainBlitzWindow, self).__init__()
 
+        # placeholders for saved data
+        self.cache = [([0,1,2,3], [0,1,2,3]), ([0,0.5,1,1.5,2,2.5],[3,2.95,2.6,2.1,1.3,0])]
+        self.cache_visibility = [True]
+
         self.application = app
 
         self.initialise_window()
@@ -114,7 +147,6 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.layout_window()
 
         self.run_window()
-
 
     def initialise_window(self):
         """
@@ -193,7 +225,7 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.main_toolbar = self.addToolBar('Main')
 
         # main graphing widget
-        self.main_widget = BlitzLoggingWidget()
+        self.main_widget = BlitzLoggingWidget(self.cache, self.cache_visibility)
 
     def layout_window(self):
         """
@@ -228,3 +260,15 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         """
         # go go go
         self.show()
+
+    def update_cached_data(self, data, append=True):
+        """
+        Updates the cached and plotted data, optionally clearing the existing data
+
+        :param data: The x-y data that should be appended to cached data
+        :param append: If false, the existing data will be entirely replaced as opposed ot appended.  Default True
+
+        :returns: Nothing
+        """
+        pass
+
