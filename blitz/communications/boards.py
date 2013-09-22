@@ -41,7 +41,7 @@ class BoardManager(object):
         """
 
         if board_id in self.boards.keys():
-            self.logger.error("Failed to register board [%s: %s]" % (board_id, board.description))
+            self.logger.error("Error registering duplicate board [%s: %s]" % (board_id, board.description))
             raise Exception("Attempted to register a board against an existing ID: %s" % board_id)
 
         self.logger.info("Registered expansion board [%s: %s]" % (board_id, board.description))
