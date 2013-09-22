@@ -67,17 +67,16 @@ class BoardManager(object):
     def parse_message(self, message, session_id=None, board_id=None):
         """
         Gets a variable dictionary from a board and save to database
-        :rtype : bool
-        :return: True if successfully parsed, False if unable to parse
         :param message: The raw message to parse
         :param session_id: The session ID of the message (ignore if getting cached variables)
         :param board_id: The id of the board to parse the message
+        :returns: a list of variables added to the cache or data store
         """
 
         readings = []
 
         if board_id is None:
-            board_id = int(message[2:4], 16)
+            board_id = int(message[0:2], 16)
 
         try:
             board = self.boards[board_id]
@@ -102,7 +101,7 @@ class BoardManager(object):
                     Reading(sessionId=session_id, timeLogged=timeLogged, categoryId=category_id, value=result[key]))
             else:
                 # adding to cache
-                self.data.add_cache(timeLogged, category_id, result[key])
+                readings.append(self.data.add_cache(timeLogged, category_id, result[key]))
 
         return readings
 
