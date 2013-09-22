@@ -2,8 +2,9 @@ import matplotlib
 matplotlib.rc_file('matplotlibrc')
 matplotlib.use('Qt4Agg')
 matplotlib.rcParams['backend.qt4']='PySide'
-from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
+import matplotlib.dates as MplDates
+from matplotlib.figure import Figure
 from matplotlib.widgets import Cursor as MplCursor, CheckButtons as MplCheckButtons
 import PySide.QtGui as Qt
 import sys
@@ -297,5 +298,10 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
 
         :returns: Nothing
         """
+
+        for k in data.keys():
+            # convert from Python datetime to matplotlib datenum
+            data[k][0] = [x for x in MplDates.date2num(data[k][0])]
+
         self.main_widget.redraw(data, replace_existing)
 

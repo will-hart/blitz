@@ -1,6 +1,7 @@
 __author__ = 'Will Hart'
 
 import logging
+import datetime as dt
 
 from bitstring import BitArray
 
@@ -104,8 +105,8 @@ class BoardManager(object):
                 cached_item = self.data.add_cache(timeLogged, category_id, result[key])
                 readings.append({
                     'categoryId': cached_item.categoryId,
-                    'timeLogged': cached_item.timeLogged,
-                    'value': cached_item.value
+                    'timeLogged': dt.datetime.fromtimestamp(cached_item.timeLogged / 1000),  # convert unix to python dates
+                    'value': int(cached_item.value)
                 })
 
         return readings
