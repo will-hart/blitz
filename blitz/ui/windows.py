@@ -4,7 +4,7 @@ matplotlib.use('Qt4Agg')
 matplotlib.rcParams['backend.qt4']='PySide'
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.widgets import Cursor as MplCursor
+from matplotlib.widgets import Cursor as MplCursor, CheckButtons as MplCheckButtons
 import PySide.QtGui as Qt
 import sys
 
@@ -23,7 +23,21 @@ class MainBlitzApplication(BaseApplicationClient):
         self.gui_application = Qt.QApplication(args)
         self.gui_application.setStyle("plastique")
         self.gui_application.window = MainBlitzWindow(self)
+        self.gui_application.setWindowIcon(Qt.QIcon('blitz/static/img/blitz.png'))
         sys.exit(self.gui_application.exec_())
+
+    def update_interface(self, data, replace_existing=False):
+        """
+        Provides an implementation of BaseApplicationClient.update_interface.
+
+        :param data: The results received from the BoardManager.parse_message command
+        :param replace_existing: If True, appends to existing cache, if False, replaces cache? Defaults to False
+
+        :returns: Nothing
+        """
+
+        if data:
+            self.gui_application.window.update_cached_data(data, replace_existing)
 
 
 class BlitzLoggingWidget(Qt.QWidget):
@@ -43,7 +57,7 @@ class BlitzLoggingWidget(Qt.QWidget):
 
         # create a plot
         self.axis = self.figure.add_subplot(111)
-        #FOR CHECKBOXES self.figure.subplots_adjust(left=0.2)
+        self.figure.subplots_adjust(left=0.2)
 
         # add the lines
         self.lines = []
@@ -61,10 +75,9 @@ class BlitzLoggingWidget(Qt.QWidget):
         self.canvas.mpl_connect('motion_notify_event', self.mouse_over_event)
 
         # add checkboxes for selecting visible series
-        #FOR CHECKBOXES self.checkbox_labels = ('Item One', 'Item Two')
-        #FOR CHECKBOXES also need to draw the checkboxes on a separate axes
-        #FOR CHECKBOXES self.series_checkbox = MplCheckButtons(self.axis, self.checkbox_labels, visibility)
-        #FOR CHECKBOXES self.series_checkbox.on_clicked(self.toggle_series_visibility)
+        self.checkbox_labels = ()
+        self.series_checkbox = MplCheckButtons(self.axis, self.checkbox_labels, visibility)
+        self.series_checkbox.on_clicked(self.toggle_series_visibility)
 
         # create a cursor
         self.data_cursor = MplCursor(self.axis, useblit=True, color='blue', linewidth=1)
@@ -101,10 +114,9 @@ class BlitzLoggingWidget(Qt.QWidget):
 
         :param new_data: A list of lists containing new data to be added
         """
-
         if not append:
             # draw a new plot
-            matplotlib.cla()
+            self.axis.cla()
 
             self.lines = []
             for series in new_data:
@@ -166,7 +178,7 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         Automatically called by __init__
         """
         # icons
-        self.setWindowIcon(Qt.QIcon('static/favicon.ico'))
+        self.setWindowIcon(Qt.QIcon('blitz/static/img/blitz.png'))
         self.setWindowTitle("Blitz Data Logger")
 
         # size
@@ -281,5 +293,5 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
 
         :returns: Nothing
         """
-        pass
+        self.main_widget.redraw(data, append)
 

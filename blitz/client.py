@@ -125,7 +125,8 @@ class BaseApplicationClient(object):
         Handles receiving a line of information from the logger,
         and writing and parsing this to the temporary cache
         """
-        self.board_manager.parse_message(message)
+        results = self.board_manager.parse_message(message)
+        self.update_interface(results)
 
     def send_download_request(self, session_id):
         """
@@ -189,6 +190,18 @@ class BaseApplicationClient(object):
         else:
             self.logger.debug("Web client requested logging stop")
             self.tcp.send(CommunicationCodes.Stop)
+
+    def update_interface(self, data, replace_existing=False):
+        """
+        Updates the user interface with new cache data received.  This method should be provided
+        by the implementing class
+
+        :param data: The results received from the BoardManager.parse_message command
+        :param replace_existing: If True, appends to existing cache, if False, replaces cache? Defaults to False
+
+        :returns: Nothing
+        """
+        pass
 
     def __del__(self):
         """
