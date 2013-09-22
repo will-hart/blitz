@@ -92,7 +92,7 @@ class SerialManager(object):
             for i in range(256):
                 try:
                     portname = "COM%s" % (i + 1)
-                    s = self.create_serial_connection(portname)
+                    s = self.open_serial_connection(portname)
                     s.close()
                     ports.append(portname)
 
@@ -105,12 +105,15 @@ class SerialManager(object):
                 ports.append(port[0])
 
         for port in ports:
-            board_id = self.send_id_request(port)
+            ser = self.open_serial_connection(port)
+            board_id = self.send_id_request(ser)
             if board_id is not None:
                 self.logger.info("Found board ID %s at %s" % (board_id, port))
-                self.serial_mapping[hex(board_id)[2:].zfill(2)] = port
+                self.serial_mapping[hex(board_id)[2:].zfill(2)] = ser
+            else:
+                ser.close()
 
-    def create_serial_connection(self, port_name, baud_rate=57600, read_timeout=3, reset_on_connect=False):
+    def open_serial_connection(self, port_name, baud_rate=57600, read_timeout=3):
         """
         Creates a serial port connection, opens it and returns it.  Note if you are using USB serial and
         an Arduino you may need to put a resistor between 5V or 3.3V and the RESET pin to prevent auto reset.
@@ -123,27 +126,52 @@ class SerialManager(object):
 
         :return: An open serial port object
         """
-        s = serial.Serial(port=port_name, baudrate=baud_rate, timeout=read_timeout)
+        return serial.Serial(port=port_name, baudrate=baud_rate, timeout=read_timeout)
 
-        if reset_on_connect:
-            # if requested, we can toggle DTR to reset the board
-            s.setDTR(False)
-            time.sleep(0.03)
-            s.setDTR(True)
-
-        return s
-
-    def reset_expansion_board(self, port_name):
+    def reset_expansion_board(self, board_id):
         """
         Resets the (Arduino Based) expansion board on the given port by toggling the DTR line.
         Only works for Arduino based expansion boards
 
         :param port_name: the serial port to send the reset command to
         """
-        s = create_serial_connection(port_name, reset_on_connect=True)
-        s.close()
+        s = self.serial_mapping[board_id]
 
-    def receive_serial_data(self, board_id, port_name):
+        if s is not None:
+            s.setDTR(False)
+            time.sleep(0.03)
+            s.setDTR(True)
+        else:
+            self.logger.warn("Attempted to reset unknown board ID %s" % board_id)
+
+    def send_id_request(self, port):
+        """
+        Requests an ID from the serial port name and returns it.
+        If no ID is found, return None
+
+        :param port_name: the name of the port to open (for instance COM3)
+
+        :returns: A two digit hex board ID, or None if no ID was found
+        """
+        board_id = None
+        serial_buffer = ""
+
+        # clear out any junk in the board's serial buffer and ignore the response
+        port.write('\n')
+        port.readline()
+
+        # send the ID request
+        port.write('00' + SerialCommands['ID'] + '\n')
+        serial_buffer = port.readline()
+
+        # check if a valid id was returned
+        if len(serial_buffer) > 2:
+            board_id = int(serial_buffer[0:2], 16)
+            self.logger.debug("Received serial ID %s from port %s" % (board_id, port.port))
+
+        return board_id
+
+    def receive_serial_data(self, board_id):
         """
         Requests a transmission from the specified board and
         saves the returned data to the database
@@ -153,15 +181,16 @@ class SerialManager(object):
 
         :returns: Nothing
         """
-        port = self.create_serial_connection(port_name)
+        port = self.serial_mapping[board_id]
         self.logger.debug("Sending '%s' on '%s' for board status update" % (
-            board_id + SerialCommands['TRANSMIT'], port_name))
+            board_id + SerialCommands['TRANSMIT'], port.port))
 
         # send the transmit request
         port.write(board_id + SerialCommands['TRANSMIT'] + '\n')
 
         # readlines until no more lines left (will read for the timeout period)
         lines = port.readlines()
+
         for line in lines:
             line = line.replace('\n', '').replace('\r','')
             line_size = len(line)
@@ -181,38 +210,8 @@ class SerialManager(object):
                 self.database.queue(line)
 
         self.logger.debug("Finished receiving data from board %s" % board_id)
-        port.close()
 
-    def send_id_request(self, port_name):
-        """
-        Requests an ID from the serial port name and returns it.
-        If no ID is found, return None
-
-        :param port_name: the name of the port to open (for instance COM3)
-
-        :returns: A two digit hex board ID, or None if no ID was found
-        """
-        port = self.create_serial_connection(port_name)
-        board_id = None
-        serial_buffer = ""
-
-        # clear out any junk in the board's serial buffer and ignore the response
-        port.write('\n')
-        port.readline()
-
-        # send the ID request
-        port.write('00' + SerialCommands['ID'] + '\n')
-        serial_buffer = port.readline()
-        port.close()
-
-        # check if a valid id was returned
-        if len(serial_buffer) > 2:
-            board_id = int(serial_buffer[0:2], 16)
-            self.logger.debug("Received serial ID %s from port %s" % (board_id, port_name))
-
-        return board_id
-
-    def send_command_with_ack(self, command, board_id, port_name):
+    def send_command_with_ack(self, command, board_id):
         """
         Sends the given command over the serial port and checks for
         an ACK response.  Returns None if the ACK was received, and the
@@ -224,7 +223,7 @@ class SerialManager(object):
 
         :returns: the board response if an error was received, or None if ACK was received
         """
-        port = self.create_serial_connection(port_name)
+        port = self.serial_mapping[board_id]
 
         # clear existing
         port.write('\n')
@@ -235,10 +234,9 @@ class SerialManager(object):
 
         # read the response
         serial_buffer = port.readline().replace('\n', '').replace('\r', '')
-        port.close()
 
         # TODO: properly handle errors
-        self.logger.debug("Sent '%s' on %s, received %s" % (board_id + command, port_name, serial_buffer))
+        self.logger.debug("Sent '%s' on %s, received %s" % (board_id + command, port.port, serial_buffer))
 
         if len(serial_buffer) != 4 or serial_buffer[2:] != SerialCommands['ACK']:
             return serial_buffer
@@ -264,7 +262,7 @@ class SerialManager(object):
 
         # send a start signal to all boards
         for k in self.serial_mapping.keys():
-            success = self.send_command_with_ack(SerialCommands['START'], k, self.serial_mapping[k])
+            success = self.send_command_with_ack(SerialCommands['START'], k)
 
             # log errors for now
             if not success is None:
@@ -302,10 +300,10 @@ class SerialManager(object):
             for k in self.serial_mapping.keys():
 
                 # clear out the serial buffer
-                self.receive_serial_data(k, self.serial_mapping[k])
+                self.receive_serial_data(k)
 
                 # then stop the board
-                success = self.send_command_with_ack(SerialCommands['STOP'], k, self.serial_mapping[k])
+                success = self.send_command_with_ack(SerialCommands['STOP'], k)
 
                 # log errors for now instead of doing something about them
                 if not success is None:
@@ -332,8 +330,21 @@ class SerialManager(object):
         while not stop_event.is_set():
             # enumerate each port
             for k in self.serial_mapping.keys():
-                self.receive_serial_data(k, self.serial_mapping[k])
+                self.receive_serial_data(k)
 
             time.sleep(SerialUpdatePeriod)
 
         self.logger.debug("Exited poll serial thread")
+
+    def __del__(self):
+        """
+        Destroys the SerialManager and closes all open ports
+        """
+        self.logger.warning("Shutting down SerialManager")
+
+        for k in self.serial_mapping.keys():
+            try:
+                self.serial_mapping[k].close()
+                self.logger.info("Closed connection to board ID %s" % k)
+            except:
+                pass
