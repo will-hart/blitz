@@ -26,10 +26,10 @@ cache_line_received = signal('cache_line_received')
 #: Fired when the local cache is updated to trigger a UI update
 #:
 #: Subscribed to by:
-#:  -
+#:  - MainBlitzApplication.__init__ >> MainBlitzWindow.update_cached_data
 #:
 #: Sent by:
-#:  -
+#:  - BaseApplicationClient.cache_line_received
 cache_updated = signal('cache_updated')
 
 #: Fired when the expansion board receives a data row for processing
