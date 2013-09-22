@@ -462,6 +462,20 @@ class DatabaseServer(object):
         result.reverse()
         return result
 
+    def get_latest_from_session(self, session_id):
+        """
+        Gets the most recent logged variable from the database and returns it as
+        a raw message string.
+
+        :param session_id: The id of the session to return the top variable from
+
+        :returns: A string containing the last raw serial message received from a board in this session
+        """
+        session_str = "session_" + str(session_id)
+        result = self.__data.lrange(session_str, 0, 0)
+
+        return "" if len(result) == 0 else result[0]
+
     def delete_session(self, session_id):
         """
         Deletes a session and all associated data from the database. The session number

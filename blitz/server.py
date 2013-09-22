@@ -153,11 +153,12 @@ class ApplicationServer(object):
 
     def serve_client_status(self, args):
         """
-        Sends the client the last ten serial messages received
-        """
+        Sends the client the last serial message received from a board
 
-        # TODO send a real message
-        self.tcp.send("08bf0000985a00007b8000000000")
+        # TODO - improve to send the last serial message from each connected given board in serial_mapping
+        """
+        message = self.serial_server.database.get_latest_from_session(self.serial_server.database.session_id)
+        self.tcp.send(message)
 
     def serve_client_download(self, session_id):
         # get all the session data from the database
