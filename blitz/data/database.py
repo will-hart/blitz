@@ -397,6 +397,7 @@ class DatabaseServer(object):
         """
         self.logger.debug("DatabaseServer __init__")
         self.session_id = self.__get_session_id()
+        self.__last_session_length = -1
 
     def start_session(self):
         """
@@ -408,6 +409,7 @@ class DatabaseServer(object):
         self.session_id = self.__get_session_id()
         self.__data.lpush("sessions", self.session_id)
         self.__data.set("session_" + str(self.session_id) + "_start", blitz_timestamp())
+        self.__last_session_length = -1
         return self.__get_session_id()
 
     def stop_session(self):
@@ -418,6 +420,7 @@ class DatabaseServer(object):
         """
         self.__data.set("session_" + str(self.session_id) + "_end", blitz_timestamp())
         self.session_id = -1
+        self.__last_session_length = -1
 
     def __get_session_id(self):
         sess_id = self.__data.get("session_id")
@@ -472,8 +475,18 @@ class DatabaseServer(object):
         :returns: A string containing the last raw serial message received from a board in this session
         """
         session_str = "session_" + str(session_id)
-        result = self.__data.lrange(session_str, 0, 0)
 
+        # Work out if we have taken any new readings since the last status update
+        num_readings = self.__data.llen(session_str)
+
+        if num_readings == self.__last_session_length:
+            # do not return a reading more than once
+            return ""
+        else:
+            self.__last_session_length = num_readings
+
+        # get and return the last message from the database
+        result = self.__data.lrange(session_str, 0, 0)
         return "" if len(result) == 0 else result[0]
 
     def delete_session(self, session_id):
