@@ -61,11 +61,11 @@ class BlitzLoggingWidget(Qt.QWidget):
         self.chart_data = {}
 
         # create widgets
-        self.figure = Figure(figsize=(600,600), dpi=72, facecolor=(1,1,1), edgecolor=(1,0,0))
+        self.figure = Figure(figsize=(800, 600), dpi=72, facecolor=(1, 1, 1), edgecolor=(1, 0, 0))
 
         # create a plot
-        self.axis = self.figure.add_subplot(111)
-        self.figure.subplots_adjust(left=0.2)
+        self.axis = self.figure.add_subplot(1, 1, 1)
+        #self.figure.subplots_adjust(left=0.2)
 
         # create the canvas
         self.canvas = FigureCanvas(self.figure)
@@ -144,9 +144,8 @@ class BlitzLoggingWidget(Qt.QWidget):
             self.lines += self.axis.plot(x, y, 'o-')
 
         # tidy up and redraw the axis
-        if self.chart_data.keys():
-            self.axis.relim()
-            self.axis.autoscale_view()
+        self.axis.relim()
+        self.axis.autoscale_view()
 
         if draw_canvas:
             self.canvas.draw()
@@ -237,8 +236,15 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.stop_session_action.triggered.connect(self.stop_session)
         self.stop_session_action.setEnabled(False)
 
+        # view a session list
+        self.session_list_action = Qt.QAction('View Session List', self)
+        self.session_list_action.setEnabled(False)
+        self.session_list_action.setStatusTip("View previously logged sessions")
+        self.session_list_action.setToolTip("View previously logged sessions")
+        self.session_list_action.setShortcut('Ctrl+L')
+
         # exits the application
-        self.exit_action = Qt.QAction(Qt.QIcon('blitz/static/img/desktop_exit.png'),'&Exit', self)  # Qt.QIcon('exit.png'), '&Exit', self)
+        self.exit_action = Qt.QAction(Qt.QIcon('blitz/static/img/desktop_exit.png'),'&Exit', self)
         self.exit_action.setShortcut('Alt+F4')
         self.exit_action.setStatusTip('Exit application')
         self.exit_action.setToolTip('Exit application')
@@ -248,6 +254,7 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.main_menu = self.menuBar()
         self.file_menu = self.main_menu.addMenu('&File')
         self.logger_menu = self.main_menu.addMenu('&Logger')
+        self.session_menu = self.main_menu.addMenu('&Session')
 
         # the toolbar at the top of the window
         self.main_toolbar = self.addToolBar('Main')
@@ -264,11 +271,14 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
 
         # create the menu bar
         self.file_menu.addAction(self.exit_action)
+
         self.logger_menu.addAction(self.connect_action)
         self.logger_menu.addAction(self.disconnect_action)
         self.logger_menu.addSeparator()
         self.logger_menu.addAction(self.start_session_action)
         self.logger_menu.addAction(self.stop_session_action)
+
+        self.session_menu.addAction(self.session_list_action)
 
         # create the toolbar
         self.main_toolbar.addAction(self.connect_action)
