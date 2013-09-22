@@ -162,19 +162,8 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         super(MainBlitzWindow, self).__init__()
 
         # placeholders for saved data
-        self.cache = {
-            'one': [[0,1,2,3], [0.0,1.0,2.0,3.0]],
-            'two': [[0,1,2,3], [0.5,1.5,2.5,3.5]],
-            'three': [[0,1,2,3], [1.0,2.0,3.0,4.0]],
-            'four': [[0,1,2,3], [1.5,2.5,3.5,4.5]],
-            'five': [[0,1,2,3], [2.0,3.0,4.0,5.0]],
-            'six': [[0,1,2,3], [2.5,3.5,4.5,5.5]],
-            'seven': [[0,1,2,3], [3.0,4.0,5.0,6.0]],
-            'eight': [[0,1,2,3], [3.5,4.5,5.5,6.5]],
-            'nine': [[0,1,2,3], [4.0,5.0,6.0,7.0]],
-            'ten': [[0,1,2,3], [4.5,5.5,6.5,7.5]]
-        }
-        self.cache_visibility = [True]
+        self.cache = {}
+        self.cache_visibility = []
 
         self.application = app
 

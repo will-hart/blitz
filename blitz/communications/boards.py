@@ -101,7 +101,12 @@ class BoardManager(object):
                     Reading(sessionId=session_id, timeLogged=timeLogged, categoryId=category_id, value=result[key]))
             else:
                 # adding to cache
-                readings.append(self.data.add_cache(timeLogged, category_id, result[key]))
+                cached_item = self.data.add_cache(timeLogged, category_id, result[key])
+                readings.append({
+                    'categoryId': cached_item.categoryId,
+                    'timeLogged': cached_item.timeLogged,
+                    'value': cached_item.value
+                })
 
         return readings
 
