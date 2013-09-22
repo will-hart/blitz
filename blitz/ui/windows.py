@@ -36,8 +36,10 @@ class MainBlitzApplication(BaseApplicationClient):
         :returns: Nothing
         """
 
-        if data:
-            self.gui_application.window.update_cached_data(data, replace_existing)
+        result = super(MainBlitzApplication, self).update_interface(data, replace_existing)
+
+        if result:
+            self.gui_application.window.update_cached_data(result, replace_existing)
 
 
 class BlitzLoggingWidget(Qt.QWidget):
@@ -52,18 +54,17 @@ class BlitzLoggingWidget(Qt.QWidget):
 
         super(BlitzLoggingWidget, self).__init__()
 
+        # set up the required data structures
+        self.lines = []
+        self.variable_names = []
+        self.chart_data = {}
+
         # create widgets
         self.figure = Figure(figsize=(600,600), dpi=72, facecolor=(1,1,1), edgecolor=(1,0,0))
 
         # create a plot
         self.axis = self.figure.add_subplot(111)
         self.figure.subplots_adjust(left=0.2)
-
-        # add the lines
-        self.lines = []
-        for series in cache:
-            x, y = series
-            self.lines += self.axis.plot(x, y, 'o-', linewidth=2)
 
         # create the canvas
         self.canvas = FigureCanvas(self.figure)
@@ -73,11 +74,6 @@ class BlitzLoggingWidget(Qt.QWidget):
 
         # conect up the canvas
         self.canvas.mpl_connect('motion_notify_event', self.mouse_over_event)
-
-        # add checkboxes for selecting visible series
-        self.checkbox_labels = ()
-        self.series_checkbox = MplCheckButtons(self.axis, self.checkbox_labels, visibility)
-        self.series_checkbox.on_clicked(self.toggle_series_visibility)
 
         # create a cursor
         self.data_cursor = MplCursor(self.axis, useblit=True, color='blue', linewidth=1)
@@ -89,6 +85,13 @@ class BlitzLoggingWidget(Qt.QWidget):
 
         # Save the layout
         self.setLayout(self.grid)
+
+        # build the chart but do not draw it yet - wait until the application is drawn
+        self.redraw(cache, True, False)
+
+        # add checkboxes for selecting visible series
+        self.series_checkbox = MplCheckButtons(self.axis, self.variable_names, visibility)
+        self.series_checkbox.on_clicked(self.toggle_series_visibility)
 
     def mouse_over_event(self, event):
         """
@@ -108,32 +111,44 @@ class BlitzLoggingWidget(Qt.QWidget):
         self.lines[i].set_visible(not self.lines[i].get_visible())
         self.canvas.draw()
 
-    def redraw(self, new_data, append=True):
+    def redraw(self, new_data, replace_existing=False, draw_canvas=True):
         """
         Redraws the graph when new cached data is supplied
 
         :param new_data: A list of lists containing new data to be added
+        :param replace_existing: If True, then the existing data will be deleted before appending
+        :param draw_canvas: Prevents attempting to draw the canvas before the Qt window is drawn on startup
         """
-        if not append:
-            # draw a new plot
+        if replace_existing:
+            # clear the existing plot
             self.axis.cla()
-
             self.lines = []
-            for series in new_data:
-                x, y = series
-                self.lines += self.axis.plot(x, y, 'o-')
+            self.variable_names = []
+            self.chart_data = {}
 
-        else:
-            # append data to existing plots
-            i = 0
-            for line in self.lines:
-                line.set_xdata(numpy.append(line.get_xdata(), new_data[i][0]))
-                line.set_ydata(numpy.append(line.get_ydata(), new_data[i][1]))
-                i += 1
+        # build up the plot data from the provided data
+        for key in new_data.keys():
+            values = new_data[key]
 
-        self.axis.relim()
-        self.axis.autoscale_view()
-        self.canvas.draw()
+            if not key in self.chart_data.keys():
+                self.chart_data[key] = [[],[]]  # set up an empty list
+
+            self.chart_data[key][0] += values[0]
+            self.chart_data[key][1] += values[1]
+
+        # add the plots
+        # TODO: perform this step without completely rebuilding charts
+        for key in self.chart_data.keys():
+            x, y = self.chart_data[key]
+            self.lines += self.axis.plot(x, y, 'o-')
+
+        # tidy up and redraw the axis
+        if self.chart_data.keys():
+            self.axis.relim()
+            self.axis.autoscale_view()
+
+        if draw_canvas:
+            self.canvas.draw()
 
 
 class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
@@ -147,18 +162,18 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         super(MainBlitzWindow, self).__init__()
 
         # placeholders for saved data
-        self.cache = [
-                        ([0,1,2,3], [0.0,1.0,2.0,3.0]),
-                        ([0,1,2,3], [0.5,1.5,2.5,3.5]),
-                        ([0,1,2,3], [1.0,2.0,3.0,4.0]),
-                        ([0,1,2,3], [1.5,2.5,3.5,4.5]),
-                        ([0,1,2,3], [2.0,3.0,4.0,5.0]),
-                        ([0,1,2,3], [2.5,3.5,4.5,5.5]),
-                        ([0,1,2,3], [3.0,4.0,5.0,6.0]),
-                        ([0,1,2,3], [3.5,4.5,5.5,6.5]),
-                        ([0,1,2,3], [4.0,5.0,6.0,7.0]),
-                        ([0,1,2,3], [4.5,5.5,6.5,7.5])
-                    ]
+        self.cache = {
+            'one': [[0,1,2,3], [0.0,1.0,2.0,3.0]],
+            'two': [[0,1,2,3], [0.5,1.5,2.5,3.5]],
+            'three': [[0,1,2,3], [1.0,2.0,3.0,4.0]],
+            'four': [[0,1,2,3], [1.5,2.5,3.5,4.5]],
+            'five': [[0,1,2,3], [2.0,3.0,4.0,5.0]],
+            'six': [[0,1,2,3], [2.5,3.5,4.5,5.5]],
+            'seven': [[0,1,2,3], [3.0,4.0,5.0,6.0]],
+            'eight': [[0,1,2,3], [3.5,4.5,5.5,6.5]],
+            'nine': [[0,1,2,3], [4.0,5.0,6.0,7.0]],
+            'ten': [[0,1,2,3], [4.5,5.5,6.5,7.5]]
+        }
         self.cache_visibility = [True]
 
         self.application = app
@@ -284,14 +299,14 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         # go go go
         self.show()
 
-    def update_cached_data(self, data, append=True):
+    def update_cached_data(self, data, replace_existing=True):
         """
         Updates the cached and plotted data, optionally clearing the existing data
 
         :param data: The x-y data that should be appended to cached data
-        :param append: If false, the existing data will be entirely replaced as opposed ot appended.  Default True
+        :param replace_existing: If false, the existing data will be entirely replaced as opposed ot appended.  Default True
 
         :returns: Nothing
         """
-        self.main_widget.redraw(data, append)
+        self.main_widget.redraw(data, replace_existing)
 

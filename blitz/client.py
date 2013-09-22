@@ -193,15 +193,26 @@ class BaseApplicationClient(object):
 
     def update_interface(self, data, replace_existing=False):
         """
-        Updates the user interface with new cache data received.  This method should be provided
-        by the implementing class
+        Updates the user interface with new cache data received.  This method generates the required data structure,
+        the actual interface imlementation is provided by the inheriting class.  Note that this means the inheriting
+        class should call `results = super(...).update_interface` to gather the data in the correct format.
 
-        :param data: The results received from the BoardManager.parse_message command
+        :param data: A list of Cache models or Reading models to convert into a dictionary: {'variable_name': [[x][y]] }
         :param replace_existing: If True, appends to existing cache, if False, replaces cache? Defaults to False
 
-        :returns: Nothing
+        :returns: The dictionary of readings required to update the UI, or None if no data is found
         """
-        pass
+
+        result = {}
+
+        for item in data:
+            if not item.variable_name in result.keys():
+                result[item.variable_name] = [[],[]]  # set up an empty list
+
+            result[item.variable_name][0].append(item.time_logged)
+            result[item.variable_name][1].append(item.value)
+
+        return None if len(result.keys()) == 0 else result
 
     def __del__(self):
         """
