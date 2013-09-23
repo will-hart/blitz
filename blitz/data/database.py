@@ -2,6 +2,7 @@ __author__ = 'Will Hart'
 
 import logging
 import sqlalchemy as sql
+from sqlalchemy import func as sql_func
 from sqlalchemy.orm import sessionmaker
 import redis
 
@@ -119,8 +120,9 @@ class DatabaseClient(object):
         :returns: nothing
         """
         sess = self._session()
-        session = self.get(Session, {"ref_id": session_id})
-        count = self._session().query(sql.exists().where(Reading.sessionId == session_id)).scalar()
+        session = sess.query(Session).filter_by(**{'ref_id': session_id}).first()
+        count = sess.query(sql_func.count(Reading.sessionId))\
+            .filter(Reading.sessionId == session_id).scalar()
 
         # check all lines were received and set "available" accordingly
         session.available = count > 0
@@ -373,6 +375,9 @@ class DatabaseClient(object):
         sess = self._session()
         sess.query(Reading).filter(Reading.sessionId == session_id).delete()
         sess.commit()
+
+        # now update the session availability to reflect the cleared data
+        self.update_session_availability(session_id)
 
 
 class DatabaseServer(object):
