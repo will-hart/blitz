@@ -5,7 +5,7 @@ matplotlib.rcParams['backend.qt4']='PySide'
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.dates as MplDates
 from matplotlib.figure import Figure
-from matplotlib.widgets import Cursor as MplCursor, CheckButtons as MplCheckButtons
+from matplotlib.widgets import Cursor as MplCursor
 import PySide.QtGui as Qt
 import sys
 
@@ -61,11 +61,14 @@ class BlitzLoggingWidget(Qt.QWidget):
         self.chart_data = {}
 
         # create widgets
-        self.figure = Figure(figsize=(800, 600), dpi=72, facecolor=(1, 1, 1), edgecolor=(1, 0, 0))
+        self.figure = Figure(figsize=(1024, 768), dpi=72, facecolor=(1, 1, 1), edgecolor=(1, 0, 0))
 
         # create a plot
-        self.axis = self.figure.add_subplot(1, 1, 1)
+        self.axis = self.figure.add_subplot(111)
         #self.figure.subplots_adjust(left=0.2)
+
+        # build the chart but do not draw it yet - wait until the application is drawn
+        self.redraw(cache, True, False)
 
         # create the canvas
         self.canvas = FigureCanvas(self.figure)
@@ -87,12 +90,9 @@ class BlitzLoggingWidget(Qt.QWidget):
         # Save the layout
         self.setLayout(self.grid)
 
-        # build the chart but do not draw it yet - wait until the application is drawn
-        self.redraw(cache, True, False)
-
         # add checkboxes for selecting visible series
-        self.series_checkbox = MplCheckButtons(self.axis, self.variable_names, visibility)
-        self.series_checkbox.on_clicked(self.toggle_series_visibility)
+        #self.series_checkbox = MplCheckButtons(self.axis, self.variable_names, visibility)
+        #self.series_checkbox.on_clicked(self.toggle_series_visibility)
 
     def mouse_over_event(self, event):
         """
@@ -123,16 +123,28 @@ class BlitzLoggingWidget(Qt.QWidget):
         if replace_existing:
             # clear the existing plot
             self.axis.cla()
+            #self.axis.xaxis.set_major_formatter(MplDates.DateFormatter('%H:%M:%S'))
+
             self.lines = []
             self.variable_names = []
             self.chart_data = {}
+
+            # reset the limits
+            self.__x_min = sys.maxint
+            self.__x_max = - sys.maxint - 1
 
         # build up the plot data from the provided data
         for key in new_data.keys():
             values = new_data[key]
 
             if not key in self.chart_data.keys():
-                self.chart_data[key] = [[],[]]  # set up an empty list
+                self.chart_data[key] = [[], []]  # set up an empty list
+
+            x_min = min(values[0]) - 0.5
+            x_max = max(values[0]) + 0.5
+
+            self.__x_min = x_min if x_min < self.__x_min else self.__x_min
+            self.__x_max = x_max if x_max > self.__x_max else self.__x_max
 
             self.chart_data[key][0] += values[0]
             self.chart_data[key][1] += values[1]
@@ -143,10 +155,10 @@ class BlitzLoggingWidget(Qt.QWidget):
             x, y = self.chart_data[key]
             self.lines += self.axis.plot(x, y, 'o-')
 
-        # tidy up and redraw the axis
-        self.axis.relim()
-        self.axis.autoscale_view()
+        # tidy up and rescale
+        self.axis.set_xlim(left=self.__x_min, right=self.__x_max, auto=False)
 
+        # redraw if required
         if draw_canvas:
             self.canvas.draw()
 
@@ -244,7 +256,7 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.session_list_action.setShortcut('Ctrl+L')
 
         # exits the application
-        self.exit_action = Qt.QAction(Qt.QIcon('blitz/static/img/desktop_exit.png'),'&Exit', self)
+        self.exit_action = Qt.QAction(Qt.QIcon('blitz/static/img/desktop_exit.png'), '&Exit', self)
         self.exit_action.setShortcut('Alt+F4')
         self.exit_action.setStatusTip('Exit application')
         self.exit_action.setToolTip('Exit application')
@@ -311,7 +323,7 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
 
         for k in data.keys():
             # convert from Python datetime to matplotlib datenum
-            data[k][0] = [x for x in MplDates.date2num(data[k][0])]
+            data[k][0] = [MplDates.date2num(x) for x in data[k][0]]
 
         self.main_widget.redraw(data, replace_existing)
 
