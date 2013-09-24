@@ -3,7 +3,6 @@ matplotlib.rc_file('matplotlibrc')
 matplotlib.use('Qt4Agg')
 matplotlib.rcParams['backend.qt4']='PySide'
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
-import matplotlib.dates as MplDates
 from matplotlib.figure import Figure
 from matplotlib.widgets import Cursor as MplCursor
 import PySide.QtGui as Qt
@@ -255,6 +254,14 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.session_list_action.setToolTip("View previously logged sessions")
         self.session_list_action.setShortcut('Ctrl+L')
 
+        # shows the settings window
+        self.settings_action = Qt.QAction('&Settings', self)
+        self.settings_action.setShortcut('Ctrl+Alt+S')
+        self.settings_action.setStatusTip('Manage application settings')
+        self.settings_action.setToolTip('Manage application settings')
+        #self.exit_action.triggered.connect(self.close)
+        self.settings_action.setEnabled(False)
+
         # exits the application
         self.exit_action = Qt.QAction(Qt.QIcon('blitz/static/img/desktop_exit.png'), '&Exit', self)
         self.exit_action.setShortcut('Alt+F4')
@@ -282,6 +289,8 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         """
 
         # create the menu bar
+        self.file_menu.addAction(self.settings_action)
+        self.logger_menu.addSeparator()
         self.file_menu.addAction(self.exit_action)
 
         self.logger_menu.addAction(self.connect_action)
@@ -321,9 +330,9 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         :returns: Nothing
         """
 
-        for k in data.keys():
-            # convert from Python datetime to matplotlib datenum
-            data[k][0] = [MplDates.date2num(x) for x in data[k][0]]
+        #for k in data.keys():
+        #    # convert from Python datetime to matplotlib datenum
+        #    data[k][0] = [MplDates.date2num(x) for x in data[k][0]]
 
         self.main_widget.redraw(data, replace_existing)
 

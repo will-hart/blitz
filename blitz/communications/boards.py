@@ -1,7 +1,6 @@
 __author__ = 'Will Hart'
 
 import logging
-import datetime as dt
 
 from bitstring import BitArray
 
@@ -90,8 +89,11 @@ class BoardManager(object):
         result = board.get_variables()
 
         # get session metadata
-        # TODO add timestamp to session start time
-        timeLogged = - board["timestamp"] + blitz_timestamp()
+        if session_id:
+            # TODO add timestamp to session start time
+            timeLogged = - board["timestamp"]
+        else:
+            timeLogged = blitz_timestamp()  # for cached just pretend its now
 
         # write the variables to the database
         for key in result.keys():
@@ -105,7 +107,8 @@ class BoardManager(object):
                 cached_item = self.data.add_cache(timeLogged, category_id, result[key])
                 readings.append({
                     'categoryId': cached_item.categoryId,
-                    'timeLogged': dt.datetime.fromtimestamp(cached_item.timeLogged / 1000),  # convert unix to python dates
+                    #'timeLogged': dt.datetime.fromtimestamp(cached_item.timeLogged / 1000),  # convert unix to python dates
+                    'timeLogged': cached_item.timeLogged / 1000,
                     'value': int(cached_item.value)
                 })
 
