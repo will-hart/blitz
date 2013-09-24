@@ -268,10 +268,11 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
 
         # view a session list
         self.session_list_action = Qt.QAction('View Session List', self)
-        self.session_list_action.setEnabled(False)
+        #self.session_list_action.setEnabled(False)
         self.session_list_action.setStatusTip("View previously logged sessions")
         self.session_list_action.setToolTip("View previously logged sessions")
         self.session_list_action.setShortcut('Ctrl+L')
+        self.session_list_action.triggered.connect(self.show_session_list)
 
         # shows the settings window
         self.settings_action = Qt.QAction('&Settings', self)
@@ -355,3 +356,27 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
 
         self.main_widget.redraw(data, replace_existing)
 
+    def show_session_list(self):
+        self.session_list_window = BlitzSessionWindow()
+        self.session_list_window.show()
+
+
+class BlitzSessionWindow(Qt.QWidget):
+    """
+    A UI window which lists available data logger sessions and
+    """
+
+    def __init__(self):
+        super(BlitzSessionWindow, self).__init__()
+        self.setWindowTitle("Session List")
+        self.resize(400, 400)
+
+        self.session_table = Qt.QTableWidget()
+        self.session_table.setRowCount(10)
+        self.session_table.setColumnCount(3)
+        self.session_table.setSizePolicy(Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Expanding)
+
+        self.vertical_layout = Qt.QVBoxLayout()
+        self.vertical_layout.addWidget(self.session_table)
+
+        self.setLayout(self.vertical_layout)
