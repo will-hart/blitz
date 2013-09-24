@@ -11,9 +11,6 @@ from blinker import signal
 #:  - ConnectHandler.get()
 logger_connecting = signal('logger_connected')
 
-#: Fired when the client has requested a disconnection from the data logger
-logger_disconnecting = signal('logger_disconnected')
-
 #: Fired when the client receives a line of cached data
 #:
 #: Subscribed to by:
@@ -34,15 +31,11 @@ cache_line_received = signal('cache_line_received')
 #:  - :mod:`ClientDownloadingState`.receive_message
 data_line_received = signal('data_line_received')
 
-#: fired when a variable is ready for entry into the database.
-#: allows post processing of data
-data_variable_decoded = signal('data_variable_decoded')
-
 #: Fired when a board has finished processing a data line
+#:
+#: Sent by:
+#:  - :mod:`BaseExpansionBoard`.parse_message
 data_line_processed = signal('data_line_processed')
-
-#: Fired when an expansion board is registered
-expansion_board_registered = signal('expansion_board_registered')
 
 #: Fired when expansion boards should be registered with the board manager
 #:
