@@ -55,9 +55,10 @@ class BlitzLoggingWidget(Qt.QWidget):
         super(BlitzLoggingWidget, self).__init__()
 
         # set up the required data structures
-        self.lines = []
-        self.variable_names = []
-        self.chart_data = {}
+        self.__lines = []
+        self.__variable_names = {}
+        self.__chart_data = {}
+        self.__index_mapping = {}
 
         # create widgets
         self.figure = Figure(figsize=(1024, 768), dpi=72, facecolor=(1, 1, 1), edgecolor=(1, 0, 0))
@@ -90,7 +91,7 @@ class BlitzLoggingWidget(Qt.QWidget):
         self.setLayout(self.grid)
 
         # add checkboxes for selecting visible series
-        #self.series_checkbox = MplCheckButtons(self.axis, self.variable_names, visibility)
+        #self.series_checkbox = MplCheckButtons(self.axis, self.__variable_names, visibility)
         #self.series_checkbox.on_clicked(self.toggle_series_visibility)
 
     def mouse_over_event(self, event):
@@ -108,7 +109,7 @@ class BlitzLoggingWidget(Qt.QWidget):
         Toggles the visibility of a data series when its checkbox is clicked
         """
         i = self.checkbox_labels.index(label)
-        self.lines[i].set_visible(not self.lines[i].get_visible())
+        self.__lines[i].set_visible(not self.__lines[i].get_visible())
         self.canvas.draw()
 
     def redraw(self, new_data, replace_existing=False, draw_canvas=True):
@@ -124,20 +125,37 @@ class BlitzLoggingWidget(Qt.QWidget):
             self.axis.cla()
             #self.axis.xaxis.set_major_formatter(MplDates.DateFormatter('%H:%M:%S'))
 
-            self.lines = []
-            self.variable_names = []
-            self.chart_data = {}
+            self.__lines = []
+            self.__variable_names = {}
+            self.__chart_data = {}
+            self.__index_mapping = {}
 
             # reset the limits
             self.__x_min = sys.maxint
             self.__x_max = - sys.maxint - 1
 
+            # create the plots and index mapping
+            i = 0
+            for key in new_data.keys():
+                # add an empty plot and record the ID
+                self.__lines += self.axis.plot([], [], 'o-')
+                self.__index_mapping[key] = i
+
+                # TODO: look up the variable name in the database
+                self.__variable_names[key] = key
+                i += 1
+
         # build up the plot data from the provided data
         for key in new_data.keys():
             values = new_data[key]
 
-            if not key in self.chart_data.keys():
-                self.chart_data[key] = [[], []]  # set up an empty list
+            if not key in self.__chart_data.keys():
+                # set up an empty placeholder for chart data
+                self.__chart_data[key] = [[], []]
+
+                # add an empty plot and record the ID
+                self.__lines += self.axis.plot(self.__chart_data[key][0], self.__chart_data[key][1], 'o-')
+                self.__index_mapping[key] = len(self.__lines) - 1
 
             x_min = min(values[0]) - 0.5
             x_max = max(values[0]) + 0.5
@@ -145,14 +163,15 @@ class BlitzLoggingWidget(Qt.QWidget):
             self.__x_min = x_min if x_min < self.__x_min else self.__x_min
             self.__x_max = x_max if x_max > self.__x_max else self.__x_max
 
-            self.chart_data[key][0] += values[0]
-            self.chart_data[key][1] += values[1]
+            self.__chart_data[key][0] += values[0]
+            self.__chart_data[key][1] += values[1]
 
-        # add the plots
-        # TODO: perform this step without completely rebuilding charts
-        for key in self.chart_data.keys():
-            x, y = self.chart_data[key]
-            self.lines += self.axis.plot(x, y, 'o-')
+            x, y = self.__chart_data[key]
+            idx = self.__index_mapping[key]
+
+            # update the chart at the correct index
+            self.__lines[idx].set_xdata(x)
+            self.__lines[idx].set_ydata(y)
 
         # tidy up and rescale
         self.axis.set_xlim(left=self.__x_min, right=self.__x_max, auto=False)
