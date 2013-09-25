@@ -3,12 +3,14 @@ __author__ = 'Will Hart'
 import logging
 import unittest
 import datetime
-
+from nose.tools import raises
 import sqlalchemy
 from sqlalchemy import orm
 
+from blitz.data import DataContainer, BaseDataTransform
 from blitz.data.fixtures import *
 from blitz.data.models import *
+import blitz.data.transforms as data_transforms
 from blitz.communications.boards import *
 from blitz.communications.client_states import *
 from blitz.data.database import *
@@ -790,6 +792,13 @@ class TestBoardManager(unittest.TestCase):
         assert len(self.bm.boards) == 1
         assert type(self.bm.boards[8]) == BlitzBasicExpansionBoard
 
+    @raises(Exception)
+    def test_double_registering_a_board(self):
+        self.bm.register_board(8, BlitzBasicExpansionBoard())
+
+        # clear the board manager and start again
+        self.bm = BoardManager(self.data)
+
 
 class TestDatabaseServer(unittest.TestCase):
     def setUp(self):
@@ -884,3 +893,156 @@ class TestDatabaseServer(unittest.TestCase):
 
     def test_build_client_session_list(self):
         assert False, "Not implemented"
+
+
+class TestDataContainer(unittest.TestCase):
+    def setUp(self):
+        self.data = DataContainer()
+
+    @raises(ValueError)
+    def test_should_throw_value_error_on_mismatched_arrays(self):
+        self.data.push(1, [1, 2], [1])
+
+    def test_number_of_series(self):
+        assert self.data.number_of_series == 0, "Expected 0 series, found %s" % self.data.number_of_series
+
+        self.data.push(1, [1], [1])
+        assert self.data.number_of_series == 1, "Expected 1 series, found %s" % self.data.number_of_series
+
+    def test_push_data_series_doesnt_duplicate_series(self):
+        self.data.push("1", [1], [1])
+        self.data.push("2", [1], [1])
+        assert self.data.number_of_series == 2, "Expected 2 series, found %s" % self.data.number_of_series
+
+        self.data.push("2", [1], [1])
+        assert self.data.number_of_series == 2, "Expected 2 series, found %s" % self.data.number_of_series
+
+        assert len(self.data.x) == 2, "Expected 2 items, found %s" % len(self.data.x)
+        assert len(self.data.x[0]) == 1, "Expected 1 items, found %s" % len(self.data.x[0])
+        assert len(self.data.x[1]) == 2, "Expected 2 items, found %s" % len(self.data.x[1])
+        assert len(self.data.y) == 2, "Expected 2 items, found %s" % len(self.data.y)
+        assert len(self.data.y[0]) == 1, "Expected 1 items, found %s" % len(self.data.y[0])
+        assert len(self.data.y[1]) == 2, "Expected 2 items, found %s" % len(self.data.y[1])
+
+    def test_get_series(self):
+        self.data.push("1", [1], [1])
+
+        # check the series is correctly returned
+        x, y = self.data.get_series("1")
+        assert len(x) == 1
+        assert len(y) == 1
+        assert x[0] == 1
+        assert y[0] == 1
+
+        # check a none array is returned for unknown series
+        x2, y2 = self.data.get_series(1)
+        assert len(x2) == 0
+        assert len(y2) == 0
+
+    def test_push_data_series_appends_to_existing_series(self):
+        self.data.push("1", [1], [1])
+        self.data.push("1", [1], [1])
+        self.data.push("1", [1], [1])
+        self.data.push("1", [1], [1])
+        self.data.push("1", [1], [1])
+
+        assert self.data.number_of_series == 1
+
+        x, y = self.data.get_series("1")
+        assert len(x) == 5
+        assert len(y) == 5
+        for x_val in x:
+            assert x_val == 1
+
+    def test_all_series(self):
+        self.data.push("1", [1, 2], [3, 4])
+        self.data.push("2", [5, 6], [7, 8])
+        series_count = 0
+        series_data = [
+            [[1, 2], [3, 4]],
+            [[5, 6], [7, 8]]
+        ]
+
+        for series in self.data.all_series():
+            key, x, y = series
+            expected_x, expected_y = series_data[series_count]
+            assert x == expected_x, "Unexpected list found for x values (%s)" % ', '.join([str(x) for x in expected_x])
+            assert y == expected_y, "Unexpected list found for y values (%s)" % ', '.join([str(y) for y in expected_y])
+            series_count += 1
+
+        assert series_count == 2, "Expected 2 series, found %s" % series_count
+
+    def test_get_series_keeps_series_order(self):
+        self.data.push("1", [1, 2], [3, 4])
+        self.data.push("2", [1, 2], [3, 4])
+        self.data.push("3", [1, 2], [3, 4])
+        self.data.push("2", [1, 2], [3, 4])
+        self.data.push("4", [1, 2], [3, 4])
+        series_names = ["1", "2", "3", "4"]
+        series_count = 0
+
+        for series in self.data.all_series():
+            key, x, y = series
+            assert key == series_names[series_count], "Expected %s for series name but found %s" % (
+                series_names[series_count], key)
+            series_count += 1
+
+    def test_clear_data(self):
+        self.data.push("1", [1], [1])
+        self.data.push("2", [1], [1])
+        assert self.data.number_of_series == 2, "Expected 2 series, found %s" % self.data.number_of_series
+
+        self.data.clear_data()
+        assert self.data.number_of_series == 0, "Expected 0 series, found %s" % self.data.number_of_series
+
+    def test_add_transform(self):
+        self.data.add_transform(data_transforms.MultiplierDataTransform(2))
+        assert len(self.data.get_transforms()) == 1
+
+        self.data.add_transform(data_transforms.MultiplierDataTransform(5))
+        assert len(self.data.get_transforms()) == 2
+
+    @raises(ValueError)
+    def test_add_transform_throws_on_incorrect_type_of_transform(self):
+        self.data.add_transform(3)
+
+    def test_get_unknown_series(self):
+        self.data.push("1", [1], [1])
+        assert self.data.get_series("2") == [[], []], "Expected empty list"
+
+
+class TestDataTransform(object):
+    def setUp(self):
+        self.data = DataContainer()
+
+    def test_apply_transforms_one(self):
+        start = [1, 2, 3, 4]
+        expected = [2, 4, 6, 8]
+        self.data.add_transform(data_transforms.MultiplierDataTransform(2))
+        self.data.push("1", start, start)
+
+        self.data.apply_transforms()
+        x, y = self.data.get_series("1")
+        assert y == expected
+
+    def test_apply_transforms_several(self):
+        start = [1, 2, 3, 4]
+        expected = [6, 12, 18, 24]
+        self.data.add_transform(data_transforms.MultiplierDataTransform(2))
+        self.data.add_transform(data_transforms.MultiplierDataTransform(3))
+        self.data.push("1", start, start)
+
+        self.data.apply_transforms()
+        x, y = self.data.get_series("1")
+        assert y == expected, "Expected [%s], got [%s]" % (
+            ', '.join([str(data) for data in y]),
+            ', '.join([str(data) for data in expected])
+        )
+
+    @raises(NotImplementedError)
+    def test_not_overriding_apply_in_derived_transform(self):
+        class BrokenDataTransform(BaseDataTransform):
+            pass
+
+        self.data.add_transform(BrokenDataTransform())
+        self.data.apply_transforms()
