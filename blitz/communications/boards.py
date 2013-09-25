@@ -17,7 +17,6 @@ class BoardManager(object):
     of raw messages and insertion into the database
     """
 
-    boards = {}
     logger = logging.getLogger(__name__)
 
     def __init__(self, database):
@@ -27,6 +26,7 @@ class BoardManager(object):
 
         # save a reference to the database
         self.data = database
+        self.boards = {}
 
         # send the signal to register boards
         registering_boards.send(self)
