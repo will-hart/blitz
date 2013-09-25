@@ -1,5 +1,7 @@
 __author__ = 'Will Hart'
 
+import numpy as np
+
 from blitz.data import BaseDataTransform
 
 
@@ -22,6 +24,41 @@ class MultiplierDataTransform(BaseDataTransform):
 
         :param container: the data container to operate over
         """
-        for y in container.y:
+        for y in container.y_transformed:
             for i in range(len(y)):
                 y[i] = y[i] * self.multiplier
+
+
+class MovingAverageDataTransform(BaseDataTransform):
+    """
+    Calculates an n-period moving average over the y data set
+    """
+
+    def __init__(self, periods):
+        """
+        Configures the moving average transform with a set number of average periods.
+        The first n-1 numbers will be removed from the dataset
+
+        :param periods: the number of periods to perform the moving average over
+        """
+        self.periods = periods
+
+    def apply(self, container):
+        """
+        Applies a moving average filters using numpy
+        """
+
+        new_y_transformed = []
+
+        for y in container.y_transformed:
+            y_array = np.array(y)
+
+            sums = np.cumsum(y_array)
+            lags = np.roll(sums, self.periods)
+            lags[0:self.periods] = 0
+            avgs = (sums - lags) / self.periods
+
+            new_y_transformed.append(avgs.tolist())
+
+        # finally overwrite the existing y_transformed with new data
+        container.y_transformed = new_y_transformed
