@@ -1,4 +1,5 @@
 import matplotlib
+from blitz.data import DataContainer
 from blitz.data.models import Session
 
 matplotlib.rc_file('matplotlibrc')
@@ -58,10 +59,8 @@ class BlitzLoggingWidget(Qt.QWidget):
         super(BlitzLoggingWidget, self).__init__()
 
         # set up the required data structures
-        self.__lines = []
-        self.__variable_names = {}
-        self.__chart_data = {}
-        self.__index_mapping = {}
+        self.__lines = {}
+        self.__container = DataContainer()
 
         # create widgets
         self.figure = Figure(figsize=(1024, 768), dpi=72, facecolor=(1, 1, 1), edgecolor=(1, 0, 0))
@@ -93,10 +92,6 @@ class BlitzLoggingWidget(Qt.QWidget):
         # Save the layout
         self.setLayout(self.grid)
 
-        # add checkboxes for selecting visible series
-        #self.series_checkbox = MplCheckButtons(self.axis, self.__variable_names, visibility)
-        #self.series_checkbox.on_clicked(self.toggle_series_visibility)
-
     def mouse_over_event(self, event):
         """
         Handles the mouse rolling over the plot
@@ -106,14 +101,6 @@ class BlitzLoggingWidget(Qt.QWidget):
             self.data_point_label.setText('X: 0.000000, Y: 0.000000')
         else:
             self.data_point_label.setText(self.axis.format_coord(event.xdata, event.ydata))
-
-    def toggle_series_visibility(self, label):
-        """
-        Toggles the visibility of a data series when its checkbox is clicked
-        """
-        i = self.checkbox_labels.index(label)
-        self.__lines[i].set_visible(not self.__lines[i].get_visible())
-        self.canvas.draw()
 
     def redraw(self, new_data, replace_existing=False, draw_canvas=True):
         """
@@ -126,60 +113,28 @@ class BlitzLoggingWidget(Qt.QWidget):
         if replace_existing:
             # clear the existing plot
             self.axis.cla()
-            #self.axis.xaxis.set_major_formatter(MplDates.DateFormatter('%H:%M:%S'))
+            self.__lines = {}
+            self.__container = DataContainer()
 
-            self.__lines = []
-            self.__variable_names = {}
-            self.__chart_data = {}
-            self.__index_mapping = {}
-
-            # reset the limits
-            self.__x_min = sys.maxint
-            self.__x_max = - sys.maxint - 1
-
-            # create the plots and index mapping
-            i = 0
-            for key in new_data.keys():
-                # add an empty plot and record the ID
-                self.__lines += self.axis.plot([], [], 'o-')
-                self.__index_mapping[key] = i
-
-                # TODO: look up the variable name in the database
-                self.__variable_names[key] = key
-                i += 1
-
-        # build up the plot data from the provided data
         for key in new_data.keys():
-            values = new_data[key]
 
-            if not key in self.__chart_data.keys():
-                # set up an empty placeholder for chart data
-                self.__chart_data[key] = [[], []]
-
+            # push the new plot data on to the Container, checking if we need a new plot
+            if self.cache.push(key, **new_data[key]):
+                # TODO: determine how to manage plot ordering and new variables being suddenly added
+                # TODO: after a 'replace_existing'
                 # add an empty plot and record the ID
-                self.__lines += self.axis.plot(self.__chart_data[key][0], self.__chart_data[key][1], 'o-')
-                self.__index_mapping[key] = len(self.__lines) - 1
+                self.__lines[key] = self.axis.plot([], [], 'o-')
 
-            x_min = min(values[0]) - 0.5
-            x_max = max(values[0]) + 0.5
-
-            self.__x_min = x_min if x_min < self.__x_min else self.__x_min
-            self.__x_max = x_max if x_max > self.__x_max else self.__x_max
-
-            self.__chart_data[key][0] += values[0]
-            self.__chart_data[key][1] += values[1]
-
-            x, y = self.__chart_data[key]
-            idx = self.__index_mapping[key]
+            x, y = self.__container.get_series(key)
 
             # update the chart at the correct index
-            self.__lines[idx].set_xdata(x)
-            self.__lines[idx].set_ydata(y)
+            self.__lines[key].set_xdata(x)
+            self.__lines[key].set_ydata(y)
 
         # tidy up and rescale
         self.axis.relim()
         self.axis.autoscale_view()
-        self.axis.set_xlim(left=self.__x_min, right=self.__x_max, auto=False)
+        self.axis.set_xlim(left=self.__container.x_min, right=self.__container.x_max, auto=False)
 
         # redraw if required
         if draw_canvas:
@@ -195,10 +150,6 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         Initialises the main window
         """
         super(MainBlitzWindow, self).__init__()
-
-        # placeholders for saved data
-        self.cache = {}
-        self.cache_visibility = []
 
         self.application = app
 
