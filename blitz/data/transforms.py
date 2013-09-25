@@ -17,6 +17,11 @@ class MultiplierDataTransform(BaseDataTransform):
         self.multiplier = multiplier
 
     def apply(self, container):
+        """
+        Multiplies each y value in the container by the multiplier set in __init__
+
+        :param container: the data container to operate over
+        """
         for y in container.y:
             for i in range(len(y)):
                 y[i] = y[i] * self.multiplier

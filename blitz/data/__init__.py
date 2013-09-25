@@ -7,7 +7,9 @@ from collections import OrderedDict
 
 class DataContainer(object):
     """
-`   A class for saving and managing data
+    A class for saving and managing data that can be used in the interface.  It
+    also provides an interface for adding DataTransform objects which can be used
+    to apply filters (i.e. moving average, multiplication, etc) to the data
     """
 
     def __init__(self):
@@ -177,5 +179,14 @@ class BaseDataTransform(object):
     """
 
     def apply(self, container):
+        """
+        Takes a DataContainer object and applies a transformation to the X and Y data in the
+        DataContainer.  This is a base class which should be inherited from.
+
+        .. warning::
+            If no `apply` method is provided on the derived class then a `NotImplementedError` will be thrown
+
+        :raises: NotImplementedError
+        """
         raise NotImplementedError("BaseDataTransform.apply should be overridden by derived instances")
 
