@@ -31,6 +31,9 @@ class DataContainer(object):
         self.x_min = sys.maxint
         self.x_max = - sys.maxint - 1
 
+        self.x_transformed = []
+        self.y_transformed = []
+
     def push(self, series, x, y):
         """
         Adds the passed X and Y values to the given series.  If the series has not been
@@ -119,6 +122,19 @@ class DataContainer(object):
             idx = self.__series[series_name]
             return [self.x[idx], self.y[idx]]
 
+    def get_transformed_series(self, series_name):
+        """
+        Gets a single series and returns a list of [x,y] values from the transformed data
+
+        :param series_name: The name of the series to return
+        :returns: A list of [x,y] values for the given series, or empty lists if the series doesn't exist
+        """
+        if series_name not in self.__series.keys() or not self.x_transformed:
+            return [[], []]
+        else:
+            idx = self.__series[series_name]
+            return [self.x_transformed[idx], self.y_transformed[idx]]
+
     def get_series_index(self, series_name):
         """
         Gets the index for a given series, or returns None if the series is not found
@@ -161,6 +177,9 @@ class DataContainer(object):
         """
         Applies the transformation chain
         """
+        self.x_transformed = [data[:] for data in self.x]
+        self.y_transformed = [data[:] for data in self.y]
+
         for transform in self.__transforms:
             transform.apply(self)
 

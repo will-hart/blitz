@@ -1081,7 +1081,13 @@ class TestDataTransform(unittest.TestCase):
         self.data.push("1", start, start)
 
         self.data.apply_transforms()
+
+        # check originals were unchanged
         x, y = self.data.get_series("1")
+        assert y == start
+
+        # check transforms have applied correctly
+        x, y = self.data.get_transformed_series("1")
         assert y == expected
 
     def test_apply_transforms_several(self):
@@ -1092,7 +1098,8 @@ class TestDataTransform(unittest.TestCase):
         self.data.push("1", start, start)
 
         self.data.apply_transforms()
-        x, y = self.data.get_series("1")
+
+        x, y = self.data.get_transformed_series("1")
         assert y == expected, "Expected [%s], got [%s]" % (
             ', '.join([str(data) for data in y]),
             ', '.join([str(data) for data in expected])
