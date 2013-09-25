@@ -1092,17 +1092,17 @@ class TestDataTransform(unittest.TestCase):
 
     def test_apply_transforms_several(self):
         start = [1, 2, 3, 4]
-        expected = [6, 12, 18, 24]
+        expected = [1, 3, 5, 7]
         self.data.add_transform(data_transforms.MultiplierDataTransform(2))
-        self.data.add_transform(data_transforms.MultiplierDataTransform(3))
+        self.data.add_transform(data_transforms.MovingAverageDataTransform(2))
         self.data.push("1", start, start)
 
         self.data.apply_transforms()
 
         x, y = self.data.get_transformed_series("1")
         assert y == expected, "Expected [%s], got [%s]" % (
-            ', '.join([str(data) for data in y]),
-            ', '.join([str(data) for data in expected])
+            ', '.join([str(data) for data in expected]),
+            ', '.join([str(data) for data in y])
         )
 
     @raises(NotImplementedError)
