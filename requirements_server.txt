@@ -1,0 +1,4 @@
+blinker==1.2
+pyzmq==13.1.0
+redis==2.7.2
+pyserial==2.6

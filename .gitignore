@@ -1,2 +1,13 @@
 // Ignore files from the editor
 .idea/
+
+*.pyc
+*.db
+
+doc/build/
+blitz/test/.coverage
+
+config.json
+
+client_log.txt
+server_log.txt

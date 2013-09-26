@@ -1,0 +1,5 @@
+bitstring==3.0.2
+blinker==1.2
+pyzmq==13.1.0
+SQLAlchemy==0.8.0
+tornado==3.1
