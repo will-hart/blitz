@@ -22,3 +22,10 @@ This software is provided under the AGPLv3 license.  For the full text of the li
  > this case I would like to ensure that if anybody makes changes or improvements to the Blitz software then those
  > changes should be available to everybody who uses it!
 
+
+Change Log
+----------
+
+**0.1**
+
+Initial version
