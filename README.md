@@ -1,5 +1,5 @@
-Blitz GUI
-=========
+Blitz GUI 0.1
+=============
 
 Introduction
 ------------
