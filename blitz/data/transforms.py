@@ -21,9 +21,17 @@ class MultiplierDataTransform(BaseDataTransform):
 
         :param container: the data container to operate over
         """
+
+        new_y_transformed = []
+
         for y in container.y_transformed:
-            for i in range(len(y)):
-                y[i] = y[i] * self.multiplier
+            y_array = np.array(y)
+            y_array *= self.multiplier
+
+            new_y_transformed.append(y_array.tolist())
+
+        # finally overwrite the existing y_transformed with new data
+        container.y_transformed = new_y_transformed
 
 
 class MovingAverageDataTransform(BaseDataTransform):
