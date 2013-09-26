@@ -206,11 +206,12 @@ class BaseApplicationClient(object):
         result = {}
 
         for item in data:
-            if not item['categoryId'] in result.keys():
-                result[item['categoryId']] = [[],[]]  # set up an empty list
+            cat_id = str(item['categoryId'])
+            if not cat_id in result.keys():
+                result[cat_id] = [[],[]]  # set up an empty list
 
-            result[item['categoryId']][0].append(item['timeLogged'])
-            result[item['categoryId']][1].append(item['value'])
+            result[cat_id][0].append(item['timeLogged'])
+            result[cat_id][1].append(item['value'])
 
         return None if len(result.keys()) == 0 else result
 
