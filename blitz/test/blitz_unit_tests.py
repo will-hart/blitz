@@ -1069,6 +1069,11 @@ class TestDataContainer(unittest.TestCase):
         assert self.data.get_series_index("1") == 0
         assert self.data.get_series_index("2") == 1
 
+    def test_container_empty(self):
+        assert self.data.empty() == True
+        self.data.push("1", [1], [1])
+        assert self.data.empty() == False
+
 
 class TestDataTransform(unittest.TestCase):
     def setUp(self):

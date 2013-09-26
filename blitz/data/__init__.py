@@ -191,6 +191,15 @@ class DataContainer(object):
         """
         return self.__transforms
 
+    def empty(self):
+        """
+        Checks if a DataContainer is empty.  An empty data container has no
+        data series.  A container with data series but no data values is NOT empty
+
+        :returns: True if there are no data series, False otherwise
+        """
+        return len(self.__series.keys()) == 0
+
 
 class BaseDataTransform(object):
     """
