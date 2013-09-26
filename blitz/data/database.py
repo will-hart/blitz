@@ -2,12 +2,13 @@ __author__ = 'Will Hart'
 
 import logging
 import sqlalchemy as sql
+from sqlalchemy import func as sql_func
 from sqlalchemy.orm import sessionmaker
 import redis
 
 from blitz.data.models import *
 from blitz.data.fixtures import *
-import blitz.io.signals as sigs
+import blitz.communications.signals as sigs
 from blitz.utilities import blitz_timestamp
 
 
@@ -119,8 +120,9 @@ class DatabaseClient(object):
         :returns: nothing
         """
         sess = self._session()
-        session = self.get(Session, {"ref_id": session_id})
-        count = self._session().query(sql.exists().where(Reading.sessionId == session_id)).scalar()
+        session = sess.query(Session).filter_by(**{'ref_id': session_id}).first()
+        count = sess.query(sql_func.count(Reading.sessionId))\
+            .filter(Reading.sessionId == session_id).scalar()
 
         # check all lines were received and set "available" accordingly
         session.available = count > 0
@@ -374,6 +376,9 @@ class DatabaseClient(object):
         sess.query(Reading).filter(Reading.sessionId == session_id).delete()
         sess.commit()
 
+        # now update the session availability to reflect the cleared data
+        self.update_session_availability(session_id)
+
 
 class DatabaseServer(object):
     """
@@ -397,6 +402,7 @@ class DatabaseServer(object):
         """
         self.logger.debug("DatabaseServer __init__")
         self.session_id = self.__get_session_id()
+        self.__last_session_length = -1
 
     def start_session(self):
         """
@@ -408,6 +414,7 @@ class DatabaseServer(object):
         self.session_id = self.__get_session_id()
         self.__data.lpush("sessions", self.session_id)
         self.__data.set("session_" + str(self.session_id) + "_start", blitz_timestamp())
+        self.__last_session_length = -1
         return self.__get_session_id()
 
     def stop_session(self):
@@ -418,6 +425,7 @@ class DatabaseServer(object):
         """
         self.__data.set("session_" + str(self.session_id) + "_end", blitz_timestamp())
         self.session_id = -1
+        self.__last_session_length = -1
 
     def __get_session_id(self):
         sess_id = self.__data.get("session_id")
@@ -461,6 +469,30 @@ class DatabaseServer(object):
         result = self.__data.lrange(session_str, 0, -1)
         result.reverse()
         return result
+
+    def get_latest_from_session(self, session_id):
+        """
+        Gets the most recent logged variable from the database and returns it as
+        a raw message string.
+
+        :param session_id: The id of the session to return the top variable from
+
+        :returns: A string containing the last raw serial message received from a board in this session
+        """
+        session_str = "session_" + str(session_id)
+
+        # Work out if we have taken any new readings since the last status update
+        num_readings = self.__data.llen(session_str)
+
+        if num_readings == self.__last_session_length:
+            # do not return a reading more than once
+            return ""
+        else:
+            self.__last_session_length = num_readings
+
+        # get and return the last message from the database
+        result = self.__data.lrange(session_str, 0, 0)
+        return "" if len(result) == 0 else result[0]
 
     def delete_session(self, session_id):
         """

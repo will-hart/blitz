@@ -5,7 +5,7 @@ import time
 from tornado.web import RequestHandler
 
 from blitz.data.models import *
-import blitz.io.signals as sigs
+import blitz.communications.signals as sigs
 
 
 class ApiRequestHandler(RequestHandler):

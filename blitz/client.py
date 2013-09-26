@@ -2,15 +2,15 @@ __author__ = 'Will Hart'
 
 import logging
 import os.path
-import signal
 import tornado.httpserver
 import tornado.ioloop
 import tornado.web
 
 from blitz.constants import CommunicationCodes
 from blitz.data.database import DatabaseClient
-from blitz.io.boards import BoardManager
-import blitz.io.signals as sigs
+from blitz.communications.boards import BoardManager
+import blitz.communications.signals as sigs
+from blitz.communications.tcp import TcpCommunicationException, TcpBase
 import blitz.web.api as blitz_api
 import blitz.web.http as blitz_http
 
@@ -70,13 +70,12 @@ class Config(object):
         return self.set(key, value)
 
 
-class ApplicationClient(object):
+class BaseApplicationClient(object):
     """
-    A basic application which exposes the Api and HTTP request handlers
-    provided by Tornado
+    A basic application which provides access method agnostic functionality
+    for running a Blitz client side application.  Can be inherited to run
+    web or desktop type applications
     """
-
-    io_loop = None
 
     def __init__(self):
         """
@@ -96,17 +95,154 @@ class ApplicationClient(object):
         # create a database connection
         self.data = DatabaseClient(path=self.config['database_path'])
         self.data.clear_errors()
+        self.logger.info("Initialised DatabaseClient")
+
+        # create an empty TCP connection
+        self.tcp = None
+
+        # create a board manager
+        self.board_manager = BoardManager(self.data)
+
+        # save variables for later
+        self.config['board_manager'] = self.board_manager
+
+        # set up a cache
+        self.cache = self.data.get_cache()
+        self.variable_cache = self.data.get_cache_variables()
+
+        # subscribe to signals
+        sigs.cache_line_received.connect(self.cache_line_received)
+        sigs.client_requested_download.connect(self.send_download_request)
+
+    def run(self):
+        """
+        Starts the application.  Should be provided by implementation
+        """
+        pass
+
+    def cache_line_received(self, message):
+        """
+        Handles receiving a line of information from the logger,
+        and writing and parsing this to the temporary cache
+        """
+        results = self.board_manager.parse_message(message)
+        self.update_interface(results)
+
+    def send_download_request(self, session_id):
+        """
+        Sends a request for downloading a given session ID to the data logger
+        """
+        self.logger.debug("Handling client download request")
+
+        if self.tcp is None:
+            self.logger.debug("Failed to handle client download request - no TCP connection")
+            self.data.log_error(
+                "Unable to request download for session #%s as the logger is not connected" % session_id)
+            return
+
+        # delete old session data
+        self.data.clear_session_data(session_id)
+        self.tcp.send(CommunicationCodes.composite(CommunicationCodes.Download, session_id))
+
+    def connect_to_logger(self, args=None):
+        """
+        Handles a connection request from the client and establishes a TCP connection
+        with the data logger.  If a connection already exists, close it and reopen
+        """
+
+        if self.tcp is None:
+            # we are connecting
+            self.logger.debug("Created TCP connection at client request")
+            try:
+                self.tcp = TcpBase("127.0.0.1", 8999)  # TODO get from config
+                self.tcp.create_client()
+            except TcpCommunicationException as tce:
+                self.data.log_error("Communication error with the board - connection closed")
+                self.tcp.stop()
+                self.tcp = None
+
+        else:
+            self.tcp.stop()
+            self.logger.debug("Closed TCP connection at client request")
+
+            # write a connection error to database for the user
+            self.data.log_error("Unable to connect to the network")
+
+    def start_logging(self, args=None):
+        """
+        Sends a 'start logging' signal to the data logger
+        """
+
+        if self.tcp is None:
+            self.logger.warning("Attempt to start logging on TCP connection failed - there is no TCP connection")
+        else:
+            self.logger.debug("Web client requested logging start")
+            self.tcp.send(CommunicationCodes.Start)
+
+    def stop_logging(self, args=None):
+        """
+        Sends a 'stop logging' signal to the data logger
+        """
+
+        if self.tcp is None:
+            self.logger.warning("Attempt to stop logging on TCP connection failed - there is no TCP connection")
+
+        else:
+            self.logger.debug("Web client requested logging stop")
+            self.tcp.send(CommunicationCodes.Stop)
+
+    def update_interface(self, data, replace_existing=False):
+        """
+        Updates the user interface with new cache data received.  This method generates the required data structure,
+        the actual interface imlementation is provided by the inheriting class.  Note that this means the inheriting
+        class should call `results = super(...).update_interface` to gather the data in the correct format.
+
+        :param data: A list of Cache models or Reading models to convert into a dictionary: {'variable_name': [[x][y]] }
+        :param replace_existing: If True, appends to existing cache, if False, replaces cache? Defaults to False
+
+        :returns: The dictionary of readings required to update the UI, or None if no data is found
+        """
+
+        result = {}
+
+        for item in data:
+            cat_id = str(item['categoryId'])
+            if not cat_id in result.keys():
+                result[cat_id] = [[],[]]  # set up an empty list
+
+            result[cat_id][0].append(item['timeLogged'])
+            result[cat_id][1].append(item['value'])
+
+        return None if len(result.keys()) == 0 else result
+
+    def __del__(self):
+        """
+        A destructor, run when the application is closing
+        """
+        self.logger.warning("Closing Client Application")
+
+
+class WebApplicationClient(BaseApplicationClient):
+    """
+    A basic application which exposes the Api and HTTP request handlers
+    provided by Tornado
+    """
+
+    io_loop = None
+
+    def __init__(self):
+        """
+        Create a new client web application, setting defaults
+        """
+
+        super(WebApplicationClient, self).__init__()
 
         # todo remove fixture loading
         try:
             self.data.load_fixtures()
+            self.logger.info("Loaded fixtures")
         except Exception:
-            pass  # for now just load fixtures damnit
-
-        self.logger.info("Initialised DatabaseClient")
-
-        # create a board manager
-        self.board_manager = BoardManager(self.data)
+            pass
 
         # create an application
         self.application = tornado.web.Application([
@@ -134,10 +270,6 @@ class ApplicationClient(object):
         self.application.settings['data'] = self.data
         self.application.settings['board_manager'] = self.board_manager
 
-        # subscribe to signals
-        sigs.cache_line_received.connect(self.cache_line_received)
-        sigs.client_requested_download.connect(self.send_download_request)
-
     def run(self):
         """
         Starts the application
@@ -162,33 +294,17 @@ class ApplicationClient(object):
             self.io_loop.add_callback(self.io_loop.stop)
             self.logger.warning("Stopped IO loop with callback")
 
-    def cache_line_received(self, message):
-        self.board_manager.parse_message(message)
+    def connect_to_logger(self, args):
+        """
+        Extend the BaseApplicationClient.connect_to_logger method to save the
+        TCP socket to application settings
+        """
 
-    def send_download_request(self, session_id):
-        self.logger.debug("Handling client download request")
-        tcp = self.application.settings['socket']
+        # handle the connection through the BaseApplicationClient
+        super(WebApplicationClient, self).connect_to_logger(args)
 
-        if tcp is None:
-            self.logger.debug("Failed to handle client download request - no TCP connection")
-            self.data.log_error(
-                "Unable to request download for session #%s as the logger is not connected" % session_id)
-            return
+        # save off the socket for later use in the application
+        self.application.settings['socket'] = self.tcp
 
-        # delete old session data
-        data = self.application.settings['data']
-        data.clear_session_data(session_id)
-        tcp.send(CommunicationCodes.composite(CommunicationCodes.Download, session_id))
-
-    def __del__(self):
-        self.logger.warning("Closing Client Application")
-
-
-def close_io_loop():
-    """Closes an IO loop if sigterm is received"""
-    instance = tornado.ioloop.IOLoop.instance()
-    instance.add_callback(instance.stop)
-
-signal.signal(signal.SIGTERM, close_io_loop)
 
 

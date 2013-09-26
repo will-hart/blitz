@@ -6,7 +6,7 @@ from bitstring import BitArray
 
 from blitz.constants import BOARD_MESSAGE_MAPPING, PAYLOAD_LENGTH, MESSAGE_BYTE_LENGTH
 from blitz.data.models import Reading
-from blitz.io.signals import data_line_received, data_line_processed, registering_boards
+from blitz.communications.signals import data_line_received, data_line_processed, registering_boards
 from blitz.plugins import Plugin
 from blitz.utilities import blitz_timestamp
 
@@ -17,7 +17,6 @@ class BoardManager(object):
     of raw messages and insertion into the database
     """
 
-    boards = {}
     logger = logging.getLogger(__name__)
 
     def __init__(self, database):
@@ -27,6 +26,7 @@ class BoardManager(object):
 
         # save a reference to the database
         self.data = database
+        self.boards = {}
 
         # send the signal to register boards
         registering_boards.send(self)
@@ -41,7 +41,7 @@ class BoardManager(object):
         """
 
         if board_id in self.boards.keys():
-            self.logger.error("Failed to register board [%s: %s]" % (board_id, board.description))
+            self.logger.error("Error registering duplicate board [%s: %s]" % (board_id, board.description))
             raise Exception("Attempted to register a board against an existing ID: %s" % board_id)
 
         self.logger.info("Registered expansion board [%s: %s]" % (board_id, board.description))
@@ -67,17 +67,16 @@ class BoardManager(object):
     def parse_message(self, message, session_id=None, board_id=None):
         """
         Gets a variable dictionary from a board and save to database
-        :rtype : bool
-        :return: True if successfully parsed, False if unable to parse
         :param message: The raw message to parse
         :param session_id: The session ID of the message (ignore if getting cached variables)
         :param board_id: The id of the board to parse the message
+        :returns: a list of variables added to the cache or data store
         """
 
         readings = []
 
         if board_id is None:
-            board_id = int(message[2:4], 16)
+            board_id = int(message[0:2], 16)
 
         try:
             board = self.boards[board_id]
@@ -90,8 +89,11 @@ class BoardManager(object):
         result = board.get_variables()
 
         # get session metadata
-        # TODO add timestamp to session start time
-        timeLogged = - board["timestamp"] + blitz_timestamp()
+        if session_id:
+            # TODO add timestamp to session start time
+            timeLogged = - board["timestamp"]
+        else:
+            timeLogged = blitz_timestamp()  # for cached just pretend its now
 
         # write the variables to the database
         for key in result.keys():
@@ -102,7 +104,13 @@ class BoardManager(object):
                     Reading(sessionId=session_id, timeLogged=timeLogged, categoryId=category_id, value=result[key]))
             else:
                 # adding to cache
-                self.data.add_cache(timeLogged, category_id, result[key])
+                cached_item = self.data.add_cache(timeLogged, category_id, result[key])
+                readings.append({
+                    'categoryId': cached_item.categoryId,
+                    #'timeLogged': dt.datetime.fromtimestamp(cached_item.timeLogged / 1000),  # convert unix to python dates
+                    'timeLogged': cached_item.timeLogged / 1000,
+                    'value': int(cached_item.value)
+                })
 
         return readings
 

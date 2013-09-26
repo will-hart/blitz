@@ -2,7 +2,7 @@ __author__ = 'Will Hart'
 
 import logging
 
-import blitz.io.signals as sigs
+import blitz.communications.signals as sigs
 
 
 class PluginMount(type):

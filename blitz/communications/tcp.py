@@ -5,9 +5,9 @@ import threading
 import Queue
 import zmq
 
-from blitz.io.client_states import *
-from blitz.io.server_states import *
-import blitz.io.signals as sigs
+from blitz.communications.client_states import *
+from blitz.communications.server_states import *
+import blitz.communications.signals as sigs
 
 
 class TcpCommunicationException(Exception):
@@ -101,7 +101,10 @@ class TcpBase(object):
                         continue
 
                     # check if we need to break up the response
-                    if len(response) > self.MAX_RESPONSE_LENGTH:
+                    if len(response) == 0:
+                        self.logger.warn("Ignored attempt to send zero length message to client via TCP. Sending newline")
+                        self.__socket.send("")
+                    elif len(response) > self.MAX_RESPONSE_LENGTH:
                         parts = [response[i:i + self.MAX_RESPONSE_LENGTH] for i in
                                  range(0, len(response), self.MAX_RESPONSE_LENGTH)]
 
@@ -258,4 +261,4 @@ class TcpStateMachine(object):
             type(self.__current_state) == ClientLoggingState or type(self.__current_state) == ServerLoggingState)
 
     def force_state(self, state, args=None):
-        self.__current_state.go_to_state(state, args)
+        self.__current_state.go_to_state(self.__tcp, state, args)

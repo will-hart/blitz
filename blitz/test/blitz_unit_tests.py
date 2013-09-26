@@ -3,16 +3,18 @@ __author__ = 'Will Hart'
 import logging
 import unittest
 import datetime
-
+from nose.tools import raises
 import sqlalchemy
 from sqlalchemy import orm
 
+from blitz.data import DataContainer, BaseDataTransform
 from blitz.data.fixtures import *
 from blitz.data.models import *
-from blitz.io.boards import *
-from blitz.io.client_states import *
+import blitz.data.transforms as data_transforms
+from blitz.communications.boards import *
+from blitz.communications.client_states import *
 from blitz.data.database import *
-from blitz.io.server_states import *
+from blitz.communications.server_states import *
 from blitz.utilities import blitz_timestamp, to_blitz_date
 
 
@@ -429,48 +431,51 @@ class TestDatabaseHelpers(unittest.TestCase):
         cached = self.db.all(Cache)
         assert len(cached) == 0, "Expected 0 cached items, found %s" % len(cached)
 
-#
-# class TestWebApi(unittest.TestCase):
-#
-#     #def __init__(self, arg):
-#     #    """
-#     #     Set up the application
-#     #     """
-#     #
-#     #     # create an application and wait for it to start up
-#     #     self.app = Application()
-#     #     self.app.run()
-#     #     time.sleep(2)
-#     #
-#     #     # call the base class init
-#     #     super(TestWebApi, self).__init__(arg)
-#     #
-#     #def get_app(self):
-#     #    return self.app
-#
-#     def test_get_sessions(self):
-#         assert False
-#
-#     def test_get_session(self):
-#         assert False
-#
-#     def test_get_config(self):
-#         assert False
-#
-#     def test_post_config(self):
-#         assert False
-#
-#     def test_download(self):
-#         assert False
-#
-#     def test_cache(self):
-#         assert False
-#
-#     def test_cache_since(self):
-#         assert False
+    def test_clear_session_data(self):
+        res1 = self.db.get_session_readings(1)
+        assert len(res1) == len(READING_FIXTURES)
+
+        self.db.clear_session_data(1)
+        res2 = self.db.get_session_readings(1)
+        assert len(res2) == 0, "Expected 0 Readings, found %s" % len(res2)
+
+    def test_update_session_availability(self):
+        sess = self.db.get_by_id(Session, 1)
+        assert sess.available is True, "Expected session to be available, but availability is %s" % sess.available
+
+        self.db.clear_session_data(1)
+        sess2 = self.db.get_by_id(Session, 1)
+        assert sess2.available is False, "Expected session to be unavailable, but availability is %s" % sess.available
+
+    def test_update_session_list(self):
+        # clear all sessions
+        sess = self.db._session()
+        sess.query(Session).delete()
+        sess.commit()
+        assert len(self.db.all(Session)) == 0, "Failed to clear sessions"
+
+        dummy_data = [
+            [1, 100000, 100000, 10],
+            [2, 100002, 100003, 20]
+        ]
+        self.db.update_session_list(dummy_data)
+
+        session_list = self.db.all(Session)
+        assert len(session_list) == 2, "Expected 2 sessions, found %s" % len(session_list)
+
+        assert session_list[0].ref_id == dummy_data[0][0]
+        assert session_list[0].timeStarted == dummy_data[0][1]
+        assert session_list[0].timeStopped == dummy_data[0][2]
+        assert session_list[0].numberOfReadings == dummy_data[0][3]
+
+        assert session_list[1].ref_id == dummy_data[1][0]
+        assert session_list[1].timeStarted == dummy_data[1][1]
+        assert session_list[1].timeStopped == dummy_data[1][2]
+        assert session_list[1].numberOfReadings == dummy_data[1][3]
 
 
-class TestTcpClientStateMachine(unittest.TestCase):
+@unittest.skip("Tests need to be rewritten")
+class TestTcpClientStateMachine(unittest.TestCase): #(unittest.TestCase):
     """
     Tests that the TCP state machine on the client side enters and exits the
     correct states
@@ -574,7 +579,8 @@ class TestTcpClientStateMachine(unittest.TestCase):
             self.tcpMock.current_state)
 
 
-class TestTcpServerStateMachine(unittest.TestCase):
+@unittest.skip("Tests need to be rewritten")
+class TestTcpServerStateMachine(unittest.TestCase): #(unittest.TestCase):
     """
     Tests whether the state machine for the TcpServer follows the expected process
     """
@@ -736,7 +742,7 @@ class TestExpansionBoardParsing(unittest.TestCase):
             assert result[k] == expected[k], "Expected %s, received %s" % (expected[k], result[k])
 
         # check other parsed variables
-        assert board['id'] == 1
+        assert board['id'] == 8
         assert board['sender'] == 5
         assert board['type'] == 3
         assert board['flags'] == [True, False, True, False, True]
@@ -766,7 +772,7 @@ class TestExpansionBoardParsing(unittest.TestCase):
             assert result[k] == expected[k], "Expected %s, received %s" % (expected[k], result[k])
 
         # check other parsed variables
-        assert board['id'] == 1
+        assert board['id'] == 8
         assert board['sender'] == 5
         assert board['type'] == 3
         assert board['flags'] == [True, False, True, False, True]
@@ -786,10 +792,18 @@ class TestBoardManager(unittest.TestCase):
     def test_registering_boards(self):
         # the BlitzBasic board should be registered as ID 1, no other boards currently registered
         assert len(self.bm.boards) == 1
-        assert type(self.bm.boards[1]) == BlitzBasicExpansionBoard
+        assert type(self.bm.boards[8]) == BlitzBasicExpansionBoard
+
+    @raises(Exception)
+    def test_double_registering_a_board(self):
+        self.bm.register_board(8, BlitzBasicExpansionBoard())
+
+        # clear the board manager and start again
+        self.bm = BoardManager(self.data)
 
 
-class TestDatabaseServer(unittest.TestCase):
+@unittest.skip("Tests need to be rewritten")
+class TestDatabaseServer(unittest.TestCase): #(unittest.TestCase):
     def setUp(self):
         self.data = DatabaseServer()
 
@@ -873,3 +887,233 @@ class TestDatabaseServer(unittest.TestCase):
         print sessions
         assert len(sessions) == 10
         assert sessions == [x for x in reversed([str(x) for x in range(1, 11)])]
+
+    def test_delete_session(self):
+        assert False, "Not implemented"
+
+    def test_get_latest_from_session(self):
+        assert False, "Not implemented"
+
+    def test_build_client_session_list(self):
+        assert False, "Not implemented"
+
+
+class TestDataContainer(unittest.TestCase):
+    def setUp(self):
+        self.data = DataContainer()
+
+    @raises(ValueError)
+    def test_should_throw_value_error_on_mismatched_arrays(self):
+        self.data.push(1, [1, 2], [1])
+
+    def test_number_of_series(self):
+        assert self.data.number_of_series == 0, "Expected 0 series, found %s" % self.data.number_of_series
+
+        self.data.push(1, [1], [1])
+        assert self.data.number_of_series == 1, "Expected 1 series, found %s" % self.data.number_of_series
+
+    def test_push_data_series_doesnt_duplicate_series(self):
+        self.data.push("1", [1], [1])
+        self.data.push("2", [1], [1])
+        assert self.data.number_of_series == 2, "Expected 2 series, found %s" % self.data.number_of_series
+
+        self.data.push("2", [1], [1])
+        assert self.data.number_of_series == 2, "Expected 2 series, found %s" % self.data.number_of_series
+
+        assert len(self.data.x) == 2, "Expected 2 items, found %s" % len(self.data.x)
+        assert len(self.data.x[0]) == 1, "Expected 1 items, found %s" % len(self.data.x[0])
+        assert len(self.data.x[1]) == 2, "Expected 2 items, found %s" % len(self.data.x[1])
+        assert len(self.data.y) == 2, "Expected 2 items, found %s" % len(self.data.y)
+        assert len(self.data.y[0]) == 1, "Expected 1 items, found %s" % len(self.data.y[0])
+        assert len(self.data.y[1]) == 2, "Expected 2 items, found %s" % len(self.data.y[1])
+
+    def test_get_series(self):
+        self.data.push("1", [1], [1])
+
+        # check the series is correctly returned
+        x, y = self.data.get_series("1")
+        assert len(x) == 1
+        assert len(y) == 1
+        assert x[0] == 1
+        assert y[0] == 1
+
+        # check a none array is returned for unknown series
+        x2, y2 = self.data.get_series(1)
+        assert len(x2) == 0
+        assert len(y2) == 0
+
+    def test_push_data_series_appends_to_existing_series(self):
+        self.data.push("1", [1], [1])
+        self.data.push("1", [1], [1])
+        self.data.push("1", [1], [1])
+        self.data.push("1", [1], [1])
+        self.data.push("1", [1], [1])
+
+        assert self.data.number_of_series == 1
+
+        x, y = self.data.get_series("1")
+        assert len(x) == 5
+        assert len(y) == 5
+        for x_val in x:
+            assert x_val == 1
+
+    def test_all_series(self):
+        self.data.push("1", [1, 2], [3, 4])
+        self.data.push("2", [5, 6], [7, 8])
+        series_count = 0
+        series_data = [
+            [[1, 2], [3, 4]],
+            [[5, 6], [7, 8]]
+        ]
+
+        for series in self.data.all_series():
+            key, x, y = series
+            expected_x, expected_y = series_data[series_count]
+            assert x == expected_x, "Unexpected list found for x values (%s)" % ', '.join([str(x) for x in expected_x])
+            assert y == expected_y, "Unexpected list found for y values (%s)" % ', '.join([str(y) for y in expected_y])
+            series_count += 1
+
+        assert series_count == 2, "Expected 2 series, found %s" % series_count
+
+    def test_get_series_keeps_series_order(self):
+        self.data.push("1", [1, 2], [3, 4])
+        self.data.push("2", [1, 2], [3, 4])
+        self.data.push("3", [1, 2], [3, 4])
+        self.data.push("2", [1, 2], [3, 4])
+        self.data.push("4", [1, 2], [3, 4])
+        series_names = ["1", "2", "3", "4"]
+        series_count = 0
+
+        for series in self.data.all_series():
+            key, x, y = series
+            assert key == series_names[series_count], "Expected %s for series name but found %s" % (
+                series_names[series_count], key)
+            series_count += 1
+
+    def test_clear_data(self):
+        self.data.push("1", [1], [1])
+        self.data.push("2", [1], [1])
+        assert self.data.number_of_series == 2, "Expected 2 series, found %s" % self.data.number_of_series
+
+        self.data.clear_data()
+        assert self.data.number_of_series == 0, "Expected 0 series, found %s" % self.data.number_of_series
+
+    def test_add_transform(self):
+        self.data.add_transform(data_transforms.MultiplierDataTransform(2))
+        assert len(self.data.get_transforms()) == 1
+
+        self.data.add_transform(data_transforms.MultiplierDataTransform(5))
+        assert len(self.data.get_transforms()) == 2
+
+    @raises(ValueError)
+    def test_add_transform_throws_on_incorrect_type_of_transform(self):
+        self.data.add_transform(3)
+
+    def test_get_unknown_series(self):
+        self.data.push("1", [1], [1])
+        assert self.data.get_series("2") == [[], []], "Expected empty list"
+
+    def test_saves_min_and_max_limits(self):
+        self.data.push("1", [-50, -100, 50, 100], [-50, -100, 50, 100])
+
+        assert self.data.x_min == -100, "Expected -100, found %s" % self.data.x_min
+        assert self.data.x_max == 100, "Expected 100, found %s" % self.data.x_max
+        assert self.data.y_min == -100, "Expected -100, found %s" % self.data.y_min
+        assert self.data.y_max == 100, "Expected 100, found %s" % self.data.y_max
+
+    def test_has_series(self):
+        self.data.push("1", [1], [1])
+
+        assert self.data.has_series("1") == True
+        assert self.data.has_series(1) == True
+        assert self.data.has_series("asdf") == False
+
+    def test_get_series_names(self):
+        self.data.push("2", [1], [1])
+        self.data.push("1", [1], [1])
+
+        series_names = self.data.get_series_names()
+
+        assert series_names[0] == "2"
+        assert series_names[1] == "1"
+
+    def test_push_return_values(self):
+        assert self.data.push("1", [1], [1]) == True
+        assert self.data.push("1", [1], [1]) == False
+        assert self.data.push("2", [1], [1]) == True
+
+    def test_get_x_and_get_y(self):
+        self.data.push("1", [1], [2])
+        self.data.push("2", [3], [4])
+
+        x = self.data.get_x("1")
+        y = self.data.get_y("2")
+
+        assert x == [1]
+        assert y == [4]
+
+    def test_get_x_and_get_y_unknown_series(self):
+        self.data.push("1", [1], [2])
+        self.data.push("2", [3], [4])
+        x = self.data.get_x("3")
+        y = self.data.get_y("3")
+
+        assert x == []
+        assert y == []
+
+    def test_get_series_index(self):
+        self.data.push("1", [1], [1])
+        self.data.push("2", [1], [1])
+        self.data.push("1", [1], [1])
+
+        assert self.data.get_series_index("1") == 0
+        assert self.data.get_series_index("2") == 1
+
+    def test_container_empty(self):
+        assert self.data.empty() == True
+        self.data.push("1", [1], [1])
+        assert self.data.empty() == False
+
+
+class TestDataTransform(unittest.TestCase):
+    def setUp(self):
+        self.data = DataContainer()
+
+    def test_apply_transforms_one(self):
+        start = [1, 2, 3, 4]
+        expected = [2, 4, 6, 8]
+        self.data.add_transform(data_transforms.MultiplierDataTransform(2))
+        self.data.push("1", start, start)
+
+        self.data.apply_transforms()
+
+        # check originals were unchanged
+        x, y = self.data.get_series("1")
+        assert y == start
+
+        # check transforms have applied correctly
+        x, y = self.data.get_transformed_series("1")
+        assert y == expected
+
+    def test_apply_transforms_several(self):
+        start = [1, 2, 3, 4]
+        expected = [1, 3, 5, 7]
+        self.data.add_transform(data_transforms.MultiplierDataTransform(2))
+        self.data.add_transform(data_transforms.MovingAverageDataTransform(2))
+        self.data.push("1", start, start)
+
+        self.data.apply_transforms()
+
+        x, y = self.data.get_transformed_series("1")
+        assert y == expected, "Expected [%s], got [%s]" % (
+            ', '.join([str(data) for data in expected]),
+            ', '.join([str(data) for data in y])
+        )
+
+    @raises(NotImplementedError)
+    def test_not_overriding_apply_in_derived_transform(self):
+        class BrokenDataTransform(BaseDataTransform):
+            pass
+
+        self.data.add_transform(BrokenDataTransform())
+        self.data.apply_transforms()

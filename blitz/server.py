@@ -5,9 +5,9 @@ import logging
 import os
 
 from blitz.constants import CommunicationCodes
-from blitz.io.rs232 import SerialManager
-import blitz.io.signals as sigs
-from blitz.io.tcp import TcpBase
+from blitz.communications.rs232 import SerialManager
+import blitz.communications.signals as sigs
+from blitz.communications.tcp import TcpBase
 
 
 class Config(object):
@@ -126,7 +126,7 @@ class ApplicationServer(object):
 
         # hook up signals
         sigs.client_requested_session_list.connect(self.update_session_list)
-        sigs.client_status_request.connect(self.serve_client_status)
+        sigs.server_status_request.connect(self.serve_client_status)
         sigs.client_requested_download.connect(self.serve_client_download)
 
         # start the TCP server
@@ -140,17 +140,25 @@ class ApplicationServer(object):
         Sends the client the list of logged sessions
         """
         self.logger.debug("Server sending out updated session list")
-        sessions = self.serial_server.database.build_client_session_list()
-        sessions_string = "\n".join([x for x in sessions])
-        sessions_string += "\n" + CommunicationCodes.Negative
-        self.tcp.send(sessions_string)
-        self.logger.debug("Session list queued for sending")
+
+        if self.serial_server.database is None:
+            self.logger.warn("Unable to generate session list - no database")
+            self.tcp.send(CommunicationCodes.Negative)
+        else:
+            sessions = self.serial_server.database.build_client_session_list()
+            sessions_string = "\n".join([x for x in sessions])
+            sessions_string += "\n" + CommunicationCodes.Negative
+            self.tcp.send(sessions_string)
+            self.logger.debug("Session list queued for sending")
 
     def serve_client_status(self, args):
         """
-        Sends the client the last ten serial messages received
+        Sends the client the last serial message received from a board
+
+        # TODO - improve to send the last serial message from each connected given board in serial_mapping
         """
-        self.tcp.send(CommunicationCodes.Acknowledge)
+        message = self.serial_server.database.get_latest_from_session(self.serial_server.database.session_id)
+        self.tcp.send(message)
 
     def serve_client_download(self, session_id):
         # get all the session data from the database

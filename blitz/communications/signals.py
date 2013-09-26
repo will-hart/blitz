@@ -2,11 +2,14 @@ __author__ = 'Will Hart'
 
 from blinker import signal
 
-#: Fired when a server TCP connection is established
-logger_connected = signal('logger_connected')
-
-#: Fired when a server TCP connection is closed
-logger_disconnected = signal('logger_disconnected')
+#: Fired when the client has requested a connection to the data logger
+#:
+#: Subscribed to by:
+#:  - BaseApplicationClient.__init__ >> BaseApplicationClient.connect_to_logger()
+#:
+#: Sent by:
+#:  - ConnectHandler.get()
+logger_connecting = signal('logger_connected')
 
 #: Fired when the client receives a line of cached data
 #:
@@ -28,15 +31,11 @@ cache_line_received = signal('cache_line_received')
 #:  - :mod:`ClientDownloadingState`.receive_message
 data_line_received = signal('data_line_received')
 
-#: fired when a variable is ready for entry into the database.
-#: allows post processing of data
-data_variable_decoded = signal('data_variable_decoded')
-
 #: Fired when a board has finished processing a data line
+#:
+#: Sent by:
+#:  - :mod:`BaseExpansionBoard`.parse_message
 data_line_processed = signal('data_line_processed')
-
-#: Fired when an expansion board is registered
-expansion_board_registered = signal('expansion_board_registered')
 
 #: Fired when expansion boards should be registered with the board manager
 #:
@@ -78,7 +77,7 @@ logging_stopped = signal('logging_stopped')
 #:
 #: Sent by:
 #:  - :mod:`ServerLoggingState`.receive_message
-client_status_request = signal('client_status_request')
+server_status_request = signal('server_status_request')
 
 #: Fired when the client has requested a status list update, TcpServer as argument
 #:
@@ -86,7 +85,7 @@ client_status_request = signal('client_status_request')
 #:  - :mod:`ApplicationServer`.__init__ >> ApplicationServer.update_session_list
 #:
 #: Sent by:
-#:  - :mod:`ServerIdleState.receive_message
+#:  - :mod:`ServerIdleState`.receive_message
 client_requested_session_list = signal('client_requested_session_list')
 
 #: Fired when the client has a completed session list received from the server
@@ -95,7 +94,7 @@ client_requested_session_list = signal('client_requested_session_list')
 #:  - :mod:`DatabaseClient`.__init__ >> DatabaseClient.update_session_list
 #:
 #: Sent by:
-#:  - :mod:`ClientSessionListState.go_to_state
+#:  - :mod:`ClientSessionListState`.go_to_state
 client_session_list_updated = signal('client_session_list_updated')
 
 #: Fired to let subscribers know a message is ready to be received

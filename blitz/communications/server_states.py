@@ -1,8 +1,8 @@
 __author__ = 'Will Hart'
 
 from blitz.constants import *
-from blitz.io.client_states import BaseState
-import blitz.io.signals as sigs
+from blitz.communications.client_states import BaseState
+import blitz.communications.signals as sigs
 
 
 def validate_command(msg, commands):
@@ -58,7 +58,7 @@ class ServerLoggingState(BaseState):
 
     def enter_state(self, tcp, state, args=None):
         self.logger.debug("[TCP] Calling ServerLoggingState.enter_state: " + state.__name__)
-        sigs.logging_started.send()
+        sigs.logging_started.send(tcp)
         return self
 
     def receive_message(self, tcp, msg):
@@ -71,7 +71,7 @@ class ServerLoggingState(BaseState):
             return self.go_to_state(tcp, ServerIdleState)
 
         if msg == CommunicationCodes.Update:
-            sigs.client_status_request.send(tcp)
+            sigs.server_status_request.send(tcp)
 
         elif msg == CommunicationCodes.Start:
             tcp._do_send(CommunicationCodes.InSession)

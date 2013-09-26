@@ -1,11 +1,10 @@
 __author__ = 'Will Hart'
 
-from bitstring import BitArray
-import datetime
 from math import ceil
 import time
 from random import random
 
+from bitstring import BitArray
 
 
 def to_blitz_date(given_date):
