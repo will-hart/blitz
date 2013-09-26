@@ -114,4 +114,5 @@ tcp_message_received = signal('tcp_message_received')
 #: Sent by:
 #:  - :mod:`ServerDownloadingState`.enter_state
 #:  - :mod:`DownloadHandler`.get
+#:  - :mod:`blitz.ui.BlitzSessionWindow`.on_item_checked
 client_requested_download = signal('client_requested_download')
