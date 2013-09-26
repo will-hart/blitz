@@ -51,7 +51,7 @@ class BlitzLoggingWidget(Qt.QWidget):
     A widget which handles logger display of data
     """
 
-    def __init__(self, cache, visibility):
+    def __init__(self):
         """
         Initialises the graph widget
         """
@@ -70,7 +70,7 @@ class BlitzLoggingWidget(Qt.QWidget):
         #self.figure.subplots_adjust(left=0.2)
 
         # build the chart but do not draw it yet - wait until the application is drawn
-        self.redraw(cache, True, False)
+        self.redraw({}, True, False)
 
         # create the canvas
         self.canvas = FigureCanvas(self.figure)
@@ -117,13 +117,18 @@ class BlitzLoggingWidget(Qt.QWidget):
             self.__container = DataContainer()
 
         for key in new_data.keys():
+            # massage key to str
+            key = str(key)
+
+            # get the new plot data
+            x, y = new_data[key]
 
             # push the new plot data on to the Container, checking if we need a new plot
-            if self.cache.push(key, **new_data[key]):
+            if self.__container.push(key, x, y):
                 # TODO: determine how to manage plot ordering and new variables being suddenly added
                 # TODO: after a 'replace_existing'
                 # add an empty plot and record the ID
-                self.__lines[key] = self.axis.plot([], [], 'o-')
+                self.__lines[key], = self.axis.plot([], [], 'o-')
 
             x, y = self.__container.get_series(key)
 
@@ -132,9 +137,12 @@ class BlitzLoggingWidget(Qt.QWidget):
             self.__lines[key].set_ydata(y)
 
         # tidy up and rescale
-        self.axis.relim()
-        self.axis.autoscale_view()
-        self.axis.set_xlim(left=self.__container.x_min, right=self.__container.x_max, auto=False)
+        if self.__container.empty():
+            self.axis.set_xlim(left=0, right=100)
+            self.axis.set_ylim(bottom=0, top=100)
+        else:
+            self.axis.set_xlim(left=self.__container.x_min - 1, right=self.__container.x_max + 1, auto=False)
+            self.axis.set_ylim(bottom=self.__container.y_min * 0.9, top=self.__container.y_max * 1.1, auto=False)
 
         # redraw if required
         if draw_canvas:
@@ -255,7 +263,7 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.main_toolbar = self.addToolBar('Main')
 
         # main graphing widget
-        self.main_widget = BlitzLoggingWidget(self.cache, self.cache_visibility)
+        self.main_widget = BlitzLoggingWidget()
 
     def layout_window(self):
         """
