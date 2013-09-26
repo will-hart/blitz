@@ -13,6 +13,7 @@ import PySide.QtCore as QtCore
 import sys
 
 from blitz.client import BaseApplicationClient
+import blitz.communications.signals as sigs
 from blitz.ui.mixins import BlitzGuiMixin
 
 
@@ -328,18 +329,9 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         for sess in raw_sessions:
             sessions.append([
                 "Session %s (%s readings) started %s" % (sess.ref_id, sess.numberOfReadings, sess.timeStarted),
-                sess.available
+                sess.available,
+                sess.ref_id
             ])
-            comment = """
-            ##### for table model
-            [
-                sess.ref_id,
-                0 if sess.timeStarted == "None" else sess.timeStarted / 1000,
-                0 if sess.timeStopped == "None" else sess.timeStopped / 1000,
-                sess.numberOfReadings,
-                sess.available
-            ]
-            """
 
         self.session_list_window = BlitzSessionWindow(sessions)
         self.session_list_window.show()
@@ -351,42 +343,48 @@ class BlitzSessionWindow(Qt.QWidget):
     """
 
     def __init__(self, session_list=None):
+
         super(BlitzSessionWindow, self).__init__()
+
         self.setWindowTitle("Session List")
         self.resize(800, 600)
 
-        comment = """
-
-        ##### TABLE version
-        # set up the table for listing sessions
-        self.session_table = Qt.QTableWidget()
-        #self.session_table.setRowCount(10)
-        self.session_table.setColumnCount(5)
-        self.session_table.setHorizontalHeaderLabels(("Session ID", "Start Time", "End Time", "Readings", "Downloaded"))
-        self.session_table.setSizePolicy(Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Expanding)
-
-        # load session data into the table
-        if session_list:
-            for row, cols in enumerate(session_list):
-                for col, item in enumerate(cols):
-                    table_item = Qt.QTableWidgetItem(item)
-                    self.session_table.setItem(row, col, table_item)
-
-        self.session_table.resizeColumnsToContents()
-        """
-
         self.session_table = Qt.QListView(self)
-        model = Qt.QStandardItemModel(self.session_table)
+        self.model = Qt.QStandardItemModel(self.session_table)
 
         for row in session_list:
             item = Qt.QStandardItem(row[0])
             item.setCheckable(True)
             item.setCheckState(QtCore.Qt.Checked if row[1] else QtCore.Qt.Unchecked)
-            model.appendRow(item)
+            item.sessionId = row[2]
+            self.model.appendRow(item)
 
-        self.session_table.setModel(model)
+        self.model.itemChanged.connect(self.on_item_checked)
 
-        self.vertical_layout = Qt.QVBoxLayout()
-        self.vertical_layout.addWidget(self.session_table)
+        self.session_table.setModel(self.model)
 
-        self.setLayout(self.vertical_layout)
+        self.download_button = Qt.QPushButton("Download")
+        self.view_series_button = Qt.QPushButton("View Graphs")
+
+        self.grid = Qt.QGridLayout()
+        self.grid.addWidget(self.session_table, 0, 0, 4, 5)
+        self.grid.addWidget(self.download_button, 0, 5)
+        self.grid.addWidget(self.view_series_button, 1, 5)
+        self.setLayout(self.grid)
+
+    def on_item_checked(self, item):
+        """
+        Handles clicking a checkbox in the session list.  Unchecked sessions
+        are deleted from the database whilst checked sessions are downloaded
+
+        :param item: The item that was checked/unchecked
+        """
+
+        if item.checkState():
+            # download
+            sigs.client_requested_download.send(item.sessionId)
+
+        else:
+            # remove
+            # TODO implement... signal?
+            pass
