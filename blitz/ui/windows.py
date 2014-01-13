@@ -1,6 +1,8 @@
 import matplotlib
+
 from blitz.data import DataContainer
 from blitz.data.models import Session
+
 
 matplotlib.rc_file('matplotlibrc')
 matplotlib.use('Qt4Agg')
@@ -143,7 +145,7 @@ class BlitzLoggingWidget(Qt.QWidget):
             self.axis.set_ylim(bottom=0, top=100)
         else:
             self.axis.set_xlim(left=self.__container.x_min - 1, right=self.__container.x_max + 1, auto=False)
-            self.axis.set_ylim(bottom=self.__container.y_min * 0.9, top=self.__container.y_max * 1.1, auto=False)
+            self.axis.set_ylim(bottom=self.__container.y_min * 0.9 - 1, top=self.__container.y_max * 1.1 + 1, auto=False)
 
         # redraw if required
         if draw_canvas:
