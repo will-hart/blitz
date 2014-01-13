@@ -1,5 +1,6 @@
 __author__ = 'Will Hart'
 
+from datetime import datetime
 from math import ceil
 import time
 from random import random
@@ -24,8 +25,17 @@ def blitz_timestamp():
     return ceil(time.time() * 1000)
 
 
+def blitz_strftimestamp(timestamp):
+    """
+    Returns a YYYY-MM-DD HH:MM:SS string from a blitz timestamp
+    """
+    return datetime.fromtimestamp(timestamp / 1000).strftime('%Y-%m-%d %H:%M:%S')
+
+
 def generate_tcp_server_fixtures():
-    """Generate a random reading at the given datetime for a BlitzBasic board"""
+    """
+    Generate a random reading at the given datetime for a BlitzBasic board
+    """
 
     # build the message preamble (first 48 bits)
     sender = BitArray(bin="0b00000001")

@@ -1,4 +1,6 @@
+from datetime import datetime
 import matplotlib
+
 from blitz.data import DataContainer
 from blitz.data.models import Session
 
@@ -15,6 +17,7 @@ import sys
 from blitz.client import BaseApplicationClient
 import blitz.communications.signals as sigs
 from blitz.ui.mixins import BlitzGuiMixin
+from blitz.utilities import blitz_strftimestamp
 
 
 class MainBlitzApplication(BaseApplicationClient):
@@ -143,7 +146,7 @@ class BlitzLoggingWidget(Qt.QWidget):
             self.axis.set_ylim(bottom=0, top=100)
         else:
             self.axis.set_xlim(left=self.__container.x_min - 1, right=self.__container.x_max + 1, auto=False)
-            self.axis.set_ylim(bottom=self.__container.y_min * 0.9, top=self.__container.y_max * 1.1, auto=False)
+            self.axis.set_ylim(bottom=self.__container.y_min * 0.9 - 1, top=self.__container.y_max * 1.1 + 1, auto=False)
 
         # redraw if required
         if draw_canvas:
@@ -327,13 +330,15 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         sessions = []
 
         for sess in raw_sessions:
+            dt = blitz_strftimestamp(sess.timeStarted)
+
             sessions.append([
-                "Session %s (%s readings) started %s" % (sess.ref_id, sess.numberOfReadings, sess.timeStarted),
+                "Session %s (%s readings) started %s" % (sess.ref_id, sess.numberOfReadings, dt),
                 sess.available,
                 sess.ref_id
             ])
 
-        self.session_list_window = BlitzSessionWindow(sessions)
+        self.session_list_window = BlitzSessionWindow(self.application, sessions)
         self.session_list_window.show()
 
 
@@ -342,12 +347,16 @@ class BlitzSessionWindow(Qt.QWidget):
     A UI window which lists available data logger sessions and
     """
 
-    def __init__(self, session_list=None):
+    def __init__(self, application, session_list=None):
 
         super(BlitzSessionWindow, self).__init__()
 
+        self.application = application
+
         self.setWindowTitle("Session List")
         self.resize(800, 600)
+
+        self.selected_item_id = -1
 
         self.session_table = Qt.QListView(self)
         self.model = Qt.QStandardItemModel(self.session_table)
@@ -364,6 +373,8 @@ class BlitzSessionWindow(Qt.QWidget):
         self.session_table.setModel(self.model)
 
         self.download_button = Qt.QPushButton("Download")
+        self.download_button.clicked.connect(self.download_session)
+
         self.view_series_button = Qt.QPushButton("View Graphs")
 
         self.grid = Qt.QGridLayout()
@@ -385,6 +396,46 @@ class BlitzSessionWindow(Qt.QWidget):
             sigs.client_requested_download.send(item.sessionId)
 
         else:
-            # remove
-            # TODO implement... signal?
+            # delete local session data?
+            # TODO implement...
             pass
+
+    def download_session(self):
+        """
+        Handles the 'download session' button being clicked on a session list item
+        """
+
+        # get the session ID of the selected item
+        selected_item = self.session_table.selectedIndexes()
+        if len(selected_item) <= 0:
+            return
+        else:
+            selected_item = selected_item[0]
+
+        current_item = selected_item.model().item(selected_item.row())
+        current_idx = current_item.sessionId
+
+        # check we have the item downloaded and trigger download if we do not
+        if not current_item.checkState():
+            self.on_item_checked(current_item)
+
+        # get the data
+        data = self.application.data.get_session_readings(current_idx)
+        raw_sess_vars = self.application.data.get_session_variables(current_idx)
+        sess_vars = dict([(x.id, x.variableName) for x in raw_sess_vars])
+
+        # prepare the string to write to file
+        output = "Time Logged,Variable Name,Value\r\n"
+        for row in data:
+            output += "%s,%s,%s\n" % (
+                blitz_strftimestamp(max(0, row.timeLogged)),
+                sess_vars[row.categoryId],
+                row.value
+            )
+
+        # get the file name
+        file_path, _ = Qt.QFileDialog.getSaveFileName(self, 'Save session to file...', 'C:/', 'CSV Files (*.csv)')
+
+        # write to file
+        with open(file_path, 'w') as f:
+            f.write(output)
