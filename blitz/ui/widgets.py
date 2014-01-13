@@ -72,7 +72,7 @@ class BlitzSessionWidget(Qt.QWidget):
         self.grid.addWidget(self.session_description_label, 1, 0, 1, 2)
 
         # a label displaying the time the session started
-        self.session_date_label = Qt.QLabel("Started %s" % self.date_started.isoformat((" ")))
+        self.session_date_label = Qt.QLabel("Started %s" % self.date_started.strftime('%Y-%m-%d %H:%M:%S'))
         self.grid.addWidget(self.session_date_label, 2, 0, 1, 2)
 
         # set the layout to the grid
