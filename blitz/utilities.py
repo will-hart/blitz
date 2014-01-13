@@ -25,7 +25,9 @@ def blitz_timestamp():
 
 
 def generate_tcp_server_fixtures():
-    """Generate a random reading at the given datetime for a BlitzBasic board"""
+    """
+    Generate a random reading at the given datetime for a BlitzBasic board
+    """
 
     # build the message preamble (first 48 bits)
     sender = BitArray(bin="0b00000001")
