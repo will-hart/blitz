@@ -6,10 +6,11 @@ from bitstring import BitArray
 
 from blitz.constants import BOARD_MESSAGE_MAPPING, PAYLOAD_LENGTH, MESSAGE_BYTE_LENGTH
 from blitz.data.models import Reading
-from blitz.communications.signals import data_line_received, data_line_processed, registering_boards
+from blitz.communications.signals import data_line_received, data_line_processed, registering_boards, \
+    logging_started, logging_stopped
+from blitz.communications.netscanner_manager import NetScannerManager
 from blitz.plugins import Plugin
 from blitz.utilities import blitz_timestamp
-
 
 class BoardManager(object):
     """
@@ -109,7 +110,7 @@ class BoardManager(object):
                     'categoryId': cached_item.categoryId,
                     #'timeLogged': dt.datetime.fromtimestamp(cached_item.timeLogged / 1000),  # convert unix to python dates
                     'timeLogged': cached_item.timeLogged / 1000,
-                    'value': int(cached_item.value)
+                    'value': float(cached_item.value)
                 })
 
         return readings
@@ -138,6 +139,7 @@ class BaseExpansionBoard(Plugin):
         self.__message = None
         self.__attributes = {}
         self.__mapping = BOARD_MESSAGE_MAPPING
+        self._payload_array = None
 
     def __getitem__(self, item):
         """Override get item to provide access to attributes"""
@@ -188,7 +190,8 @@ class BaseExpansionBoard(Plugin):
                 self[key] = self.__message[self.__mapping[key]["start"]]
 
         # get the payload into a bit_array
-        self._payload_array = BitArray(uint=self["payload"], length=PAYLOAD_LENGTH + (len(raw_message) - 28) * 4)
+        # TODO Extended messages using PAYLOAD_LENGTH + (len(raw_message) - 28) * 4)
+        self._payload_array = BitArray(uint=self["payload"], length=PAYLOAD_LENGTH)
 
         # create a flags array
         self['flags'] = [
@@ -263,6 +266,7 @@ class BlitzBasicExpansionBoard(BaseExpansionBoard):
         registering_boards.connect(self.register_board)
 
     def get_variables(self):
+        #print self._payload_array.hex
         return {
             "adc_channel_one": self.get_number(0, 12),
             "adc_channel_two": self.get_number(12, 12),
@@ -270,3 +274,51 @@ class BlitzBasicExpansionBoard(BaseExpansionBoard):
             "adc_channel_four": self.get_number(36, 12),
             "adc_channel_five": self.get_number(48, 12)
         }
+
+
+class NetScannerEthernetBoard(BaseExpansionBoard):
+    """
+    An ethernet based expansion board for communicating with two NetScanner 9116 devices
+    connected to a NetScanner 9IFC.  The protocol is available from the NetScanner manuals
+    """
+
+    def __init__(self, description="NetScanner Ethernet Interface Board"):
+        """load the correct description for the board"""
+        BaseExpansionBoard.__init__(self, description)
+        self.do_not_register = False
+        self.id = 9
+        self.description = description
+        self.__net_scanner = None
+
+    def register_signals(self):
+        # signal to register the board
+        registering_boards.connect(self.register_board)
+        self.logger.debug(
+            "Board [%s:%s] now listening for registering_boards signal" % (self['id'], self['description']))
+
+        # signal to start logging
+        logging_started.connect(self.start_polling)
+        self.logger.debug(
+            "Board [%s:%s] now listening for logging_started signal" % (self['id'], self['description']))
+
+        logging_stopped.connect(self.stop_polling)
+        self.logger.debug(
+            "Board [%s:%s] now listening for logging_stopped signal" % (self['id'], self['description']))
+
+    def start_polling(self):
+        """
+        Communicates with a NetScanner 9116 via TCP, telling it to
+        start recording
+        """
+        # TODO implement correct IP/Port
+        self.__net_scanner = NetScannerManager("192.168.1.1", "9000")
+
+    def stop_polling(self):
+        """
+        Stops polling a NetScanner board
+        """
+        self.__net_scanner.stop_client()
+
+    def get_variables(self):
+        results = self.__net_scanner.get_channels()
+        return dict([("Channel %s" % x[0], x[1]) for x in enumerate(results)])
