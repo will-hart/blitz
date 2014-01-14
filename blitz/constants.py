@@ -90,5 +90,8 @@ SerialCommands = {
     'TRANSMIT': 'C0',
     'ID': '81',
     'START': '00',
-    'STOP': '20'
+    'STOP': '20',
+    'SET_SPEED': '85',
+    'SET_ANGLE': '86',
+    'MOTOR_HOME': '87',
 }

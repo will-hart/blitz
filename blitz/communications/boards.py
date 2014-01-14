@@ -322,3 +322,24 @@ class NetScannerEthernetBoard(BaseExpansionBoard):
     def get_variables(self):
         results = self.__net_scanner.get_channels()
         return dict([("Channel %s" % x[0], x[1]) for x in enumerate(results)])
+
+
+class MotorControllerBoard(BaseExpansionBoard):
+    """
+    An expansion board which is sent a single number which it translates into motor movement.  For instance
+    this can be used to set a servo motor position, or a motor speed.  The ExpansionBoard code is responsible
+    for interpreting and setting the motor position.
+    """
+    def __init__(self, description="Motor Controller Expansion Board"):
+        """load the correct description for the board"""
+        BaseExpansionBoard.__init__(self, description)
+        self.do_not_register = False
+        self.id = 10
+        self.description = description
+
+    def register_signals(self):
+        # signal to register the board
+        registering_boards.connect(self.register_board)
+        self.logger.debug(
+            "Board [%s:%s] now listening for registering_boards signal" % (self['id'], self['description']))
+
