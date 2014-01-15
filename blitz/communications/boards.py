@@ -7,7 +7,7 @@ from bitstring import BitArray
 from blitz.constants import BOARD_MESSAGE_MAPPING, PAYLOAD_LENGTH, MESSAGE_BYTE_LENGTH
 from blitz.data.models import Reading
 from blitz.communications.signals import data_line_received, data_line_processed, registering_boards, \
-    logging_started, logging_stopped
+    logging_started, logging_stopped, board_command_received
 from blitz.communications.netscanner_manager import NetScannerManager
 from blitz.plugins import Plugin
 from blitz.utilities import blitz_timestamp
@@ -34,6 +34,21 @@ class BoardManager(object):
 
         # connect the data line received message
         data_line_received.connect(self.parse_session_message)
+        board_command_received.connect(self.handle_board_command)
+
+    def handle_board_command(self, command):
+        """
+        Processes a board command received via TCP and sends the required message to an expansion board.
+
+        The received command should correspond toa serial communications command, for instance to set a
+        motor position on a board with ID #9, the client would send::
+
+            098500000A
+
+        In this case, `09` is the board ID, `85` is the "set motor position" command, `0000` is the
+        timestamp section of the message and `0A` is the position to set.
+        """
+        pass
 
     def register_board(self, board_id, board):
         """
