@@ -9,6 +9,7 @@ from blitz.data.models import Reading
 from blitz.communications.signals import data_line_received, data_line_processed, registering_boards, \
     logging_started, logging_stopped, board_command_received
 from blitz.communications.netscanner_manager import NetScannerManager
+from blitz.communications.rs232 import SerialManager
 from blitz.plugins import Plugin
 from blitz.utilities import blitz_timestamp
 
@@ -48,7 +49,18 @@ class BoardManager(object):
         In this case, `09` is the board ID, `85` is the "set motor position" command, `0000` is the
         timestamp section of the message and `0A` is the position to set.
         """
-        pass
+
+        board_id = int(command[0:2], 16)
+        command = command[2:]
+        board = None
+
+        try:
+            board = self.boards[board_id]
+        except KeyError:
+            self.logger.warning("Ignoring command (%s) for unknown board id - %s" % (command, board_id))
+            return
+
+        board.send_command(board_id)
 
     def register_board(self, board_id, board):
         """
@@ -260,6 +272,18 @@ class BaseExpansionBoard(Plugin):
         This method MUST be overridden by derived classes
         """
         return {}
+
+    def send_command(self, command):
+        """
+        Sends a command using the preferred method of the board.  Can be overridden in inherited classes
+        to provide behaviour other than the default RS232 transmission
+        """
+        result = SerialManager.Instance().send_command_with_ack(command, self.board_id)
+
+        if result == None:
+            return
+
+        self.logger.warning("Board unable to process command (%s) received response (%s)" %(command, result))
 
 
 class BlitzBasicExpansionBoard(BaseExpansionBoard):
