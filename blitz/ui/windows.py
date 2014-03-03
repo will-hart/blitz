@@ -436,6 +436,7 @@ class BlitzSessionWindow(Qt.QWidget):
         # get the file name
         file_path, _ = Qt.QFileDialog.getSaveFileName(self, 'Save session to file...', 'C:/', 'CSV Files (*.csv)')
 
-        # write to file
-        with open(file_path, 'w') as f:
-            f.write(output)
+        # write to file if a path was given
+        if file_path:
+            with open(file_path, 'w') as f:
+                f.write(output)
