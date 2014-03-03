@@ -11,6 +11,7 @@ class BlitzGuiMixin(object):
         self.disconnect_action.setEnabled(True)
         self.start_session_action.setEnabled(True)
         self.stop_session_action.setEnabled(False)
+        self.motor_control.setEnabled(True)
         self.status_bar.showMessage("Connected to logger")
 
     def disconnect_from_logger(self):
@@ -25,6 +26,7 @@ class BlitzGuiMixin(object):
         self.disconnect_action.setEnabled(False)
         self.start_session_action.setEnabled(False)
         self.stop_session_action.setEnabled(False)
+        self.motor_control.setEnabled(False)
         self.status_bar.showMessage("Disconnected from logger")
 
     def start_session(self):
@@ -48,3 +50,21 @@ class BlitzGuiMixin(object):
         self.start_session_action.setEnabled(True)
         self.stop_session_action.setEnabled(False)
         self.status_bar.showMessage("Stopping session")
+
+    def send_move_command(self, angle):
+        # clamp to safe range
+        if angle < 0: angle = 0
+        if angle > 40: angle = 40
+
+        # start the command - 0985 is the "set motor on board 09" command
+        # the following 8 zeroes are the timestamp
+        command = '098500000000'
+
+        # build the message - the angle should be packed as a sixteen bit hex value
+        command += hex(angle).replace('0x','').rjust(2, '0')
+
+        # send the command
+        self.application.send_command(command)
+
+
+

@@ -16,6 +16,7 @@ import sys
 
 from blitz.client import BaseApplicationClient
 import blitz.communications.signals as sigs
+from blitz.communications.rs232 import ExpansionBoardNotFound
 from blitz.ui.mixins import BlitzGuiMixin
 from blitz.utilities import blitz_strftimestamp
 
@@ -257,6 +258,17 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.exit_action.setToolTip('Exit application')
         self.exit_action.triggered.connect(self.close)
 
+        # label for diffuser position
+        self.motor_control_label = Qt.QLabel("Diffuser position: ")
+
+        # allows setting of the motor angle
+        self.motor_control = Qt.QSpinBox()
+        self.motor_control.setMinimum(0)
+        self.motor_control.setMaximum(40)
+        self.motor_control.setValue(0)
+        self.motor_control.setEnabled(False)
+        self.motor_control.valueChanged.connect(self.set_motor_position)
+
         # menus
         self.main_menu = self.menuBar()
         self.file_menu = self.main_menu.addMenu('&File')
@@ -295,6 +307,9 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.main_toolbar.addSeparator()
         self.main_toolbar.addAction(self.start_session_action)
         self.main_toolbar.addAction(self.stop_session_action)
+        self.main_toolbar.addSeparator()
+        self.main_toolbar.addWidget(self.motor_control_label)
+        self.main_toolbar.addWidget(self.motor_control)
 
         # set the central widget
         self.setCentralWidget(self.main_widget)
@@ -340,6 +355,18 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
 
         self.session_list_window = BlitzSessionWindow(self.application, sessions)
         self.session_list_window.show()
+
+    def set_motor_position(self):
+        """
+        Sets the motor position from the QSpinBox in the toolbar
+        """
+        pos = self.motor_control.value()
+        try:
+            self.send_move_command(pos)
+        except ExpansionBoardNotFound:
+            self.status_bar.showMessage("ERROR! Unable to contact the expansion board to set motor position")
+        else:
+            self.status_bar.showMessage("Set motor to %s" % pos)
 
 
 class BlitzSessionWindow(Qt.QWidget):
