@@ -456,7 +456,7 @@ class BlitzSessionWindow(Qt.QWidget):
         output = "Time Logged,Variable Name,Value\n"
         for row in data:
             output += "%s,%s,%s\n" % (
-                blitz_strftimestamp(sess.timeStarted + row.timeLogged / 1000.0),
+                blitz_strftimestamp(sess.timeStarted + row.timeLogged),
                 sess_vars[row.categoryId],
                 row.value
             )
