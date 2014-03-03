@@ -60,7 +60,7 @@ class BoardManager(object):
             self.logger.warning("Ignoring command (%s) for unknown board id - %s" % (command, board_id))
             return
 
-        board.send_command(board_id)
+        board.send_command(command)
 
     def register_board(self, board_id, board):
         """
