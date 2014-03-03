@@ -1,6 +1,5 @@
 __author__ = 'Will Hart'
 
-from blitz.communications.boards import BaseExpansionBoard
 from blitz.communications.tcp import TcpBase
 from blitz.utilities import blitz_timestamp
 
@@ -83,29 +82,3 @@ class TcpClientMock(TcpBase):
 
     def __handle_receive(self, cmd):
         pass
-
-
-class ExpansionBoardMock(BaseExpansionBoard):
-    """
-    Test the parsing abilities of expansion boards
-    """
-
-    def identify_board(self):
-        self['id'] = 0
-        self['description'] = "Expansion Board Mock For Testing"
-
-    def get_variables(self):
-        return {
-            "flag_one": self.get_flag(0),
-            "flag_two": self.get_flag(1),
-            "flag_three": self.get_flag(2),
-            "flag_four": self.get_flag(3),
-            "flag_five": self.get_flag(4),
-
-            "type": self['type'],
-
-            "full_payload": self.get_raw_payload(),
-
-            "variable_a": self.get_number(0, 16),
-            "variable_b": self.get_number(16, 16)
-        }
