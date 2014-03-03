@@ -448,14 +448,15 @@ class BlitzSessionWindow(Qt.QWidget):
 
         # get the data
         data = self.application.data.get_session_readings(current_idx)
+        sess = self.application.data.get(Session, {"id": current_idx})
         raw_sess_vars = self.application.data.get_session_variables(current_idx)
         sess_vars = dict([(x.id, x.variableName) for x in raw_sess_vars])
 
         # prepare the string to write to file
-        output = "Time Logged,Variable Name,Value\r\n"
+        output = "Time Logged,Variable Name,Value\n"
         for row in data:
             output += "%s,%s,%s\n" % (
-                blitz_strftimestamp(max(0, row.timeLogged)),
+                blitz_strftimestamp(sess.timeStarted + row.timeLogged / 1000.0),
                 sess_vars[row.categoryId],
                 row.value
             )

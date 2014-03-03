@@ -78,8 +78,12 @@ class BoardManager(object):
 
         readings = []
 
-        if board_id is None:
-            board_id = int(message[0:2], 16)
+        try:
+            if board_id is None:
+                board_id = int(message[0:2], 16)
+        except ValueError as err:
+            self.logger.warning("Unable to parse message... skipping - {0}".format(message))
+            return []
 
         try:
             board = self.boards[board_id]
@@ -94,7 +98,7 @@ class BoardManager(object):
         # get session metadata
         if session_id:
             # TODO add timestamp to session start time
-            timeLogged = - board["timestamp"]
+            timeLogged = board["timestamp"]
         else:
             timeLogged = blitz_timestamp()  # for cached just pretend its now
 
