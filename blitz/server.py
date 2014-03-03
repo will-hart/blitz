@@ -121,7 +121,7 @@ class ApplicationServer(object):
         self.config = Config()
 
         # create a serial server
-        self.serial_server = SerialManager()
+        self.serial_server = SerialManager.Instance()
         self.logger.info("Initialised serial manager")
 
         # hook up signals

@@ -108,7 +108,7 @@ class SerialManager(object):
                     pass
         else:
             # Mac / Linux
-            self.logger.debug("Performing Mac/Linux scan")
+            self.logger.debug("Performing Mac/Linux scan for expansion boards on serial ports")
             for port in comports():
                 ports.append(port[0])
 
