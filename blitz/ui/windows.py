@@ -399,7 +399,7 @@ class BlitzSessionWindow(Qt.QWidget):
 
         self.session_table.setModel(self.model)
 
-        self.download_button = Qt.QPushButton("Download")
+        self.download_button = Qt.QPushButton("Export Selected")
         self.download_button.clicked.connect(self.download_session)
 
         self.view_series_button = Qt.QPushButton("View Graphs")
