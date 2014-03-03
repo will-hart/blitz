@@ -215,6 +215,15 @@ class BaseApplicationClient(object):
 
         return None if len(result.keys()) == 0 else result
 
+    def send_command(self, command):
+        """
+        Sends a message to the board with the given id.  The message should be packed as a hex string
+
+        :param id: the ID of the board to transmit to
+        :param message: the hex payload to send
+        """
+        self.board_manager.handle_board_command(command)
+
     def __del__(self):
         """
         A destructor, run when the application is closing
