@@ -1,3 +1,5 @@
+from blitz import constants
+
 __author__ = 'Will Hart'
 
 import logging
@@ -11,7 +13,7 @@ from serial.tools.list_ports import comports
 
 from blitz.constants import CommunicationCodes, SerialUpdatePeriod, SerialCommands
 from blitz.data.database import DatabaseServer
-from blitz.communications.signals import logging_started, logging_stopped
+from blitz.communications.signals import board_command_received, logging_started, logging_stopped
 
 
 class ExpansionBoardNotFound(BaseException):
@@ -80,6 +82,7 @@ class SerialManager(object):
         # register signals
         logging_started.connect(self.start)
         logging_stopped.connect(self.stop)
+        board_command_received.connect(self.handle_board_command)
 
     def get_available_ports(self):
         """
@@ -243,8 +246,16 @@ class SerialManager(object):
         port.write('\n')
         port.readline()
 
+        # set up the command
+        command = board_id + command
+
+        # if it is a command with payload, pad it out to the full message length
+        if len(command) > 4:
+            # TODO: This length should probably be without the -1!?
+            command = command.ljust(constants.MESSAGE_BYTE_LENGTH - 1, "0") + "\n"
+
         # write the command
-        port.write(board_id + command + '\n')
+        port.write(command)
 
         # read the response
         serial_buffer = port.readline().replace('\n', '').replace('\r', '')
@@ -321,7 +332,7 @@ class SerialManager(object):
 
                 # log errors for now instead of doing something about them
                 if not success is None:
-                    self.logger.warn("Received '%s' instead of ACK from board ID %s on STOP" % (success, k))
+                    self.logger.warning("Received '%s' instead of ACK from board ID %s on STOP" % (success, k))
                 else:
                     self.logger.debug("Board %s has stopped logging" % k)
 
@@ -329,6 +340,23 @@ class SerialManager(object):
         if self.database is not None:
             self.database.stop_session()
             self.logger.debug("Database server session stopped")
+
+    def handle_board_command(self, signal_args):
+        """
+        Listens for board commands and distributes them to the correct board.
+
+        :param signal_args: the arguments received from the blinker signal. In the form ['BOARD ID', 'ARGS', ...]
+        """
+
+        self.logger.debug("Handling board command with arguments {0}".format(signal_args))
+
+        # get the command components and send via serial
+        command = ''.join([x for x in signal_args[1:]])
+        response = self.send_command_with_ack(command, signal_args[0])
+
+        if response:
+            self.logger.warning("Received unexpected response {0} when sending command {1} to board {2}. ".format(
+                response, command, signal_args[0]))
 
     def __poll_serial(self, stop_event):
         """
