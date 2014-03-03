@@ -15,7 +15,7 @@ class NetScannerResultWrapper(object):
     # psi to kPa conversion
     psi_to_kpa = 6.89475729
 
-    def __init__(self, results=[]):
+    def __init__(self, results=None):
         self.channels = [x * self.psi_to_kpa for x in results]
 
     def channel(self, channel_id):
