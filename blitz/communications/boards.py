@@ -36,32 +36,6 @@ class BoardManager(object):
 
         # connect the data line received message
         data_line_received.connect(self.parse_session_message)
-        board_command_received.connect(self.handle_board_command)
-
-    def handle_board_command(self, command):
-        """
-        Processes a board command received via TCP and sends the required message to an expansion board.
-
-        The received command should correspond toa serial communications command, for instance to set a
-        motor position on a board with ID #9, the client would send::
-
-            098500000A
-
-        In this case, `09` is the board ID, `85` is the "set motor position" command, `0000` is the
-        timestamp section of the message and `0A` is the position to set.
-        """
-
-        board_id = int(command[0:2], 16)
-        command = command[2:]
-        board = None
-
-        try:
-            board = self.boards[board_id]
-        except KeyError:
-            self.logger.warning("Ignoring command (%s) for unknown board id - %s" % (command, board_id))
-            return
-
-        board.send_command(command)
 
     def register_board(self, board_id, board):
         """

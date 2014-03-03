@@ -222,7 +222,8 @@ class BaseApplicationClient(object):
         :param id: the ID of the board to transmit to
         :param message: the hex payload to send
         """
-        self.board_manager.handle_board_command(command)
+        self.tcp.send(CommunicationCodes.composite(
+            CommunicationCodes.Board, "{0} {1}".format(command[:2], command[2:])))
 
     def __del__(self):
         """
