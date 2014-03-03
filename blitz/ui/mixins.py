@@ -58,7 +58,7 @@ class BlitzGuiMixin(object):
 
         # start the command - 0985 is the "set motor on board 09" command
         # the following 8 zeroes are the timestamp
-        command = '098500000000'
+        command = '09850000000000'
 
         # build the message - the angle should be packed as a sixteen bit hex value
         command += hex(angle).replace('0x','').rjust(2, '0')
