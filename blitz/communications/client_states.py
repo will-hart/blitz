@@ -77,9 +77,11 @@ class ClientIdleState(BaseState):
     Handles the client idling, waiting for further commands
     """
     def receive_message(self, tcp, msg):
-        # no server messages are acceptable in this state
-        self.logger.debug("[TCP] Calling idle.receive_message: " + msg)
-        raise Exception("Received unexpected message in IdleState: " + msg)
+        # only ACK is acceptable in this state
+        if msg == CommunicationCodes.Acknowledge:
+            return self
+
+        self.logger.warning("[TCP] Calling idle.receive_message: " + msg)
 
     def send_message(self, tcp, msg):
         self.logger.debug("[TCP] Calling idle.send_message: " + msg)
@@ -91,7 +93,11 @@ class ClientIdleState(BaseState):
             tcp._do_send(msg)
             new_state = self.go_to_state(tcp, ClientDownloadingState, int(msg.split(" ")[1]))
             return new_state
+        elif msg[0:5] == CommunicationCodes.Board:
+            tcp._do_send(msg)
+            return self
         else:
+            self.logger.error("Attempted to send unknown message for IDLE state: {0}".format(msg))
             raise Exception("Unknown message for IDLE state - " + msg)
 
 
@@ -179,6 +185,11 @@ class ClientLoggingState(BaseState):
         # if not, are we requesting a status?
         if msg == CommunicationCodes.Update:
             tcp._do_send(CommunicationCodes.Update)
+
+        elif msg[0:5] == CommunicationCodes.Board:
+            tcp._do_send(msg)
+            return self
+
         else:
             # otherwise we just send the message and let the server sort it out
             tcp._do_send(msg)
@@ -191,7 +202,7 @@ class ClientLoggingState(BaseState):
             if len(msg) >= 5 and msg[0:5] == CommunicationCodes.Error:
                 self.logger.error("Received error code from logger [%s], stopping logging" % msg)
                 return self.go_to_state(tcp, ClientStoppingState)
-            else:
+            elif msg != CommunicationCodes.Acknowledge:
                 self.logger.warning("Ignoring unknown message [%s] in logging state" % msg)
 
         return self

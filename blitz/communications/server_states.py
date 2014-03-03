@@ -29,7 +29,8 @@ class ServerBaseState(BaseState):
         :returns: True if the message was handled here, False if it was not
         """
         if msg[0:5] == CommunicationCodes.Board:
-            sigs.board_command_received.send(msg)
+            sigs.board_command_received.send(msg.split(" ")[1:])
+            tcp.send(CommunicationCodes.Acknowledge)
             return True
 
         return False  # message was not handled
