@@ -14,6 +14,14 @@ from blitz.data.database import DatabaseServer
 from blitz.communications.signals import logging_started, logging_stopped
 
 
+class ExpansionBoardNotFound(BaseException):
+    """
+    An error thrown when an the SerialManager is requested to communicate with a board that it doesn't
+    have in its communications dictionary
+    """
+    pass
+
+
 class SerialManager(object):
     """
     Manages serial (eventually RS232, SPI or I2C) communications with
@@ -221,9 +229,15 @@ class SerialManager(object):
         :param board_id: the ID of the board in hex form, (e.g. "08" for board with ID 8)
         :param port_name: the name of the port to open (for instance COM3)
 
+        :raises ExpansionBoardNotFound: when a message is sent to an expansion board which doesn't exist
+
         :returns: the board response if an error was received, or None if ACK was received
         """
-        port = self.serial_mapping[board_id]
+
+        try:
+            port = self.serial_mapping[board_id]
+        except KeyError:
+            raise ExpansionBoardNotFound("Unable to find board %s - it doesn't appear to be connected" % board_id)
 
         # clear existing
         port.write('\n')
