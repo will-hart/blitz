@@ -21,6 +21,20 @@ from blitz.ui.mixins import BlitzGuiMixin
 from blitz.utilities import blitz_strftimestamp
 
 
+class GUISignalEmitter(QtCore.QObject):
+    """
+    Used for passing events and signals from other threads onto the GUI thread
+    """
+    tcp_lost = QtCore.Signal()
+
+    def __init__(self):
+        super(GUISignalEmitter, self).__init__()
+        sigs.lost_tcp_connection.connect(self.connection_lost)
+
+    def connection_lost(self, args):
+        self.tcp_lost.emit()
+
+
 class MainBlitzApplication(BaseApplicationClient):
 
     def __init__(self, args):
@@ -173,6 +187,24 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.layout_window()
 
         self.run_window()
+
+        # connect up external signals
+        self.signaller = GUISignalEmitter()
+        self.signaller.tcp_lost.connect(self.connection_lost)
+
+    def connection_lost(self):
+        """
+        Triggered when the connection is lost - tidies up the UI
+        """
+
+        # disconnect TCP and update the UI
+        self.application.tcp = None
+        self.disconnect_from_logger(ui_only=True)
+
+        # inform the user
+        Qt.QMessageBox.critical(
+            self, "Blitz Data Logger Connection Error", "Unable to establish a connection to the data logger")
+        self.status_bar.showMessage("The connection to the data logger has been lost")
 
     def initialise_window(self):
         """

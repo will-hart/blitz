@@ -159,26 +159,18 @@ class TcpBase(object):
 
                 else:
                     # nothing was received from the server in the timeout period
-                    # reconnect with the socket and then try resending again a
-                    # couple of times before just giving up :)
-                    # todo disconnect and reconnect the socket
-                    # self.__socket.setsockopt(zmq.LINGER, 0)
-                    # self.__poller.unregister(self.__socket)
-                    # self.__socket.close()
-
                     retries -= 1
 
                     if retries <= 0:
+                        self.logger.warning(
+                            "Unable to send message after {0} attempts: {1}".format(self.REQUEST_RETRIES, request))
+                        sigs.lost_tcp_connection.send()
+                        self.waiting = False
                         self.__stop_event.set()
-                        self.logger.error(
-                            "Unable to send message after %s attempts: %s" % (self.REQUEST_RETRIES, request))
-                        raise TcpCommunicationException(
-                            "Failed to receive message from client after %s attempts" % self.REQUEST_RETRIES)
+                        continue
 
                     # otherwise recreate the connection and attempt to resend
                     self.logger.info("Client attempting resend of message %s (#%s)" % (request, retries))
-                    # TODO self.create_client(autorun=False)
-                    # TODO self.__socket.send(request)
 
             # now handle the reply
             self.receive_message(reply)

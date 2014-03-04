@@ -1,10 +1,13 @@
 class BlitzGuiMixin(object):
-    def connect_to_logger(self):
+    def connect_to_logger(self, ui_only=False):
         """
         Connects the application to the data logger via a TCP connection
+
+        :param ui_only: Defaults to False which will update the application and UI, set to True to only affect the UI
         """
 
-        self.application.connect_to_logger()
+        if not ui_only:
+            self.application.connect_to_logger()
 
         # update the UI
         self.connect_action.setEnabled(False)
@@ -14,12 +17,15 @@ class BlitzGuiMixin(object):
         self.motor_control.setEnabled(True)
         self.status_bar.showMessage("Connected to logger")
 
-    def disconnect_from_logger(self):
+    def disconnect_from_logger(self, ui_only=False):
         """
         Disconnects the application from the data logger
+
+        :param ui_only: Defaults to False which will update the application and UI, set to True to only affect the UI
         """
 
-        self.application.connect_to_logger()
+        if not ui_only:
+            self.application.connect_to_logger()
 
         # update the UI
         self.connect_action.setEnabled(True)
