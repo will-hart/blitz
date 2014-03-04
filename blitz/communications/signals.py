@@ -126,3 +126,12 @@ client_requested_download = signal('client_requested_download')
 #: Sent by:
 #:  - :mod:`ServerBaseState`.process_standard_messages
 board_command_received = signal('board_command_received')
+
+#: Fired when the client loses the TCP connection (after three attempts)
+#:
+#: Subscribers (subscribed in >> subscribed to):
+#:  -
+#:
+#: Sent by:
+#:  - s
+lost_tcp_connection = signal('lost_tcp_connection')
