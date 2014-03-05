@@ -147,7 +147,7 @@ class BlitzLoggingWidget(Qt.QWidget):
                 # TODO: determine how to manage plot ordering and new variables being suddenly added
                 # TODO: after a 'replace_existing'
                 # add an empty plot and record the ID
-                self.__lines[key], = self.axis.plot([], [], 'o-')
+                self.__lines[key], = self.axis.plot([], [], 'o-', label=key)
 
             x, y = self.__container.get_series(key)
 
@@ -165,6 +165,7 @@ class BlitzLoggingWidget(Qt.QWidget):
 
         # redraw if required
         if draw_canvas:
+            self.axis.legend(loc='upper left')
             self.canvas.draw()
 
 
@@ -291,7 +292,7 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.exit_action.triggered.connect(self.close)
 
         # label for diffuser position
-        self.motor_control_label = Qt.QLabel("Diffuser position: ")
+        self.motor_control_label = Qt.QLabel(" Diffuser position: ")
 
         # allows setting of the motor angle
         self.motor_control = Qt.QSpinBox()
