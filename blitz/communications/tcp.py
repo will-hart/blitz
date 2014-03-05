@@ -102,7 +102,8 @@ class TcpBase(object):
 
                     # check if we need to break up the response
                     if len(response) == 0:
-                        self.logger.warn("Ignored attempt to send zero length message to client via TCP. Sending newline")
+                        self.logger.debug(
+                            "Ignored attempt to send zero length message to client via TCP. Sending newline")
                         self.__socket.send("")
                     elif len(response) > self.MAX_RESPONSE_LENGTH:
                         parts = [response[i:i + self.MAX_RESPONSE_LENGTH] for i in

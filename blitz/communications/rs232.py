@@ -261,7 +261,8 @@ class SerialManager(object):
         serial_buffer = port.readline().replace('\n', '').replace('\r', '')
 
         # TODO: properly handle errors
-        self.logger.debug("Sent '%s' on %s, received %s" % (board_id + command, port.port, serial_buffer))
+        self.logger.debug("Sent {0} on {1}, received \"{2}\"".format(
+            board_id + command.replace('/n',''), port.port, serial_buffer))
 
         if len(serial_buffer) != 4 or serial_buffer[2:] != SerialCommands['ACK']:
             return serial_buffer
