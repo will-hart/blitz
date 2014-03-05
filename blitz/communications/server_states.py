@@ -61,16 +61,15 @@ class ServerIdleState(ServerBaseState):
                 return self
 
             return self.go_to_state(tcp, ServerDownloadingState, msg_parts[1])
-
-        if msg == CommunicationCodes.Stop or msg == CommunicationCodes.Update:
+        elif msg[0:5] == CommunicationCodes.Reset:
+            return self
+        elif msg == CommunicationCodes.Stop or msg == CommunicationCodes.Update:
             # huh? We are not logging!?
             tcp._do_send(CommunicationCodes.NoSession)
         elif msg == CommunicationCodes.IsLogging:
             self.logger.debug("Responding with NACK, server not currently logging")
             tcp._do_send(CommunicationCodes.Negative)
-        elif self.process_standard_messages(tcp, msg):
-            return self
-        else:
+        elif not self.process_standard_messages(tcp, msg):
             tcp._do_send(validate_command(msg, VALID_SERVER_COMMANDS))
 
         return self
@@ -102,10 +101,10 @@ class ServerLoggingState(ServerBaseState):
             self.logger.debug("Responding with ACK, server is currently logging")
             tcp._do_send(CommunicationCodes.Acknowledge)
 
-        elif self.process_standard_messages(tcp, msg):
-            return self
+        elif msg[0:5] == CommunicationCodes.Reset:
+            return self.go_to_state(tcp, ServerIdleState)
 
-        else:
+        elif not self.process_standard_messages(tcp, msg):
             tcp._do_send(validate_command(msg, VALID_SERVER_COMMANDS))
 
         return self
@@ -165,12 +164,16 @@ class ServerDownloadingState(ServerBaseState):
             self.logger.warning("[TCP] Unknown message received in download state - " + msg)
             tcp._do_send(validate_command(msg, VALID_SERVER_COMMANDS))
 
-        elif self.process_standard_messages(tcp, msg):
-            return self
+        elif msg[0:5] == CommunicationCodes.Reset:
+            return self.go_to_state(tcp, ServerIdleState)
+
+        elif not self.process_standard_messages(tcp, msg):
+            tcp._do_send(validate_command(msg, VALID_SERVER_COMMANDS))
 
         else:
             self.logger.debug("[TCP] Sending next download part")
             self.send_message(tcp, None)
+
         return self
 
 

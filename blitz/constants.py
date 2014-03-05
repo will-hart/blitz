@@ -27,6 +27,7 @@ class CommunicationCodes(object):
     Ready = "READY"
     IsLogging = "LOGGING"
     GetSessions = "SESSIONS"
+    Reset = "RESET"
 
     @classmethod
     def composite(cls, base_code, code_id):
@@ -51,7 +52,8 @@ VALID_SERVER_COMMANDS = [
     CommunicationCodes.Download,
     CommunicationCodes.Board,
     CommunicationCodes.IsLogging,
-    CommunicationCodes.GetSessions
+    CommunicationCodes.GetSessions,
+    CommunicationCodes.Reset
 ]
 
 # commands that are valid to send TO the client
@@ -64,7 +66,8 @@ VALID_CLIENT_COMMANDS = [
     CommunicationCodes.BoardError,
     CommunicationCodes.NoBoard,
     CommunicationCodes.Error,
-    CommunicationCodes.Ready
+    CommunicationCodes.Ready,
+    CommunicationCodes.Reset
 ]
 
 MAX_MESSAGE_LENGTH = 112  # max length of message in bits
