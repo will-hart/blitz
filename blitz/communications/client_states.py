@@ -255,6 +255,12 @@ class ClientDownloadingState(BaseState):
         if msg[-4:] == CommunicationCodes.Negative:
             # the data has been received
             return self.go_to_state(tcp, ClientIdleState)
+
+        elif msg[0:5] == CommunicationCodes.Error:
+            tcp.send(CommunicationCodes.Reset)
+            self.logger.warning("Error on download, forcing server to transition to idle state")
+            return self.go_to_state(tcp, ClientIdleState)
+
         # and then request the next dump from the server
         tcp.send(CommunicationCodes.Acknowledge)
         return self

@@ -160,19 +160,16 @@ class ServerDownloadingState(ServerBaseState):
 
         # ACK signifies part message received and server should continue sending.
         # All other messages are in error
-        if msg != CommunicationCodes.Acknowledge:
-            self.logger.warning("[TCP] Unknown message received in download state - " + msg)
-            tcp._do_send(validate_command(msg, VALID_SERVER_COMMANDS))
+        if msg == CommunicationCodes.Acknowledge:
+            self.logger.debug("[TCP] Sending next download part")
+            self.send_message(tcp, None)
 
         elif msg[0:5] == CommunicationCodes.Reset:
             return self.go_to_state(tcp, ServerIdleState)
 
         elif not self.process_standard_messages(tcp, msg):
+            self.logger.warning("[TCP] Unknown message received in download state - " + msg)
             tcp._do_send(validate_command(msg, VALID_SERVER_COMMANDS))
-
-        else:
-            self.logger.debug("[TCP] Sending next download part")
-            self.send_message(tcp, None)
 
         return self
 
