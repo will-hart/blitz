@@ -93,7 +93,7 @@ class NetScannerManager(object):
 
     READ_DATA = 'r'
 
-    def __init__(self, host, port=7000):
+    def __init__(self, host, port=9000):
         """
         Initialises a NetScannerManager which connects a TCP/IP connection to the device
 
