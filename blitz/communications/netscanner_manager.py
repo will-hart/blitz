@@ -1,10 +1,18 @@
+"""
+    from blitz.communications.netscanner_manager import NetScannerManager as nm
+    import time
+    mynm = nm("200.200.18.190")
+    time.sleep(10)
+    mynm.stop_client()
+"""
+
 __author__ = 'Will Hart'
 
 import logging
 import Queue
 import threading
+import socket
 import time
-import zmq
 
 
 class NetScannerResultWrapper(object):
@@ -43,55 +51,53 @@ class NetScannerManager(object):
     A class which handles decoding and interpretation of TCP messages received
     from a NetScanner 9116 or 8IFC device.
     """
+    #
+    # # a list of error codes from section 3.1.3, page 22 of the manual
+    # error_codes = {
+    #     '00': 'Unused',
+    #     '01': 'Undefined command received',
+    #     '02': 'Unused by TCP/IP',
+    #     '03': 'Input buffer overrun',
+    #     '04': 'Invalid ASCII character received',
+    #     '05': 'Data field error',
+    #     '06': 'Unused by TCP/IP',
+    #     '07': 'Specified limits invalid',
+    #     '08': 'NetScanner error; invalid parameter',
+    #     '09': 'Insufficient source air to shift calibration value',
+    #     '0A': 'Calibration value not in requested position',
+    # }
+    #
+    # # message codes sent to/from the device
+    # response_codes = {
+    #     'A': 'ACK',
+    #     'N': 'NAK'
+    # }
+    #
+    # # commands that can be sent to the unit
+    # commands = {
+    #     'A': 'Power up clear',
+    #     'B': 'Reset',
+    #     'C': 'Configure/Control multi-point calibration',
+    #     'V': 'Read transducer voltages',
+    #     'Z': 'Calculate and set gains',
+    #     'a': 'Read transducer raw A/D counts',
+    #     'b': 'Read high speed data',
+    #     'h': 'Calculate and set offsets',
+    #     'm': 'Read temperature A/D counts',
+    #     'n': 'Read temperature voltages',
+    #     'q': 'Read module status',
+    #     'r': 'Read high precision data',
+    #     't': 'Read transducer temperatures',
+    #     'u': 'Read internal coefficients',
+    #     'v': 'Download internal coefficients',
+    #     'w': 'Set/Do operating commands'
+    # }
 
-    # a list of error codes from section 3.1.3, page 22 of the manual
-    error_codes = {
-        '00': 'Unused',
-        '01': 'Undefined command received',
-        '02': 'Unused by TCP/IP',
-        '03': 'Input buffer overrun',
-        '04': 'Invalid ASCII character received',
-        '05': 'Data field error',
-        '06': 'Unused by TCP/IP',
-        '07': 'Specified limits invalid',
-        '08': 'NetScanner error; invalid parameter',
-        '09': 'Insufficient source air to shift calibration value',
-        '0A': 'Calibration value not in requested position',
-    }
-
-    # message codes sent to/from the device
-    response_codes = {
-        'A': 'ACK',
-        'N': 'NAK'
-    }
-
-    # commands that can be sent to the unit
-    commands = {
-        'A': 'Power up clear',
-        'B': 'Reset',
-        'C': 'Configure/Control multi-point calibration',
-        'V': 'Read transducer voltages',
-        'Z': 'Calculate and set gains',
-        'a': 'Read transducer raw A/D counts',
-        'b': 'Read high speed data',
-        'h': 'Calculate and set offsets',
-        'm': 'Read temperature A/D counts',
-        'n': 'Read temperature voltages',
-        'q': 'Read module status',
-        'r': 'Read high precision data',
-        't': 'Read transducer temperatures',
-        'u': 'Read internal coefficients',
-        'v': 'Download internal coefficients',
-        'w': 'Set/Do operating commands'
-    }
-
-    SERVER_ENDPOINT = "tcp://%s:%s"
+    INIT_SEQUENCE = ['B', 'A', 'w1200', 'w0C01', 'rFFFF0']
 
     REQUEST_TIMEOUT = 5
 
     logger = logging.getLogger(__name__)
-
-    READ_DATA = 'r'
 
     def __init__(self, host, port=9000):
         """
@@ -104,83 +110,36 @@ class NetScannerManager(object):
         self.__host = host
         self.__port = port
         self.receive_queue = Queue.Queue()
-
-        self.__poller = zmq.Poller()
         self.__stop_event = threading.Event()
-        self.__context = zmq.Context(1)
-        self.__socket = self.__context.socket(zmq.REQ)
-        self.__socket.connect(self.SERVER_ENDPOINT % (self.__host, self.__port))
-
+        self.__socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.__socket.settimeout(3.0)
         self.__run_thread(self.run_client)
 
     def __run_thread(self, thread_target):
-        self.__poller.register(self.__socket, zmq.POLLIN)
         self.__thread = threading.Thread(target=thread_target, args=[self.__stop_event])
         self.__thread.daemon = True
         self.__thread.start()
 
     def run_client(self, stop_event):
         print ("NetScanner interface starting")
-
-        time.sleep(4)
-
-        print ("Netscanner starting scanning")
+        self.__socket.connect((self.__host, self.__port))
+        current_state = 0
+        print ("Netscanner connected")
 
         while not stop_event.is_set():
-            reply = ""
-            request = ""
-            self.waiting = False
+            self.__socket.send(self.INIT_SEQUENCE[current_state])
+            data = self.__socket.recv(512)
+            print data
 
-            # read from the send_queue until a message is received
-            if not self.waiting:
-                # use approx 10Hz sample rate
-                time.sleep(0.1)
-                self.__socket.send(self.READ_DATA)
-                print (">> " + self.READ_DATA)
-
-                # set flag indicating we are waiting for a response
-                self.waiting = True
-
-            # wait for an incoming reply
-            while self.waiting:
-
-                if stop_event.is_set():
-                    break
-
-                # find a list of sockets ready to return information
-                socks = dict(self.__poller.poll(self.REQUEST_TIMEOUT))
-
-                # check if our socket is in the list
-                if socks.get(self.__socket) == zmq.POLLIN:
-                    # we are receiving - read the bytes
-                    reply += self.__socket.recv()
-
-                    if not reply:
-                        print ("NetScanner received empty message")
-                        break
-
-                    if not self.__socket.getsockopt(zmq.RCVMORE):
-                        self.waiting = False
-
-                else:
-                    # for some reason our socket is not ready to receive
-                    #self.__stop_event.set()
-                    #print ("Error receiving information from NetScanner, aborting")
-                    pass
-
-            # now handle the reply
-            if len(reply) > 0:
-                self.receive_message(reply)
-                # TODO sigs.tcp_message_received.send([self, reply])
-                print ("NetScanner received '%s'" % reply)
+            if current_state < len(self.INIT_SEQUENCE) - 1:
+                current_state += 1
             else:
-                print ("No message received")
+                time.sleep(0.5)
 
         # terminate the context before exiting
-        print ("Terminating netscanner thread")
+        print ("Terminating NetScanner thread")
         self.__socket.close()
-        #self.__context.term()
-        print ("NetScanner client closed")
+        print ("NetScanner terminated")
 
     def receive_message(self, message):
         """
