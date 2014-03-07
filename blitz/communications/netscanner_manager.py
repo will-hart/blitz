@@ -93,7 +93,7 @@ class NetScannerManager(object):
 
     READ_DATA = 'r'
 
-    def __init__(self, host, port):
+    def __init__(self, host, port=7000):
         """
         Initialises a NetScannerManager which connects a TCP/IP connection to the device
 
@@ -120,7 +120,12 @@ class NetScannerManager(object):
         self.__thread.start()
 
     def run_client(self, stop_event):
-        self.logger.info("NetScanner interface starting")
+        print ("NetScanner interface starting")
+
+        time.sleep(4)
+
+        print ("Netscanner starting scanning")
+
         while not stop_event.is_set():
             reply = ""
             request = ""
@@ -131,12 +136,17 @@ class NetScannerManager(object):
                 # use approx 10Hz sample rate
                 time.sleep(0.1)
                 self.__socket.send(self.READ_DATA)
+                print (">> " + self.READ_DATA)
 
                 # set flag indicating we are waiting for a response
                 self.waiting = True
 
             # wait for an incoming reply
             while self.waiting:
+
+                if stop_event.is_set():
+                    break
+
                 # find a list of sockets ready to return information
                 socks = dict(self.__poller.poll(self.REQUEST_TIMEOUT))
 
@@ -146,7 +156,7 @@ class NetScannerManager(object):
                     reply += self.__socket.recv()
 
                     if not reply:
-                        self.logger.info("NetScanner received empty message")
+                        print ("NetScanner received empty message")
                         break
 
                     if not self.__socket.getsockopt(zmq.RCVMORE):
@@ -154,18 +164,23 @@ class NetScannerManager(object):
 
                 else:
                     # for some reason our socket is not ready to receive
-                    self.__stop_event.set()
-                    self.logger.error("Error receiving information from NetScanner, aborting")
+                    #self.__stop_event.set()
+                    #print ("Error receiving information from NetScanner, aborting")
+                    pass
 
             # now handle the reply
-            self.receive_message(reply)
-            # TODO sigs.tcp_message_received.send([self, reply])
-            self.logger.info("NetScanner received message: %s" % reply)
+            if len(reply) > 0:
+                self.receive_message(reply)
+                # TODO sigs.tcp_message_received.send([self, reply])
+                print ("NetScanner received '%s'" % reply)
+            else:
+                print ("No message received")
 
         # terminate the context before exiting
+        print ("Terminating netscanner thread")
         self.__socket.close()
-        self.__context.term()
-        self.logger.info("NetScanner client closed")
+        #self.__context.term()
+        print ("NetScanner client closed")
 
     def receive_message(self, message):
         """
@@ -173,8 +188,9 @@ class NetScannerManager(object):
 
         :param message: the message that was received
         """
+        print "Message length %s received" % len(message)
         if (message[0] in self.response_codes.keys()):
-            self.logger.info("NetScanner received message: %s" % self.response_codes[message[0]])
+            print ("NetScanner received message: %s" % self.response_codes[message[0]])
         else:
             results = [float(x) for x in message.split(" ")]
             self.receive_queue.put(NetScannerResultWrapper(results))
@@ -184,6 +200,8 @@ class NetScannerManager(object):
         Stops a client from polling the NetScanner by setting the stop_event
         """
         self.__stop_event.set()
+        self.__thread.join()
+        print ("NetScanner thread stopped")
 
     def get_channels(self):
         """
