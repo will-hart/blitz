@@ -44,6 +44,8 @@ class NetScannerManager(object):
     from a NetScanner 9116 or 8IFC device.
     """
 
+    logger = logging.getLogger(__name__)
+
     # a list of error codes from section 3.1.3, page 22 of the manual
     error_codes = {
         '00': 'Unused',
@@ -87,6 +89,8 @@ class NetScannerManager(object):
 
     SERVER_ENDPOINT = "tcp://%s:%s"
 
+    REQUEST_TIMEOUT = 5
+
     logger = logging.getLogger(__name__)
 
     READ_DATA = 'r'
@@ -109,7 +113,7 @@ class NetScannerManager(object):
         self.__socket = self.__context.socket(zmq.REQ)
         self.__socket.connect(self.SERVER_ENDPOINT % (self.__host, self.__port))
 
-        self.__run_thread(self.__run_client)
+        self.__run_thread(self.run_client)
 
     def __run_thread(self, thread_target):
         self.__poller.register(self.__socket, zmq.POLLIN)
