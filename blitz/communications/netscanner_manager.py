@@ -44,7 +44,7 @@ class NetScannerManager(object):
 
     logger = logging.getLogger(__name__)
 
-    def __init__(self, host, port=9000, database=None):
+    def __init__(self, database, host, board_id="0A", port=9000):
         """
         Initialises a NetScannerManager which connects a TCP/IP connection to the device
 
@@ -56,6 +56,7 @@ class NetScannerManager(object):
         self.__host = host
         self.__port = port
         self.__data = database
+        self.__board_id = board_id
         self.receive_queue = Queue.Queue()
         self.__stop_event = threading.Event()
         self.__socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -118,10 +119,10 @@ class NetScannerManager(object):
                         "Received incomplete NetScanner message, only read %s channels (not 16)" % len(results))
                 else:
                     # hackity hack
-                    self.__data.queue("0A0ABO" + delta_t + results[0] + results[1] + results[2] + results[3])
-                    self.__data.queue("0A0AA8" + delta_t + results[4] + results[5] + results[6] + results[7])
-                    self.__data.queue("0A0AA4" + delta_t + results[8] + results[9] + results[10] + results[11])
-                    self.__data.queue("0A0AA2" + delta_t + results[12] + results[13] + results[14] + results[15])
+                    self.__data.queue(self.__board_id + "0ABO" + delta_t + results[0] + results[1] + results[2] + results[3])
+                    self.__data.queue(self.__board_id + "0AA8" + delta_t + results[4] + results[5] + results[6] + results[7])
+                    self.__data.queue(self.__board_id + "0AA4" + delta_t + results[8] + results[9] + results[10] + results[11])
+                    self.__data.queue(self.__board_id + "0AA2" + delta_t + results[12] + results[13] + results[14] + results[15])
 
     def stop_client(self):
         """
