@@ -51,51 +51,18 @@ class NetScannerManager(object):
     A class which handles decoding and interpretation of TCP messages received
     from a NetScanner 9116 or 8IFC device.
     """
-    #
-    # # a list of error codes from section 3.1.3, page 22 of the manual
-    # error_codes = {
-    #     '00': 'Unused',
-    #     '01': 'Undefined command received',
-    #     '02': 'Unused by TCP/IP',
-    #     '03': 'Input buffer overrun',
-    #     '04': 'Invalid ASCII character received',
-    #     '05': 'Data field error',
-    #     '06': 'Unused by TCP/IP',
-    #     '07': 'Specified limits invalid',
-    #     '08': 'NetScanner error; invalid parameter',
-    #     '09': 'Insufficient source air to shift calibration value',
-    #     '0A': 'Calibration value not in requested position',
-    # }
-    #
-    # # message codes sent to/from the device
-    # response_codes = {
-    #     'A': 'ACK',
-    #     'N': 'NAK'
-    # }
-    #
-    # # commands that can be sent to the unit
-    # commands = {
-    #     'A': 'Power up clear',
-    #     'B': 'Reset',
-    #     'C': 'Configure/Control multi-point calibration',
-    #     'V': 'Read transducer voltages',
-    #     'Z': 'Calculate and set gains',
-    #     'a': 'Read transducer raw A/D counts',
-    #     'b': 'Read high speed data',
-    #     'h': 'Calculate and set offsets',
-    #     'm': 'Read temperature A/D counts',
-    #     'n': 'Read temperature voltages',
-    #     'q': 'Read module status',
-    #     'r': 'Read high precision data',
-    #     't': 'Read transducer temperatures',
-    #     'u': 'Read internal coefficients',
-    #     'v': 'Download internal coefficients',
-    #     'w': 'Set/Do operating commands'
-    # }
 
-    INIT_SEQUENCE = ['B', 'A', 'w1200', 'w0C01', 'rFFFF0']
+    # Steps in startup:
+    #  1. Device handshake
+    #  2. Device reset
+    #  3. Set standard units (e.g kPa)
+    #  4. Calibrate offset (i.e. set ambient to 0)
+    #  5. Query data from all channels in decimal format (repeat)
+    INIT_SEQUENCE = ['A', 'B', 'v01101 6.894757', 'h', 'rFFFF0']
 
-    REQUEST_TIMEOUT = 5
+    REQUEST_TIMEOUT = 3.0
+
+    SAMPLE_FREQUENCY = 2.0
 
     logger = logging.getLogger(__name__)
 
@@ -112,7 +79,7 @@ class NetScannerManager(object):
         self.receive_queue = Queue.Queue()
         self.__stop_event = threading.Event()
         self.__socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.__socket.settimeout(3.0)
+        self.__socket.settimeout(self.REQUEST_TIMEOUT)
         self.__run_thread(self.run_client)
 
     def __run_thread(self, thread_target):
@@ -128,13 +95,14 @@ class NetScannerManager(object):
 
         while not stop_event.is_set():
             self.__socket.send(self.INIT_SEQUENCE[current_state])
-            data = self.__socket.recv(512)
-            print data
+            data = self.__socket.recv(1024)
+            self.receive_message(data)
 
             if current_state < len(self.INIT_SEQUENCE) - 1:
                 current_state += 1
             else:
-                time.sleep(0.5)
+                # sample at approximately 2 Hz
+                time.sleep(1.0 / self.SAMPLE_FREQUENCY)
 
         # terminate the context before exiting
         print ("Terminating NetScanner thread")
@@ -148,7 +116,7 @@ class NetScannerManager(object):
         :param message: the message that was received
         """
         print "Message length %s received" % len(message)
-        if (message[0] in self.response_codes.keys()):
+        if message[0] in self.response_codes.keys():
             print ("NetScanner received message: %s" % self.response_codes[message[0]])
         else:
             results = [float(x) for x in message.split(" ")]
