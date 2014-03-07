@@ -44,8 +44,6 @@ class NetScannerManager(object):
     from a NetScanner 9116 or 8IFC device.
     """
 
-    logger = logging.getLogger(__name__)
-
     # a list of error codes from section 3.1.3, page 22 of the manual
     error_codes = {
         '00': 'Unused',
