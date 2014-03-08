@@ -346,7 +346,7 @@ class NetScannerEthernetBoard(BaseExpansionBoard):
         self.logger.debug(
             "Board [%s:%s] now listening for registering_boards signal" % (self['id'], self['description']))
 
-    def get_variables(self):
+    def get_variables(self, channel_min=1):
         var_vals = [
             self.get_float(0),
             self.get_float(8),
@@ -354,18 +354,30 @@ class NetScannerEthernetBoard(BaseExpansionBoard):
             self.get_float(24)
         ]
         if self.get_flag(0):
-            var_names = ["Channel_{0}".format(i) for i in range(1, 5)]
+            var_names = ["Channel_{0}".format(i) for i in range(channel_min, channel_min + 4)]
         elif self.get_flag(1):
-            var_names = ["Channel_{0}".format(i) for i in range(5, 9)]
+            var_names = ["Channel_{0}".format(i) for i in range(channel_min + 4, channel_min + 8)]
         elif self.get_flag(2):
-            var_names = ["Channel_{0}".format(i) for i in range(9, 13)]
+            var_names = ["Channel_{0}".format(i) for i in range(channel_min + 8, channel_min + 12)]
         elif self.get_flag(3):
-            var_names = ["Channel_{0}".format(i) for i in range(13, 17)]
+            var_names = ["Channel_{0}".format(i) for i in range(channel_min + 12, channel_min + 16)]
         else:
             self.logger.warning("NetScanner board tried to parse message with no channel flag set - ignoring")
             return {}
 
         return dict(zip(var_names, var_vals))
+
+
+class NetScannerEthernetBoardTwo(NetScannerEthernetBoard):
+    """
+    In lieu of extended messages on the ehternet board, provide a second board for channels 17-32
+    """
+    def __init__(self, description="NetScanner Ethernet Interface Board Two"):
+        NetScannerEthernetBoard.__init__(self, description)
+        self.id = 11
+
+    def get_variables(self, channel_min=17):
+        return super(NetScannerEthernetBoardTwo, self).get_variables(channel_min)
 
 
 class ExpansionBoardMock(BaseExpansionBoard):

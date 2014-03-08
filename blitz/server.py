@@ -5,6 +5,7 @@ import logging
 import os
 
 from blitz.constants import CommunicationCodes
+from blitz.communications.netscanner import NetScannerManager
 from blitz.communications.rs232 import SerialManager
 import blitz.communications.signals as sigs
 from blitz.communications.tcp import TcpBase
@@ -121,9 +122,17 @@ class ApplicationServer(object):
         # load configuration
         self.config = Config()
 
+        # TODO: Implement plugin interface
         # create a serial server
         self.serial_server = SerialManager.Instance()
         self.logger.info("Initialised serial manager")
+
+        # TODO: Implement plugin interface
+        # create a NetScanner server
+        if (self.config['use_netscanner']):
+            db = self.serial_server.database
+            self.netscanner_one = NetScannerManager(db, self.config['netscanner_one_ip'], "OA")
+            self.netscanner_two = NetScannerManager(db, self.config['netscanner_two_ip'], "OB")
 
         # hook up signals
         sigs.client_requested_session_list.connect(self.update_session_list)
@@ -131,7 +140,7 @@ class ApplicationServer(object):
         sigs.client_requested_download.connect(self.serve_client_download)
 
         # start the TCP server
-        self.tcp = TcpBase(port=self.config["tcp_port"])  # todo - load from configuration
+        self.tcp = TcpBase(port=self.config["tcp_port"])
         self.tcp.create_server()
         self.is_running = True
         self.logger.info("Started TCP on port %s" % self.config["tcp_port"])

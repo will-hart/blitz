@@ -73,7 +73,13 @@ class NetScannerManager(object):
         self.__thread.start()
 
     def run_client(self, stop_event):
-        self.__socket.connect((self.__host, self.__port))
+        try:
+            self.__socket.connect((self.__host, self.__port))
+        except Exception as e:
+            self.logger.critical("Unable to start NetScanner:")
+            self.logger.critical(e)
+            return
+
         self.__logging_start = datetime.datetime.now()
 
         current_state = 0
