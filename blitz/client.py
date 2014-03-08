@@ -113,6 +113,7 @@ class BaseApplicationClient(object):
         # subscribe to signals
         sigs.cache_line_received.connect(self.cache_line_received)
         sigs.client_requested_download.connect(self.send_download_request)
+        sigs.client_requested_session_list.connect(self.request_session_list)
 
     def run(self):
         """
@@ -196,6 +197,13 @@ class BaseApplicationClient(object):
         else:
             self.logger.debug("Web client requested logging stop")
             self.tcp.send(CommunicationCodes.Stop)
+
+    def request_session_list(self, args=None):
+        """
+        Gets an update of the session list from the device. Must usually be called when in IDLE state so the
+        UI should prevent calling at other times
+        """
+        self.tcp.send(CommunicationCodes.GetSessions)
 
     def update_interface(self, data, replace_existing=False):
         """

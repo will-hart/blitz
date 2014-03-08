@@ -83,9 +83,11 @@ server_status_request = signal('server_status_request')
 #:
 #: Subscribers (subscribed in >> subscribed to):
 #:  - :mod:`ApplicationServer`.__init__ >> ApplicationServer.update_session_list
+#:  - :mod:`ApplicationClient`.__init__ >> ApplicationClient.request_session_list
 #:
 #: Sent by:
 #:  - :mod:`ServerIdleState`.receive_message
+#:  - :mod:`MainBlitzWindow`.get_session_list
 client_requested_session_list = signal('client_requested_session_list')
 
 #: Fired when the client has a completed session list received from the server

@@ -295,6 +295,14 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.stop_session_action.triggered.connect(self.stop_session)
         self.stop_session_action.setEnabled(False)
 
+        # send a session list request
+        self.update_session_listing_action = Qt.QAction(
+            Qt.QIcon('blitz/static/img/desktop_session_list.png'), '&Update list', self)
+        self.update_session_listing_action.setStatusTip("Get a list of logging sessions from the data logger")
+        self.update_session_listing_action.setToolTip("Get logger session list")
+        self.update_session_listing_action.triggered.connect(self.get_session_list)
+        self.update_session_listing_action.setEnabled(False)
+
         # view a session list
         self.session_list_action = Qt.QAction('View Session List', self)
         #self.session_list_action.setEnabled(False)
@@ -358,7 +366,9 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.logger_menu.addSeparator()
         self.logger_menu.addAction(self.start_session_action)
         self.logger_menu.addAction(self.stop_session_action)
+        self.logger_menu.addSeparator()
 
+        self.session_menu.addAction(self.update_session_listing_action)
         self.session_menu.addAction(self.session_list_action)
 
         # create the toolbar
@@ -427,6 +437,9 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
             self.status_bar.showMessage("ERROR! Unable to contact the expansion board to set motor position")
         else:
             self.status_bar.showMessage("Set motor to %s" % pos)
+
+    def get_session_list(self):
+        sigs.client_requested_session_list.send()
 
 
 class BlitzSessionWindow(Qt.QWidget):
