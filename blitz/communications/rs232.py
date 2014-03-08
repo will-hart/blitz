@@ -10,9 +10,10 @@ import time
 import threading
 
 from blitz import constants
+from blitz.communications.signals import board_command_received, logging_started, logging_stopped
 from blitz.constants import CommunicationCodes, SerialUpdatePeriod, SerialCommands
 from blitz.data.database import DatabaseServer
-from blitz.communications.signals import board_command_received, logging_started, logging_stopped
+from blitz.plugins import Plugin, PluginMount
 
 
 class ExpansionBoardNotFound(BaseException):
@@ -23,7 +24,7 @@ class ExpansionBoardNotFound(BaseException):
     pass
 
 
-class SerialManager(object):
+class SerialManager(Plugin):
     """
     Manages serial (eventually RS232, SPI or I2C) communications with
     expansion boards.  It has both a monitoring loop and an "outbox"
@@ -31,6 +32,7 @@ class SerialManager(object):
     """
 
     __instance = None
+    do_not_register = False
     database = None
     serial_mapping = None
     __serial_thread = None
@@ -39,34 +41,31 @@ class SerialManager(object):
     logger = logging.getLogger(__name__)
 
     @classmethod
-    def Instance(cls):
+    def instance(cls):
         """
-        Returns a reference to a single SerialManager instance
-
-        :returns SerialManager: The SerialManager singleton instance
+        Gets the instance of the SerialManager created during plugin loading
         """
-        cls.logger.debug("SerialManager Instance called")
-        if cls.__instance is None:
-            return SerialManager()
-        else:
-            return cls.__instance
+        if not cls.__instance:
+            # get from the plugin list
+            cls.__instance = PluginMount.get_plugin(type(SerialManager))
 
-    def __init__(self):
+        return cls.__instance
+
+    def __init__(self, description="Serial Manager Board"):
         """
         Follows a singleton pattern and prevents instantiation of more than one Serial Manager.
 
         :returns: Nothing
         """
+        try:
+            if SerialManager:
+                self.logger.critical("Attempted to instantiate a SerialManager directly rather than as a plugin")
+                raise RuntimeError("Attempted to instantiate a SerialManager directly rather than as a plugin")
+        except NameError:
+            pass
 
-        if SerialManager.__instance is not None:
-
-            self.logger.error("Attempted to recreate an instance of a SerialManager - should use Instance()")
-            raise Exception(
-                "Attempted to instantiate a new SerialManager, but only one instance is"
-                " allowed.  Use the Instance() method instead")
-        else:
-            self.logger.debug("SerialManager __init__")
-            SerialManager.__instance = self
+        self.description = description
+        Plugin.__init__(self, description)
 
         # create a database object
         try:
@@ -78,6 +77,7 @@ class SerialManager(object):
         # work out which serial ports are connected
         self.get_available_ports()
 
+    def register_signals(self):
         # register signals
         logging_started.connect(self.start)
         logging_stopped.connect(self.stop)

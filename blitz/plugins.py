@@ -12,6 +12,7 @@ class PluginMount(type):
     """
 
     logger = logging.getLogger(__name__)
+    plugins = []
 
     def __init__(cls, name, bases, attrs):
         super(PluginMount, cls).__init__(name, bases, attrs)
@@ -52,6 +53,21 @@ class PluginMount(type):
         sigs.plugin_loaded.send(instance)
         cls.logger.debug("Finished loading plugin: %s" % instance.description)
 
+    @classmethod
+    def get_plugin(cls, plugin_type):
+        """
+        Gets a plugin from the plugin list mathing the given type
+
+        :parma plugin_type: the type of plugin obtained by `type(plugin)`
+
+        :returns: The plugin matching the given type
+        """
+        for x in cls.plugins:
+            if type(x) == plugin_type:
+                return x
+
+        return None
+
 
 class Plugin(object):
     """
@@ -59,8 +75,9 @@ class Plugin(object):
     They can be registered against blitz.signals by providing a register_signals function
     """
     __metaclass__ = PluginMount
+    do_not_register = False
 
-    def __init__(self, description):
+    def __init__(self, description="Default Plugin"):
         """
         Plugin instances MUST provide a description in the plugin constructor
         """

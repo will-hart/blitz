@@ -258,7 +258,7 @@ class BaseExpansionBoard(Plugin):
         Sends a command using the preferred method of the board.  Can be overridden in inherited classes
         to provide behaviour other than the default RS232 transmission
         """
-        result = SerialManager.Instance().send_command_with_ack(command, self.id)
+        result = SerialManager.instance().send_command_with_ack(command, self.id)
 
         if not result:
             return
@@ -274,7 +274,6 @@ class BlitzBasicExpansionBoard(BaseExpansionBoard):
     def __init__(self, description="Blitz Basic Expansion Board"):
         """load the correct description for the board"""
         BaseExpansionBoard.__init__(self, description)
-        self.do_not_register = False
         self.id = 8
         self.description = description
 
@@ -307,7 +306,6 @@ class MotorExpansionBoard(BaseExpansionBoard):
 
     def __init__(self, description="Motor Expansion Board"):
         BaseExpansionBoard.__init__(self, description)
-        self.do_not_register = False
         self.id = 9
         self.description = description
 
@@ -335,7 +333,6 @@ class NetScannerEthernetBoard(BaseExpansionBoard):
     def __init__(self, description="NetScanner Ethernet Interface Board"):
         """load the correct description for the board"""
         BaseExpansionBoard.__init__(self, description)
-        self.do_not_register = False
         self.id = 10
         self.description = description
 

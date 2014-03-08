@@ -121,10 +121,6 @@ class ApplicationServer(object):
         # load configuration
         self.config = Config()
 
-        # create a serial server
-        self.serial_server = SerialManager.Instance()
-        self.logger.info("Initialised serial manager")
-
         # hook up signals
         sigs.client_requested_session_list.connect(self.update_session_list)
         sigs.server_status_request.connect(self.serve_client_status)
@@ -142,11 +138,11 @@ class ApplicationServer(object):
         """
         self.logger.debug("Server sending out updated session list")
 
-        if self.serial_server.database is None:
+        if SerialManager.instance().database is None:
             self.logger.warn("Unable to generate session list - no database")
             self.tcp.send(CommunicationCodes.Negative)
         else:
-            sessions = self.serial_server.database.build_client_session_list()
+            sessions = SerialManager.instance().database.build_client_session_list()
             sessions_string = "\n".join([x for x in sessions])
             sessions_string += "\n" + CommunicationCodes.Negative
             self.tcp.send(sessions_string)
@@ -158,12 +154,13 @@ class ApplicationServer(object):
 
         # TODO - improve to send the last serial message from each connected given board in serial_mapping
         """
-        message = self.serial_server.database.get_latest_from_session(self.serial_server.database.session_id)
+        sid = SerialManager.instance().database.session_id
+        message = SerialManager.instance().database.get_latest_from_session(sid)
         self.tcp.send(message)
 
     def serve_client_download(self, session_id):
         # get all the session data from the database
-        session_data = self.serial_server.database.get_all_from_session(session_id)
+        session_data = SerialManager.instance().database.get_all_from_session(session_id)
 
         # split into rows of 100 readings then pass to the state manager for dispatch
         # todo set the '100' value to a constant
