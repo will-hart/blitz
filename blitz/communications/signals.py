@@ -122,7 +122,7 @@ client_requested_download = signal('client_requested_download')
 #: Fired when a command was received from the desktop software for an expansion board
 #:
 #: Subscribers (subscribed in >> subscribed to):
-#:  - :mod:`BoardManager`.__init__ >> BoardManager.handle_board_command
+#:  - :mod:`SerialManager`.__init__ >> BoardManager.handle_board_command
 #:
 #: Sent by:
 #:  - :mod:`ServerBaseState`.process_standard_messages
