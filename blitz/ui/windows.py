@@ -18,6 +18,7 @@ from blitz.client import BaseApplicationClient
 import blitz.communications.signals as sigs
 from blitz.communications.rs232 import ExpansionBoardNotFound
 from blitz.ui.mixins import BlitzGuiMixin
+from blitz.ui.processing_dialog import ProcessingDialog
 from blitz.utilities import blitz_strftimestamp
 
 
@@ -26,18 +27,23 @@ class GUISignalEmitter(QtCore.QObject):
     Used for passing events and signals from other threads onto the GUI thread
     """
     tcp_lost = QtCore.Signal()
-    logging_started = QtCore.Signal()
+    task_started = QtCore.Signal(str)
+    task_finished = QtCore.Signal()
 
     def __init__(self):
         super(GUISignalEmitter, self).__init__()
         sigs.lost_tcp_connection.connect(self.trigger_connection_lost)
-        sigs.logging_started.connect(self.trigger_logging_started)
+        sigs.process_started.connect(self.trigger_task_started)
+        sigs.process_finished.connect(self.trigger_task_finished)
 
     def trigger_connection_lost(self, args):
         self.tcp_lost.emit()
 
-    def trigger_logging_started(self, args):
-        self.loggin_started.emit()
+    def trigger_task_started(self, description):
+        self.task_started.emit(description)
+
+    def trigger_task_finished(self):
+        self.task_finished.emit()
 
 
 class MainBlitzApplication(BaseApplicationClient):
@@ -205,6 +211,13 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         # connect up external signals
         self.signaller = GUISignalEmitter()
         self.signaller.tcp_lost.connect(self.connection_lost)
+        self.signaller.task_finished.connect(self.show_process_dialogue)
+
+        # create a handle for a processing dialogue
+        self.__indicator = None
+
+    def show_process_dialogue(self, description):
+        self.__indicator = ProcessingDialog(self.signaller.task_finished, description)
 
     def connection_lost(self):
         """
@@ -466,7 +479,9 @@ class BlitzSessionWindow(Qt.QWidget):
         """
 
         if item.checkState():
-            # download
+            #sigs.process_started.send("Downloading data")
+            diag = ProcessingDialog(sigs.process_finished, "Test")
+            diag.show()
             sigs.client_requested_download.send(item.sessionId)
 
         else:
