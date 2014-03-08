@@ -9,5 +9,5 @@ setup(
     author='William Hart',
     author_email='will@blitzlogger.com',
     description='A modular data logger',
-    requires=['redis', 'bitstring', 'blinker', 'numpy', 'sqlalchemy', 'tornado']
+    requires=['redis', 'bitstring', 'blinker', 'numpy', 'sqlalchemy', 'tornado', 'matplotlib', 'PySide']
 )
