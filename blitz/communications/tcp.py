@@ -92,6 +92,10 @@ class TcpBase(object):
                 # now wait until a response is ready to send
                 self.waiting = False
                 while not self.waiting:
+
+                    if self.__stop_event.is_set():
+                        break
+
                     try:
                         response = self.send_queue.get(True, 0.1)
                     except Queue.Empty:
