@@ -237,9 +237,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.6172305"
-     inkscape:cx="285.8968"
-     inkscape:cy="-107.81926"
+     inkscape:zoom="4.5742186"
+     inkscape:cx="165.86051"
+     inkscape:cy="-17.83578"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -295,7 +295,7 @@
        sodipodi:cy="26.285715"
        sodipodi:rx="3.8392856"
        sodipodi:ry="3.8392856"
-       d="m 10.625,26.285715 a 3.8392856,3.8392856 0 1 1 -7.6785715,0 3.8392856,3.8392856 0 1 1 7.6785715,0 z"
+       d="m 10.625,26.285715 c 0,2.120379 -1.718907,3.839286 -3.8392859,3.839286 -2.1203788,0 -3.8392856,-1.718907 -3.8392856,-3.839286 0,-2.120379 1.7189068,-3.839286 3.8392856,-3.839286 2.1203789,0 3.8392859,1.718907 3.8392859,3.839286 z"
        transform="translate(0.80357143,1020.005)" />
     <path
        style="fill:none;stroke:#44aa00;stroke-width:5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
@@ -322,7 +322,7 @@
        inkscape:export-ydpi="90" />
     <path
        transform="translate(32.80357,1020.005)"
-       d="m 10.625,26.285715 a 3.8392856,3.8392856 0 1 1 -7.6785715,0 3.8392856,3.8392856 0 1 1 7.6785715,0 z"
+       d="m 10.625,26.285715 c 0,2.120379 -1.718907,3.839286 -3.8392859,3.839286 -2.1203788,0 -3.8392856,-1.718907 -3.8392856,-3.839286 0,-2.120379 1.7189068,-3.839286 3.8392856,-3.839286 2.1203789,0 3.8392859,1.718907 3.8392859,3.839286 z"
        sodipodi:ry="3.8392856"
        sodipodi:rx="3.8392856"
        sodipodi:cy="26.285715"
@@ -594,6 +594,52 @@
              transform="matrix(0.75493453,-0.35310399,0.42298915,0.90434862,-26.91795,181.9158)" />
         </g>
       </g>
+    </g>
+    <rect
+       y="1020.3621"
+       x="160.45268"
+       height="32.000004"
+       width="32"
+       id="rect3062"
+       style="fill:#ff00ff;fill-opacity:1;fill-rule:nonzero;stroke:none"
+       inkscape:export-filename="C:\Users\mecharius\Dropbox\blitz\blitz\static\img\desktop_session_list.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <g
+       id="g3074"
+       transform="translate(-29.622548,-3.374788)">
+      <rect
+         y="1029.0015"
+         x="195.47624"
+         height="4.3705516"
+         width="21.197977"
+         id="rect3066"
+         style="fill:#1a1a1a;fill-opacity:1;fill-rule:nonzero;stroke:none"
+         ry="2.1852758" />
+      <rect
+         ry="2.1852758"
+         style="fill:#1a1a1a;fill-opacity:1;fill-rule:nonzero;stroke:none"
+         id="rect3068"
+         width="21.197977"
+         height="4.3705516"
+         x="195.47624"
+         y="1034.7015" />
+      <rect
+         y="1040.4017"
+         x="195.47624"
+         height="4.3705516"
+         width="21.197977"
+         id="rect3070"
+         style="fill:#1a1a1a;fill-opacity:1;fill-rule:nonzero;stroke:none"
+         ry="2.1852758" />
+      <rect
+         ry="2.1852758"
+         style="fill:#1a1a1a;fill-opacity:1;fill-rule:nonzero;stroke:none"
+         id="rect3072"
+         width="21.197977"
+         height="4.3705516"
+         x="195.47624"
+         y="1046.1018" />
     </g>
   </g>
 </svg>
