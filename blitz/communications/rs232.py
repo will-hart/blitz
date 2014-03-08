@@ -37,6 +37,7 @@ class SerialManager(Plugin):
     serial_mapping = None
     __serial_thread = None
     __stop_event = None
+    id = "rs232"
 
     logger = logging.getLogger(__name__)
 
@@ -45,11 +46,11 @@ class SerialManager(Plugin):
         """
         Gets the instance of the SerialManager created during plugin loading
         """
-        if not cls.__instance:
+        if not SerialManager.__instance:
             # get from the plugin list
-            cls.__instance = PluginMount.get_plugin(type(SerialManager))
+            SerialManager.__instance = PluginMount.get_plugin(SerialManager)
 
-        return cls.__instance
+        return SerialManager.__instance
 
     def __init__(self, description="Serial Manager Board"):
         """

@@ -62,10 +62,11 @@ class PluginMount(type):
 
         :returns: The plugin matching the given type
         """
-        for x in cls.plugins:
-            if type(x) == plugin_type:
-                return x
-
+        if hasattr(plugin_type, 'id'):
+            check_id = plugin_type.id
+            for x in cls.plugins:
+                if hasattr(x, 'id') and x.id == check_id:
+                    return x
         return None
 
 
