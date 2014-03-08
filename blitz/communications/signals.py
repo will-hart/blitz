@@ -123,9 +123,11 @@ client_requested_download = signal('client_requested_download')
 #:
 #: Subscribers (subscribed in >> subscribed to):
 #:  - :mod:`SerialManager`.__init__ >> BoardManager.handle_board_command
+#:  - :mod:`ApplicationClient`.__init__ >> ApplicationClient.send_command
 #:
 #: Sent by:
 #:  - :mod:`ServerBaseState`.process_standard_messages
+#:  - :mod:`CalibrationDialog`.step
 board_command_received = signal('board_command_received')
 
 #: Fired when the client loses the TCP connection (after three attempts)

@@ -114,6 +114,7 @@ class ApplicationClient(object):
         sigs.cache_line_received.connect(self.cache_line_received)
         sigs.client_requested_download.connect(self.send_download_request)
         sigs.client_requested_session_list.connect(self.request_session_list)
+        sigs.board_command_received.connect(self.send_command)
 
     def run(self):
         """
