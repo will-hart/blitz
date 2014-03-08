@@ -30,9 +30,9 @@ class BlitzSessionWidget(Qt.QWidget):
 
         # set up the widget boundaries
         self.resize(450, 80)
-        sizePolicy = Qt.QSizePolicy(Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Fixed)
-        sizePolicy.setHeightForWidth(self.sizePolicy().hasHeightForWidth())
-        self.setSizePolicy(sizePolicy)
+        size_policy = Qt.QSizePolicy(Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Fixed)
+        size_policy.setHeightForWidth(self.sizePolicy().hasHeightForWidth())
+        self.setSizePolicy(size_policy)
 
         # colour the background
         palette = self.palette()
