@@ -62,6 +62,8 @@ class NetScannerManager(object):
         self.__socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.__socket.settimeout(self.REQUEST_TIMEOUT)
         self.__run_thread(self.run_client)
+        self.__thread = None
+        self.__logging_start = datetime.datetime.now()
 
         logging_started.connect(self.start_logging)
 
@@ -119,10 +121,14 @@ class NetScannerManager(object):
                         "Received incomplete NetScanner message, only read %s channels (not 16)" % len(results))
                 else:
                     # hackity hack
-                    self.__data.queue(self.__board_id + "0ABO" + delta_t + results[0] + results[1] + results[2] + results[3])
-                    self.__data.queue(self.__board_id + "0AA8" + delta_t + results[4] + results[5] + results[6] + results[7])
-                    self.__data.queue(self.__board_id + "0AA4" + delta_t + results[8] + results[9] + results[10] + results[11])
-                    self.__data.queue(self.__board_id + "0AA2" + delta_t + results[12] + results[13] + results[14] + results[15])
+                    self.__data.queue(
+                        self.__board_id + "0ABO" + delta_t + results[0] + results[1] + results[2] + results[3])
+                    self.__data.queue(
+                        self.__board_id + "0AA8" + delta_t + results[4] + results[5] + results[6] + results[7])
+                    self.__data.queue(
+                        self.__board_id + "0AA4" + delta_t + results[8] + results[9] + results[10] + results[11])
+                    self.__data.queue(
+                        self.__board_id + "0AA2" + delta_t + results[12] + results[13] + results[14] + results[15])
 
     def stop_client(self):
         """
