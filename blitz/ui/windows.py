@@ -174,6 +174,13 @@ class BlitzLoggingWidget(Qt.QWidget):
             self.axis.legend(loc='upper left')
             self.canvas.draw()
 
+    def clear_graphs(self):
+        """
+        Clears the graphs in the logging display
+        """
+        self.__container.clear_data()
+        self.redraw({}, True)
+
 
 class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
     """
