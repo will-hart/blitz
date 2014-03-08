@@ -6,7 +6,7 @@ from blitz.data.models import Session
 
 matplotlib.rc_file('matplotlibrc')
 matplotlib.use('Qt4Agg')
-matplotlib.rcParams['backend.qt4']='PySide'
+matplotlib.rcParams['backend.qt4'] = 'PySide'
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from matplotlib.widgets import Cursor as MplCursor
@@ -26,13 +26,18 @@ class GUISignalEmitter(QtCore.QObject):
     Used for passing events and signals from other threads onto the GUI thread
     """
     tcp_lost = QtCore.Signal()
+    logging_started = QtCore.Signal()
 
     def __init__(self):
         super(GUISignalEmitter, self).__init__()
-        sigs.lost_tcp_connection.connect(self.connection_lost)
+        sigs.lost_tcp_connection.connect(self.trigger_connection_lost)
+        sigs.logging_started.connect(self.trigger_logging_started)
 
-    def connection_lost(self, args):
+    def trigger_connection_lost(self, args):
         self.tcp_lost.emit()
+
+    def trigger_logging_started(self, args):
+        self.loggin_started.emit()
 
 
 class MainBlitzApplication(BaseApplicationClient):
@@ -161,7 +166,8 @@ class BlitzLoggingWidget(Qt.QWidget):
             self.axis.set_ylim(bottom=0, top=100)
         else:
             self.axis.set_xlim(left=self.__container.x_min - 1, right=self.__container.x_max + 1, auto=False)
-            self.axis.set_ylim(bottom=self.__container.y_min * 0.9 - 1, top=self.__container.y_max * 1.1 + 1, auto=False)
+            self.axis.set_ylim(
+                bottom=self.__container.y_min * 0.9 - 1, top=self.__container.y_max * 1.1 + 1, auto=False)
 
         # redraw if required
         if draw_canvas:
@@ -361,7 +367,7 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         Updates the cached and plotted data, optionally clearing the existing data
 
         :param data: The x-y data that should be appended to cached data
-        :param replace_existing: If false, the existing data will be entirely replaced as opposed ot appended.  Default True
+        :param replace_existing: If false, the existing data will be entirely replaced as opposed to appended.
 
         :returns: Nothing
         """
@@ -443,7 +449,8 @@ class BlitzSessionWindow(Qt.QWidget):
         self.grid.addWidget(self.view_series_button, 1, 5)
         self.setLayout(self.grid)
 
-    def on_item_checked(self, item):
+    @staticmethod
+    def on_item_checked(item):
         """
         Handles clicking a checkbox in the session list.  Unchecked sessions
         are deleted from the database whilst checked sessions are downloaded
