@@ -129,8 +129,26 @@ board_command_received = signal('board_command_received')
 #: Fired when the client loses the TCP connection (after three attempts)
 #:
 #: Subscribers (subscribed in >> subscribed to):
-#:  -
+#:  - `GUISignalEmitter`.__init__
 #:
 #: Sent by:
-#:  - s
+#:  - :mod:`TcpBase`.run_client
 lost_tcp_connection = signal('lost_tcp_connection')
+
+#: Fired when an asynchronous process starts to allow clients to update the UI
+#:
+#: Subscribers (subscribed in >> subscribed to):
+#:  - `GUISignalEmitter`.__init__
+#:
+#: Sent by:
+#:  - :mod:`TcpBase`.run_client
+process_started = signal('process_started')
+
+#: Fired when an asynchronous process finishes to allow clients to update the UI
+#:
+#: Subscribers (subscribed in >> subscribed to):
+#:  - `GUISignalEmitter`.__init__
+#:
+#: Sent by:
+#:  - :mod:`TcpBase`.run_client
+process_finished = signal('process_finished')
