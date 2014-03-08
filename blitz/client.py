@@ -135,6 +135,7 @@ class BaseApplicationClient(object):
         self.logger.debug("Handling client download request")
 
         if self.tcp is None:
+            sigs.process_finished.send()
             self.logger.debug("Failed to handle client download request - no TCP connection")
             self.data.log_error(
                 "Unable to request download for session #%s as the logger is not connected" % session_id)
@@ -150,8 +151,11 @@ class BaseApplicationClient(object):
         with the data logger.  If a connection already exists, close it and reopen
         """
 
+
         if self.tcp is None:
             # we are connecting
+            sigs.process_started.send("Creating connection to data logger")
+
             self.logger.debug("Created TCP connection at client request")
             try:
                 self.tcp = TcpBase("127.0.0.1", 8999)  # TODO get from config
@@ -162,16 +166,17 @@ class BaseApplicationClient(object):
                 self.tcp = None
 
         else:
+            sigs.process_started.send("Closing connection to data logger")
             self.tcp.stop()
             self.logger.debug("Closed TCP connection at client request")
-
-            # write a connection error to database for the user
-            self.data.log_error("Unable to connect to the network")
+            self.tcp = None
+            sigs.process_finished.send()
 
     def start_logging(self, args=None):
         """
         Sends a 'start logging' signal to the data logger
         """
+        sigs.process_started.send("Getting logger to start logging")
 
         if self.tcp is None:
             self.logger.warning("Attempt to start logging on TCP connection failed - there is no TCP connection")
@@ -183,6 +188,7 @@ class BaseApplicationClient(object):
         """
         Sends a 'stop logging' signal to the data logger
         """
+        sigs.process_started.send("Getting logger to stop logging")
 
         if self.tcp is None:
             self.logger.warning("Attempt to stop logging on TCP connection failed - there is no TCP connection")

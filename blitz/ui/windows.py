@@ -42,7 +42,7 @@ class GUISignalEmitter(QtCore.QObject):
     def trigger_task_started(self, description):
         self.task_started.emit(description)
 
-    def trigger_task_finished(self):
+    def trigger_task_finished(self, args):
         self.task_finished.emit()
 
 
@@ -211,13 +211,14 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         # connect up external signals
         self.signaller = GUISignalEmitter()
         self.signaller.tcp_lost.connect(self.connection_lost)
-        self.signaller.task_finished.connect(self.show_process_dialogue)
+        self.signaller.task_started.connect(self.show_process_dialogue)
 
         # create a handle for a processing dialogue
         self.__indicator = None
 
     def show_process_dialogue(self, description):
         self.__indicator = ProcessingDialog(self.signaller.task_finished, description)
+        self.__indicator.show()
 
     def connection_lost(self):
         """
@@ -479,9 +480,7 @@ class BlitzSessionWindow(Qt.QWidget):
         """
 
         if item.checkState():
-            #sigs.process_started.send("Downloading data")
-            diag = ProcessingDialog(sigs.process_finished, "Test")
-            diag.show()
+            sigs.process_started.send("Downloading data")
             sigs.client_requested_download.send(item.sessionId)
 
         else:
@@ -500,6 +499,12 @@ class BlitzSessionWindow(Qt.QWidget):
             return
         else:
             selected_item = selected_item[0]
+
+        # get the file name
+        file_path, _ = Qt.QFileDialog.getSaveFileName(self, 'Save session to file...', 'C:/', 'CSV Files (*.csv)')
+
+        # show the saving dialogue
+        sigs.process_started.send("Saving data")
 
         current_item = selected_item.model().item(selected_item.row())
         current_idx = current_item.sessionId
@@ -524,10 +529,9 @@ class BlitzSessionWindow(Qt.QWidget):
                 row.value
             )
 
-        # get the file name
-        file_path, _ = Qt.QFileDialog.getSaveFileName(self, 'Save session to file...', 'C:/', 'CSV Files (*.csv)')
-
         # write to file if a path was given
         if file_path:
             with open(file_path, 'w') as f:
                 f.write(output)
+
+        sigs.process_finished.send()
