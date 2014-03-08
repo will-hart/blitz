@@ -14,7 +14,7 @@ import PySide.QtGui as Qt
 import PySide.QtCore as QtCore
 import sys
 
-from blitz.client import BaseApplicationClient
+from blitz.client import ApplicationClient
 import blitz.communications.signals as sigs
 from blitz.communications.rs232 import ExpansionBoardNotFound
 from blitz.ui.mixins import BlitzGuiMixin
@@ -46,7 +46,7 @@ class GUISignalEmitter(QtCore.QObject):
         self.task_finished.emit()
 
 
-class MainBlitzApplication(BaseApplicationClient):
+class MainBlitzApplication(ApplicationClient):
 
     def __init__(self, args):
         """

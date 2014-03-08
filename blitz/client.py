@@ -70,7 +70,7 @@ class Config(object):
         return self.set(key, value)
 
 
-class BaseApplicationClient(object):
+class ApplicationClient(object):
     """
     A basic application which provides access method agnostic functionality
     for running a Blitz client side application.  Can be inherited to run
@@ -245,7 +245,7 @@ class BaseApplicationClient(object):
         self.logger.warning("Closing Client Application")
 
 
-class WebApplicationClient(BaseApplicationClient):
+class WebApplicationClient(ApplicationClient):
     """
     A basic application which exposes the Api and HTTP request handlers
     provided by Tornado
