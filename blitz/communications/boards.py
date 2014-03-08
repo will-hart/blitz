@@ -1,13 +1,12 @@
 __author__ = 'Will Hart'
 
+from bitstring import BitArray
 import logging
 
-from bitstring import BitArray
-
 from blitz.constants import BOARD_MESSAGE_MAPPING, PAYLOAD_LENGTH, MESSAGE_BYTE_LENGTH
-from blitz.data.models import Reading
 from blitz.communications.signals import data_line_received, data_line_processed, registering_boards
 from blitz.communications.rs232 import SerialManager
+from blitz.data.models import Reading
 from blitz.plugins import Plugin
 from blitz.utilities import blitz_timestamp
 
