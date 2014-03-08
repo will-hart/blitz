@@ -43,7 +43,7 @@ class SerialManager(object):
         """
         Returns a reference to a single SerialManager instance
 
-        :returns: The SerialManager singleton instance
+        :returns SerialManager: The SerialManager singleton instance
         """
         cls.logger.debug("SerialManager Instance called")
         if cls.__instance is None:
@@ -97,8 +97,8 @@ class SerialManager(object):
         # Windows
         if os.name == 'nt':
             self.logger.debug("Performing Windows scan")
-            # Scan for available ports.
-            available = []
+
+            # scan for available ports
             for i in range(256):
                 try:
                     portname = "COM%s" % (i + 1)
@@ -123,7 +123,8 @@ class SerialManager(object):
             else:
                 ser.close()
 
-    def open_serial_connection(self, port_name, baud_rate=57600, read_timeout=3):
+    @staticmethod
+    def open_serial_connection(port_name, baud_rate=57600, read_timeout=3):
         """
         Creates a serial port connection, opens it and returns it.  Note if you are using USB serial and
         an Arduino you may need to put a resistor between 5V or 3.3V and the RESET pin to prevent auto reset.
@@ -143,7 +144,7 @@ class SerialManager(object):
         Resets the (Arduino Based) expansion board on the given port by toggling the DTR line.
         Only works for Arduino based expansion boards
 
-        :param port_name: the serial port to send the reset command to
+        :param board_id: the serial port to send the reset command to
         """
         s = self.serial_mapping[board_id]
 
@@ -159,12 +160,11 @@ class SerialManager(object):
         Requests an ID from the serial port name and returns it.
         If no ID is found, return None
 
-        :param port_name: the name of the port to open (for instance COM3)
+        :param port: the serial port handle to read/write from
 
         :returns: A two digit hex board ID, or None if no ID was found
         """
         board_id = None
-        serial_buffer = ""
 
         # clear out any junk in the board's serial buffer and ignore the response
         port.write('\n')
@@ -187,7 +187,6 @@ class SerialManager(object):
         saves the returned data to the database
 
         :param board_id: the ID of the board in hex form, (e.g. "08" for board with ID 8)
-        :param port_name: the name of the port to open (for instance COM3)
 
         :returns: Nothing
         """
@@ -202,7 +201,7 @@ class SerialManager(object):
         lines = port.readlines()
 
         for line in lines:
-            line = line.replace('\n', '').replace('\r','')
+            line = line.replace('\n', '').replace('\r', '')
             line_size = len(line)
             if line_size < 4:
                 self.logger.debug("Received short message (%s) from board %s, ignoring" % (line, board_id))
@@ -229,7 +228,6 @@ class SerialManager(object):
 
         :param command: the string command to send over the serial port, from the SerialCommands constant
         :param board_id: the ID of the board in hex form, (e.g. "08" for board with ID 8)
-        :param port_name: the name of the port to open (for instance COM3)
 
         :raises ExpansionBoardNotFound: when a message is sent to an expansion board which doesn't exist
 
@@ -261,7 +259,7 @@ class SerialManager(object):
 
         # TODO: properly handle errors
         self.logger.debug("Sent {0} on {1}, received \"{2}\"".format(
-            board_id + command.replace('/n',''), port.port, serial_buffer))
+            board_id + command.replace('/n', ''), port.port, serial_buffer))
 
         if len(serial_buffer) != 4 or serial_buffer[2:] != SerialCommands['ACK']:
             return serial_buffer
@@ -272,7 +270,7 @@ class SerialManager(object):
         """
         Starts listening on the serial ports and polling for updates every SerialUpdatePeriod seconds
 
-        :param signal_args: the arguments provided by the blinker signal (unused)
+        :param tcp: the TCP connection to use for communications
 
         :returns: Nothing
         """

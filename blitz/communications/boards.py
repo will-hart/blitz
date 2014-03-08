@@ -79,7 +79,7 @@ class BoardManager(object):
         try:
             if board_id is None:
                 board_id = int(message[0:2], 16)
-        except ValueError as err:
+        except ValueError:
             self.logger.warning("Unable to parse message... skipping - {0}".format(message))
             return []
 
@@ -96,9 +96,9 @@ class BoardManager(object):
         # get session metadata
         if session_id:
             # TODO add timestamp to session start time
-            timeLogged = board["timestamp"]
+            time_logged = board["timestamp"]
         else:
-            timeLogged = blitz_timestamp()  # for cached just pretend its now
+            time_logged = blitz_timestamp()  # for cached just pretend its now
 
         # write the variables to the database
         for key in result.keys():
@@ -106,13 +106,12 @@ class BoardManager(object):
             if session_id:
                 # adding a reading
                 readings.append(
-                    Reading(sessionId=session_id, timeLogged=timeLogged, categoryId=category_id, value=result[key]))
+                    Reading(sessionId=session_id, timeLogged=time_logged, categoryId=category_id, value=result[key]))
             else:
                 # adding to cache
-                cached_item = self.data.add_cache(timeLogged, category_id, result[key])
+                cached_item = self.data.add_cache(time_logged, category_id, result[key])
                 readings.append({
                     'categoryId': cached_item.categoryId,
-                    #'timeLogged': dt.datetime.fromtimestamp(cached_item.timeLogged / 1000),  # convert unix to python dates
                     'timeLogged': cached_item.timeLogged / 1000,
                     'value': float(cached_item.value)
                 })
@@ -229,7 +228,7 @@ class BaseExpansionBoard(Plugin):
         """
         Gets a 32 bit IEEE single precision double stored in big endian format starting at the given index.
         """
-        return self._payload_array[start_bit : start_bit + 8].floatbe
+        return self._payload_array[start_bit:start_bit + 8].floatbe
 
     def get_flag(self, flag_number):
         """
@@ -262,10 +261,10 @@ class BaseExpansionBoard(Plugin):
         """
         result = SerialManager.Instance().send_command_with_ack(command, self.id)
 
-        if result == None:
+        if not result:
             return
 
-        self.logger.warning("Board unable to process command (%s) received response (%s)" %(command, result))
+        self.logger.warning("Board unable to process command (%s) received response (%s)" % (command, result))
 
 
 class BlitzBasicExpansionBoard(BaseExpansionBoard):
@@ -347,7 +346,6 @@ class NetScannerEthernetBoard(BaseExpansionBoard):
         self.logger.debug(
             "Board [%s:%s] now listening for registering_boards signal" % (self['id'], self['description']))
 
-
     def get_variables(self):
         var_vals = [
             self.get_float(0),
@@ -368,6 +366,7 @@ class NetScannerEthernetBoard(BaseExpansionBoard):
             return {}
 
         return dict(zip(var_names, var_vals))
+
 
 class ExpansionBoardMock(BaseExpansionBoard):
     """

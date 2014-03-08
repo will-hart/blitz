@@ -156,7 +156,7 @@ class BaseApplicationClient(object):
             try:
                 self.tcp = TcpBase("127.0.0.1", 8999)  # TODO get from config
                 self.tcp.create_client()
-            except TcpCommunicationException as tce:
+            except TcpCommunicationException:
                 self.data.log_error("Communication error with the board - connection closed")
                 self.tcp.stop()
                 self.tcp = None
@@ -208,7 +208,7 @@ class BaseApplicationClient(object):
         for item in data:
             cat_id = str(item['categoryId'])
             if not cat_id in result.keys():
-                result[cat_id] = [[],[]]  # set up an empty list
+                result[cat_id] = [[], []]  # set up an empty list
 
             result[cat_id][0].append(item['timeLogged'])
             result[cat_id][1].append(item['value'])
@@ -219,8 +219,7 @@ class BaseApplicationClient(object):
         """
         Sends a message to the board with the given id.  The message should be packed as a hex string
 
-        :param id: the ID of the board to transmit to
-        :param message: the hex payload to send
+        :param command: the hex payload to send
         """
         self.tcp.send(CommunicationCodes.composite(
             CommunicationCodes.Board, "{0} {1}".format(command[:2], command[2:])))
@@ -246,13 +245,6 @@ class WebApplicationClient(BaseApplicationClient):
         """
 
         super(WebApplicationClient, self).__init__()
-
-        # todo remove fixture loading
-        try:
-            self.data.load_fixtures()
-            self.logger.info("Loaded fixtures")
-        except Exception:
-            pass
 
         # create an application
         self.application = tornado.web.Application([
@@ -304,7 +296,7 @@ class WebApplicationClient(BaseApplicationClient):
             self.io_loop.add_callback(self.io_loop.stop)
             self.logger.warning("Stopped IO loop with callback")
 
-    def connect_to_logger(self, args):
+    def connect_to_logger(self, args=None):
         """
         Extend the BaseApplicationClient.connect_to_logger method to save the
         TCP socket to application settings
@@ -315,6 +307,3 @@ class WebApplicationClient(BaseApplicationClient):
 
         # save off the socket for later use in the application
         self.application.settings['socket'] = self.tcp
-
-
-

@@ -201,7 +201,7 @@ class DatabaseClient(object):
         Session list comes in [session_id, start_timestamp, end_timstamp] format
         This replaces the existing session list
 
-        :param sessions_list: a list of lists containing session information [id, timeStarted, timeStopped, numberOfReadings]
+        :param sessions_list: a list of lists of session information [id, timeStarted, timeStopped, numberOfReadings]
         :returns: nothing
         """
         self.logger.debug("Updating session list")

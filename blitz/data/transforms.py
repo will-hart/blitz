@@ -94,5 +94,4 @@ class TranslateDataTransform(BaseDataTransform):
             new_transformed.append(output.tolist())
 
         # finally overwrite the existing y_transformed with new data
-        target = new_transformed
-
+        container.y_transformed = new_transformed

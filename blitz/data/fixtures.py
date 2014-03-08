@@ -70,7 +70,7 @@ class TcpClientMock(TcpBase):
         self.last_sent = ""
         super(TcpClientMock, self).__init__(host="*", port="12345")
 
-    def _do_send(self, msg):
+    def do_send(self, msg):
         """Mocks sending a TCP message by printing to stdout"""
         print "[SEND] ", msg
         self.last_sent = msg

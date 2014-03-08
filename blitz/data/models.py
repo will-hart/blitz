@@ -65,6 +65,7 @@ class Reading(SQL_BASE):
     def __str__(self):
         return json.dumps(self.to_dict())
 
+
 class Session(SQL_BASE):
     """
     A model class for representing logging session

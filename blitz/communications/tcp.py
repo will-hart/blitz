@@ -1,7 +1,5 @@
 __author__ = 'Will Hart'
 
-import logging
-import threading
 import Queue
 import zmq
 
@@ -31,6 +29,7 @@ class TcpBase(object):
         self.__stop_event = threading.Event()
         self.__thread = None
         self.__state_machine = None
+        self.__context = None
 
     def create_client(self, autorun=True):
         self.__context = zmq.Context(1)
@@ -68,7 +67,7 @@ class TcpBase(object):
             self.__state_machine.join()
         self.__stop_event.clear()
 
-    def _do_send(self, message):
+    def do_send(self, message):
         self.send_queue.put(message)
 
     def send(self, message):

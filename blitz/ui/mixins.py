@@ -59,18 +59,17 @@ class BlitzGuiMixin(object):
 
     def send_move_command(self, angle):
         # clamp to safe range
-        if angle < 0: angle = 0
-        if angle > 40: angle = 40
+        if angle < 0:
+            angle = 0
+        if angle > 40:
+            angle = 40
 
         # start the command - 0985 is the "set motor on board 09" command
         # the following 8 zeroes are the timestamp
         command = '09850000000000'
 
         # build the message - the angle should be packed as a sixteen bit hex value
-        command += hex(angle).replace('0x','').rjust(2, '0')
+        command += hex(angle).replace('0x', '').rjust(2, '0')
 
         # send the command
         self.application.send_command(command)
-
-
-

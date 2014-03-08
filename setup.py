@@ -8,5 +8,6 @@ setup(
     license='GPL v3.0',
     author='William Hart',
     author_email='will@blitzlogger.com',
-    description='A modular data logger'
+    description='A modular data logger',
+    requires=['redis', 'bitstring', 'blinker', 'numpy', 'sqlalchemy', 'tornado']
 )

@@ -32,7 +32,7 @@ class BaseState(object):
         Send the passed message over TCP and return the current state
         """
         self.logger.debug("[TCP] Calling base.send_message: " + str(msg))
-        tcp._do_send(msg)
+        tcp.do_send(msg)
         return self
 
     def go_to_state(self, tcp, state, args=None):
@@ -56,7 +56,7 @@ class ClientInitState(BaseState):
     def enter_state(self, tcp, state, args=None):
         """Send a logging query to the logger"""
         self.logger.debug("[TCP] Calling init.enter_state")
-        tcp._do_send(CommunicationCodes.IsLogging)
+        tcp.do_send(CommunicationCodes.IsLogging)
         return self
 
     def receive_message(self, tcp, msg):
@@ -90,11 +90,11 @@ class ClientIdleState(BaseState):
         elif msg == CommunicationCodes.GetSessions:
             return self.go_to_state(tcp, ClientSessionListState)
         elif msg[0:8] == CommunicationCodes.Download:
-            tcp._do_send(msg)
+            tcp.do_send(msg)
             new_state = self.go_to_state(tcp, ClientDownloadingState, int(msg.split(" ")[1]))
             return new_state
         elif msg[0:5] == CommunicationCodes.Board:
-            tcp._do_send(msg)
+            tcp.do_send(msg)
             return self
         else:
             self.logger.error("Attempted to send unknown message for IDLE state: {0}".format(msg))
@@ -109,7 +109,7 @@ class ClientSessionListState(BaseState):
         """Send a logging session list to the logger"""
         self.sessions = []
         self.logger.debug("[TCP] Calling session_list.enter_state")
-        tcp._do_send(CommunicationCodes.GetSessions)
+        tcp.do_send(CommunicationCodes.GetSessions)
         return self
 
     def receive_message(self, tcp, msg):
@@ -144,7 +144,7 @@ class ClientStartingState(BaseState):
     """Handles logging starting - waits for ACK from server"""
     def enter_state(self, tcp, state, args=None):
         self.logger.debug("[TCP] Calling starting.enter_state: " + state.__name__)
-        tcp._do_send(CommunicationCodes.Start)
+        tcp.do_send(CommunicationCodes.Start)
         return self
 
     def receive_message(self, tcp, msg):
@@ -184,15 +184,15 @@ class ClientLoggingState(BaseState):
 
         # if not, are we requesting a status?
         if msg == CommunicationCodes.Update:
-            tcp._do_send(CommunicationCodes.Update)
+            tcp.do_send(CommunicationCodes.Update)
 
         elif msg[0:5] == CommunicationCodes.Board:
-            tcp._do_send(msg)
+            tcp.do_send(msg)
             return self
 
         else:
             # otherwise we just send the message and let the server sort it out
-            tcp._do_send(msg)
+            tcp.do_send(msg)
         return self
 
     def receive_message(self, tcp, msg):
@@ -220,7 +220,7 @@ class ClientStoppingState(BaseState):
     """
     def enter_state(self, tcp, state, args=None):
         self.logger.debug("[TCP] Calling stopping.enter_state: " + state.__name__)
-        tcp._do_send(CommunicationCodes.Stop)
+        tcp.do_send(CommunicationCodes.Stop)
         return self
 
     def receive_message(self, tcp, msg):

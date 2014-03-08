@@ -22,7 +22,8 @@ class ServerBaseState(BaseState):
     received in all states such as BOARD commands
     """
 
-    def process_standard_messages(self, tcp, msg):
+    @staticmethod
+    def process_standard_messages(tcp, msg):
         """
         Processes standard messages that can be handled in any state
 
@@ -49,7 +50,7 @@ class ServerIdleState(ServerBaseState):
         self.logger.debug("[TCP] Calling ServerIdleState.receive_message: " + msg)
         # check if it is a command which causes a change of state
         if msg == CommunicationCodes.Start:
-            tcp._do_send(CommunicationCodes.Acknowledge)
+            tcp.do_send(CommunicationCodes.Acknowledge)
             return self.go_to_state(tcp, ServerLoggingState)
         elif msg == CommunicationCodes.GetSessions:
             sigs.client_requested_session_list.send()
@@ -65,12 +66,12 @@ class ServerIdleState(ServerBaseState):
             return self
         elif msg == CommunicationCodes.Stop or msg == CommunicationCodes.Update:
             # huh? We are not logging!?
-            tcp._do_send(CommunicationCodes.NoSession)
+            tcp.do_send(CommunicationCodes.NoSession)
         elif msg == CommunicationCodes.IsLogging:
             self.logger.debug("Responding with NACK, server not currently logging")
-            tcp._do_send(CommunicationCodes.Negative)
+            tcp.do_send(CommunicationCodes.Negative)
         elif not self.process_standard_messages(tcp, msg):
-            tcp._do_send(validate_command(msg, VALID_SERVER_COMMANDS))
+            tcp.do_send(validate_command(msg, VALID_SERVER_COMMANDS))
 
         return self
 
@@ -87,7 +88,7 @@ class ServerLoggingState(ServerBaseState):
 
         if msg == CommunicationCodes.Stop:
             self.logger.debug("[TCP] [SIGNAL] Stop logging")
-            tcp._do_send(CommunicationCodes.Acknowledge)
+            tcp.do_send(CommunicationCodes.Acknowledge)
             sigs.logging_stopped.send()
             return self.go_to_state(tcp, ServerIdleState)
 
@@ -95,17 +96,17 @@ class ServerLoggingState(ServerBaseState):
             sigs.server_status_request.send(tcp)
 
         elif msg == CommunicationCodes.Start:
-            tcp._do_send(CommunicationCodes.InSession)
+            tcp.do_send(CommunicationCodes.InSession)
 
         elif msg == CommunicationCodes.IsLogging:
             self.logger.debug("Responding with ACK, server is currently logging")
-            tcp._do_send(CommunicationCodes.Acknowledge)
+            tcp.do_send(CommunicationCodes.Acknowledge)
 
         elif msg[0:5] == CommunicationCodes.Reset:
             return self.go_to_state(tcp, ServerIdleState)
 
         elif not self.process_standard_messages(tcp, msg):
-            tcp._do_send(validate_command(msg, VALID_SERVER_COMMANDS))
+            tcp.do_send(validate_command(msg, VALID_SERVER_COMMANDS))
 
         return self
 
@@ -134,7 +135,7 @@ class ServerDownloadingState(ServerBaseState):
 
         elif len(self.session_data) == 0:
             # no data to send
-            tcp._do_send(CommunicationCodes.Negative)
+            tcp.do_send(CommunicationCodes.Negative)
             return self.go_to_state(tcp, ServerIdleState)
 
         # send the next block of messages, appending the correct command code
@@ -145,13 +146,13 @@ class ServerDownloadingState(ServerBaseState):
 
         if self.send_index == len(self.session_data):
             lines += "\n" + CommunicationCodes.Negative
-            tcp._do_send(lines)
+            tcp.do_send(lines)
             self.session_data = []
             self.send_index = 0
             return self.go_to_state(tcp, ServerIdleState)
 
         lines += "\n" + CommunicationCodes.Acknowledge
-        tcp._do_send(lines)
+        tcp.do_send(lines)
         return self
 
     def receive_message(self, tcp, msg):
@@ -169,7 +170,7 @@ class ServerDownloadingState(ServerBaseState):
 
         elif not self.process_standard_messages(tcp, msg):
             self.logger.warning("[TCP] Unknown message received in download state - " + msg)
-            tcp._do_send(validate_command(msg, VALID_SERVER_COMMANDS))
+            tcp.do_send(validate_command(msg, VALID_SERVER_COMMANDS))
 
         return self
 
