@@ -133,7 +133,7 @@ class ServerDownloadingState(ServerBaseState):
             self.send_index = 0
             self.session_data = msg
 
-        elif len(self.session_data) == 0:
+        if len(self.session_data) == 0:
             # no data to send
             tcp.do_send(CommunicationCodes.Negative)
             return self.go_to_state(tcp, ServerIdleState)
