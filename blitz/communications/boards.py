@@ -229,7 +229,7 @@ class BaseExpansionBoard(Plugin):
         """
         Gets a 32 bit IEEE single precision double stored in big endian format starting at the given index.
         """
-
+        return self._payload_array[start_bit : start_bit + 8].floatbe
 
     def get_flag(self, flag_number):
         """
