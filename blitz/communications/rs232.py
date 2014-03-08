@@ -1,16 +1,15 @@
-from blitz import constants
-
 __author__ = 'Will Hart'
+
 
 import logging
 import os
-import threading
-import time
-
 from redis import ConnectionError
 import serial
 from serial.tools.list_ports import comports
+import time
+import threading
 
+from blitz import constants
 from blitz.constants import CommunicationCodes, SerialUpdatePeriod, SerialCommands
 from blitz.data.database import DatabaseServer
 from blitz.communications.signals import board_command_received, logging_started, logging_stopped

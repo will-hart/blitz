@@ -6,9 +6,7 @@ from bitstring import BitArray
 
 from blitz.constants import BOARD_MESSAGE_MAPPING, PAYLOAD_LENGTH, MESSAGE_BYTE_LENGTH
 from blitz.data.models import Reading
-from blitz.communications.signals import data_line_received, data_line_processed, registering_boards, \
-    logging_started, logging_stopped, board_command_received
-from blitz.communications.netscanner_manager import NetScannerManager
+from blitz.communications.signals import data_line_received, data_line_processed, registering_boards
 from blitz.communications.rs232 import SerialManager
 from blitz.plugins import Plugin
 from blitz.utilities import blitz_timestamp
@@ -227,6 +225,12 @@ class BaseExpansionBoard(Plugin):
         end = start + length
         return self._payload_array[start:end].uint
 
+    def get_float(self, start_bit):
+        """
+        Gets a 32 bit IEEE single precision double stored in big endian format starting at the given index.
+        """
+        return self._payload_array[start_bit : start_bit + 8].floatbe
+
     def get_flag(self, flag_number):
         """
         Returns the flag defined at the given bit number.
@@ -336,7 +340,6 @@ class NetScannerEthernetBoard(BaseExpansionBoard):
         self.do_not_register = False
         self.id = 10
         self.description = description
-        self.__net_scanner = None
 
     def register_signals(self):
         # signal to register the board
@@ -344,33 +347,27 @@ class NetScannerEthernetBoard(BaseExpansionBoard):
         self.logger.debug(
             "Board [%s:%s] now listening for registering_boards signal" % (self['id'], self['description']))
 
-        # signal to start logging
-        logging_started.connect(self.start_polling)
-        self.logger.debug(
-            "Board [%s:%s] now listening for logging_started signal" % (self['id'], self['description']))
-
-        logging_stopped.connect(self.stop_polling)
-        self.logger.debug(
-            "Board [%s:%s] now listening for logging_stopped signal" % (self['id'], self['description']))
-
-    def start_polling(self):
-        """
-        Communicates with a NetScanner 9116 via TCP, telling it to
-        start recording
-        """
-        # TODO implement correct IP/Port
-        self.__net_scanner = NetScannerManager("192.168.1.1", "9000")
-
-    def stop_polling(self):
-        """
-        Stops polling a NetScanner board
-        """
-        self.__net_scanner.stop_client()
 
     def get_variables(self):
-        results = self.__net_scanner.get_channels()
-        return dict([("Channel %s" % x[0], x[1]) for x in enumerate(results)])
+        var_vals = [
+            self.get_float(0),
+            self.get_float(8),
+            self.get_float(16),
+            self.get_float(24)
+        ]
+        if self.get_flag(0):
+            var_names = ["Channel_{0}".format(i) for i in range(1, 5)]
+        elif self.get_flag(1):
+            var_names = ["Channel_{0}".format(i) for i in range(5, 9)]
+        elif self.get_flag(2):
+            var_names = ["Channel_{0}".format(i) for i in range(9, 13)]
+        elif self.get_flag(3):
+            var_names = ["Channel_{0}".format(i) for i in range(13, 17)]
+        else:
+            self.logger.warning("NetScanner board tried to parse message with no channel flag set - ignoring")
+            return {}
 
+        return dict(zip(var_names, var_vals))
 
 class ExpansionBoardMock(BaseExpansionBoard):
     """

@@ -27,7 +27,8 @@ class Config(object):
             "application_path": os.path.dirname(__file__),
             "tcp_port": 8999,
             "database_port": 6379,
-            "debug": True
+            "debug": True,
+            "use_netscanner": False
         }
 
         self.load_from_file()
@@ -130,10 +131,10 @@ class ApplicationServer(object):
         sigs.client_requested_download.connect(self.serve_client_download)
 
         # start the TCP server
-        self.tcp = TcpBase(port=8999)  # todo - load from configuration
+        self.tcp = TcpBase(port=self.config["tcp_port"])  # todo - load from configuration
         self.tcp.create_server()
         self.is_running = True
-        self.logger.info("Started TCP on port %s" % 8999)
+        self.logger.info("Started TCP on port %s" % self.config["tcp_port"])
 
     def update_session_list(self, args):
         """

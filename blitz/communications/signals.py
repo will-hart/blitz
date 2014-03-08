@@ -117,7 +117,6 @@ tcp_message_received = signal('tcp_message_received')
 #:  - :mod:`blitz.ui.BlitzSessionWindow`.on_item_checked
 client_requested_download = signal('client_requested_download')
 
-
 #: Fired when a command was received from the desktop software for an expansion board
 #:
 #: Subscribers (subscribed in >> subscribed to):
