@@ -355,17 +355,17 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
 
         # widgets to show in the tab
         self.plot_widget = BlitzLoggingWidget(self.__container)
-        self.__variable_widget = BlitzTableView(["Variable", "Value"])
-        self.__variable_widget.build_layout()
-        self.__session_list_widget = BlitzSessionTabPane(["", "ID", "Readings", "Date"], self.application)
-        self.__session_list_widget.build_layout()
+        self.variable_widget = BlitzTableView(["Variable", "Value"])
+        self.variable_widget.build_layout()
+        self.session_list_widget = BlitzSessionTabPane(["", "ID", "Readings", "Date"], self.application)
+        self.session_list_widget.build_layout()
         self.update_session_list()
 
         # tabbed widget for session and variable
         self.__tab_widget = Qt.QTabWidget()
         self.__tab_widget.setMinimumWidth(300)
-        self.__tab_widget.addTab(self.__variable_widget, "Variables")
-        self.__tab_widget.addTab(self.__session_list_widget, "Sessions")
+        self.__tab_widget.addTab(self.variable_widget, "Variables")
+        self.__tab_widget.addTab(self.session_list_widget, "Sessions")
 
         # create a layout grid
         self.__layout = Qt.QSplitter()
@@ -437,7 +437,7 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.plot_widget.redraw(data, replace_existing)
 
         # update the variable view from the container
-        self.__variable_widget.set_data(self.__container.get_latest())
+        self.variable_widget.set_data(self.__container.get_latest())
 
     def update_session_list(self):
         # first get the list of sessions
@@ -454,7 +454,7 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
                 dt
             ])
 
-        self.__session_list_widget.set_data(sessions)
+        self.session_list_widget.set_data(sessions)
 
     def set_motor_position(self):
         """
@@ -539,6 +539,7 @@ class BlitzSessionTabPane(BlitzTableView):
 
         self.application = application
         self.__selected_id = -1
+        self.__connected = False
 
         # button for downloading sessions
         self.download_button = Qt.QPushButton(Qt.QIcon('blitz/static/img/desktop_download.png'),"Download", self)
@@ -562,6 +563,12 @@ class BlitzSessionTabPane(BlitzTableView):
         self.delete_session_button.setFlat(True)
         self.delete_session_button.setEnabled(False)
 
+    def set_connected(self, connected):
+        """
+        Sets a flag indicating whether the logger is currently connected
+        """
+        self.__connected = connected
+
     def build_layout(self):
         # revised grid
         self.grid = Qt.QGridLayout()
@@ -579,8 +586,8 @@ class BlitzSessionTabPane(BlitzTableView):
         self.__selected_id = int(items[1].text()) if items else -1
 
         # update GUI
-        self.save_button.setEnabled(self.__selected_id >= 0)
-        self.download_button.setEnabled(self.__selected_id >= 0)
+        self.save_button.setEnabled(self.__selected_id >= 0 and (items[0].text() == "X" or self.__connected))
+        self.download_button.setEnabled(self.__selected_id >= 0 and self.__connected)
         # self.view_series_button.setEnabled(self.__selected_id >= 0)
         # self.delete_session_button.setEnabled(self.__selected_id >= 0)
 

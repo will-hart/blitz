@@ -18,6 +18,7 @@ class BlitzGuiMixin(object):
         self.calibration_action.setEnabled(True)
         self.motor_control.setEnabled(True)
         self.status_bar.showMessage("Connected to logger")
+        self.session_list_widget.set_connected(True)
 
     def disconnect_from_logger(self, ui_only=False):
         """
@@ -38,6 +39,7 @@ class BlitzGuiMixin(object):
         self.calibration_action.setEnabled(False)
         self.motor_control.setEnabled(False)
         self.status_bar.showMessage("Disconnected from logger")
+        self.session_list_widget.set_connected(False)
 
     def start_session(self):
         """
