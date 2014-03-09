@@ -259,7 +259,7 @@ class SerialManager(object):
 
         # TODO: properly handle errors
         self.logger.debug("Sent {0} on {1}, received \"{2}\"".format(
-            board_id + command.replace('/n', ''), port.port, serial_buffer))
+            command.replace('/n', ''), port.port, serial_buffer))
 
         if len(serial_buffer) != 4 or serial_buffer[2:] != SerialCommands['ACK']:
             return serial_buffer
