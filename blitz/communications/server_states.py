@@ -71,7 +71,7 @@ class ServerIdleState(ServerBaseState):
             self.logger.debug("Responding with NACK, server not currently logging")
             tcp.do_send(CommunicationCodes.Negative)
         elif not self.process_standard_messages(tcp, msg):
-            tcp.do_send(validate_command(msg, VALID_SERVER_COMMANDS))
+            tcp.do_send(validate_command(msg, VALID_SERVER_COMMANDS) + "IDLE")
 
         return self
 
@@ -106,7 +106,7 @@ class ServerLoggingState(ServerBaseState):
             return self.go_to_state(tcp, ServerIdleState)
 
         elif not self.process_standard_messages(tcp, msg):
-            tcp.do_send(validate_command(msg, VALID_SERVER_COMMANDS))
+            tcp.do_send(validate_command(msg, VALID_SERVER_COMMANDS) + "LOGGING")
 
         return self
 
@@ -170,7 +170,7 @@ class ServerDownloadingState(ServerBaseState):
 
         elif not self.process_standard_messages(tcp, msg):
             self.logger.warning("[TCP] Unknown message received in download state - " + msg)
-            tcp.do_send(validate_command(msg, VALID_SERVER_COMMANDS))
+            tcp.do_send(validate_command(msg, VALID_SERVER_COMMANDS) + " DOWNLOAD")
 
         return self
 
