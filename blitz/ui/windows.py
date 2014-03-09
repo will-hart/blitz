@@ -82,7 +82,7 @@ class BlitzLoggingWidget(Qt.QWidget):
     A widget which handles logger display of data
     """
 
-    def __init__(self):
+    def __init__(self, container):
         """
         Initialises the graph widget
         """
@@ -91,10 +91,10 @@ class BlitzLoggingWidget(Qt.QWidget):
 
         # set up the required data structures
         self.__lines = {}
-        self.__container = DataContainer()
+        self.__container = container
 
         # create widgets
-        self.figure = Figure(figsize=(1024, 768), dpi=72, facecolor=(1, 1, 1), edgecolor=(1, 0, 0))
+        self.figure = Figure(figsize=(800, 600), dpi=72, facecolor=(1, 1, 1), edgecolor=(1, 0, 0))
 
         # create a plot
         self.axis = self.figure.add_subplot(111)
@@ -144,7 +144,7 @@ class BlitzLoggingWidget(Qt.QWidget):
             # clear the existing plot
             self.axis.cla()
             self.__lines = {}
-            self.__container = DataContainer()
+            self.__container.clear_data()
 
         for key in new_data.keys():
             # massage key to str
@@ -198,6 +198,15 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         """
         super(MainBlitzWindow, self).__init__()
 
+        # connect up external signals
+        self.__signaller = GUISignalEmitter()
+        self.__signaller.tcp_lost.connect(self.connection_lost)
+        self.__signaller.task_started.connect(self.show_process_dialogue)
+        self.__signaller.task_finished.connect(self.update_session_list)
+
+        # create a data context for managing data
+        self.__container = DataContainer()
+
         self.application = app
 
         self.initialise_window()
@@ -208,17 +217,12 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
 
         self.run_window()
 
-        # connect up external signals
-        self.signaller = GUISignalEmitter()
-        self.signaller.tcp_lost.connect(self.connection_lost)
-        self.signaller.task_started.connect(self.show_process_dialogue)
-
         # create a handle for a processing dialogue
         self.__indicator = None
         self.__calibration_win = None
 
     def show_process_dialogue(self, description):
-        self.__indicator = ProcessingDialog(self.signaller.task_finished, description)
+        self.__indicator = ProcessingDialog(self.__signaller.task_finished, description)
         self.__indicator.show()
 
     def connection_lost(self):
@@ -257,9 +261,6 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
 
         Automatically created by __init__
         """
-        # status bar
-        self.status_bar = self.statusBar()
-        self.status_bar.showMessage("Blitz Logger is ready")
 
         ##
         # menu bar actions
@@ -312,19 +313,11 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
 
         # send a session list request
         self.update_session_listing_action = Qt.QAction(
-            Qt.QIcon('blitz/static/img/desktop_session_list.png'), '&Update list', self)
+            Qt.QIcon('blitz/static/img/desktop_session_list.png'), '&Update session list', self)
         self.update_session_listing_action.setStatusTip("Get a list of logging sessions from the data logger")
         self.update_session_listing_action.setToolTip("Get logger session list")
         self.update_session_listing_action.triggered.connect(self.get_session_list)
         self.update_session_listing_action.setEnabled(False)
-
-        # view a session list
-        self.session_list_action = Qt.QAction('View Session List', self)
-        #self.session_list_action.setEnabled(False)
-        self.session_list_action.setStatusTip("View previously logged sessions")
-        self.session_list_action.setToolTip("View previously logged sessions")
-        self.session_list_action.setShortcut('Ctrl+L')
-        self.session_list_action.triggered.connect(self.show_session_list)
 
         # shows the settings window
         self.settings_action = Qt.QAction('&Settings', self)
@@ -356,13 +349,28 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.main_menu = self.menuBar()
         self.file_menu = self.main_menu.addMenu('&File')
         self.logger_menu = self.main_menu.addMenu('&Logger')
-        self.session_menu = self.main_menu.addMenu('&Session')
 
         # the toolbar at the top of the window
         self.main_toolbar = self.addToolBar('Main')
 
-        # main graphing widget
-        self.main_widget = BlitzLoggingWidget()
+        # widgets to show in the tab
+        self.plot_widget = BlitzLoggingWidget(self.__container)
+        self.__variable_widget = BlitzTableView(["Variable", "Value"])
+        self.__variable_widget.build_layout()
+        self.__session_list_widget = BlitzSessionTabPane(["", "ID", "Readings", "Date"], self.application)
+        self.__session_list_widget.build_layout()
+        self.update_session_list()
+
+        # tabbed widget for session and variable
+        self.__tab_widget = Qt.QTabWidget()
+        self.__tab_widget.setMinimumWidth(300)
+        self.__tab_widget.addTab(self.__variable_widget, "Variables")
+        self.__tab_widget.addTab(self.__session_list_widget, "Sessions")
+
+        # create a layout grid
+        self.__layout = Qt.QSplitter()
+        self.__layout.addWidget(self.plot_widget)
+        self.__layout.addWidget(self.__tab_widget)
 
     def layout_window(self):
         """
@@ -384,9 +392,7 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.logger_menu.addSeparator()
         self.logger_menu.addAction(self.calibration_action)
         self.logger_menu.addAction(self.reset_device_action)
-
-        self.session_menu.addAction(self.update_session_listing_action)
-        self.session_menu.addAction(self.session_list_action)
+        self.logger_menu.addAction(self.update_session_listing_action)
 
         # create the toolbar
         self.main_toolbar.addAction(self.connect_action)
@@ -398,8 +404,12 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.main_toolbar.addWidget(self.motor_control_label)
         self.main_toolbar.addWidget(self.motor_control)
 
-        # set the central widget
-        self.setCentralWidget(self.main_widget)
+        # create a grid to display the main widgets
+        self.setCentralWidget(self.__layout)
+
+        # status bar
+        self.status_bar = self.statusBar()
+        self.status_bar.showMessage("Blitz Logger is ready")
 
     def run_window(self):
         """
@@ -424,9 +434,12 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         #    # convert from Python datetime to matplotlib datenum
         #    data[k][0] = [MplDates.date2num(x) for x in data[k][0]]
 
-        self.main_widget.redraw(data, replace_existing)
+        self.plot_widget.redraw(data, replace_existing)
 
-    def show_session_list(self):
+        # update the variable view from the container
+        self.__variable_widget.set_data(self.__container.get_latest())
+
+    def update_session_list(self):
         # first get the list of sessions
         raw_sessions = self.application.data.all(Session)
         sessions = []
@@ -435,13 +448,13 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
             dt = blitz_strftimestamp(sess.timeStarted)
 
             sessions.append([
-                "Session %s (%s readings) started %s" % (sess.ref_id, sess.numberOfReadings, dt),
-                sess.available,
-                sess.ref_id
+                "X" if sess.available else "",
+                sess.ref_id,
+                sess.numberOfReadings,
+                dt
             ])
 
-        self.session_list_window = BlitzSessionWindow(self.application, sessions)
-        self.session_list_window.show()
+        self.__session_list_widget.set_data(sessions)
 
     def set_motor_position(self):
         """
@@ -467,94 +480,153 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.__calibration_win.show()
 
 
-class BlitzSessionWindow(Qt.QWidget):
+class BlitzTableView(Qt.QWidget):
     """
-    A UI window which lists available data logger sessions and
+    A UI tab pane which shows teh last variable read from each channel in the current session data
+    """
+    def __init__(self, headers):
+
+        super(BlitzTableView, self).__init__()
+
+        self.__cols = len(headers)
+        self.__headers = headers
+
+        # set up the table
+        self.variable_table = Qt.QTableWidget()
+        self.variable_table.setColumnCount(self.__cols)
+        self.variable_table.setSelectionBehavior(Qt.QAbstractItemView.SelectRows)
+        self.variable_table.setSelectionMode(Qt.QAbstractItemView.SingleSelection)
+        self.variable_table.setEditTriggers(Qt.QAbstractItemView.NoEditTriggers)
+
+        # slots/signals
+        self.variable_table.itemSelectionChanged.connect(self.selection_changed)
+
+    def selection_changed(self):
+        pass
+
+    def build_layout(self):
+        self.grid = Qt.QGridLayout()
+        self.grid.addWidget(self.variable_table, 0, 0)
+        self.setLayout(self.grid)
+        self.variable_table.horizontalHeader().setResizeMode(Qt.QHeaderView.Stretch)
+
+    def set_data(self, data):
+        """
+        Sets the data on the table by providing a 2d list of variable/value pairs
+
+        :param data: the list of variable/value pairs
+        """
+
+        self.variable_table.clear()
+        self.variable_table.setRowCount(len(data))
+
+        for i, row in enumerate(data):
+            for j, val in enumerate(row):
+                self.variable_table.setItem(i, j, Qt.QTableWidgetItem("{0}".format(val)))
+
+        self.variable_table.setHorizontalHeaderLabels(self.__headers)
+
+
+class BlitzSessionTabPane(BlitzTableView):
+    """
+    A UI tab pane which lists available data logger sessions and
     """
 
-    def __init__(self, application, session_list=None):
+    def __init__(self, headers, application):
 
-        super(BlitzSessionWindow, self).__init__()
+        super(BlitzSessionTabPane, self).__init__(headers)
 
         self.application = application
+        self.__selected_id = -1
 
-        self.setWindowTitle("Session List")
-        self.resize(800, 600)
-
-        self.selected_item_id = -1
-
-        self.session_table = Qt.QListView(self)
-        self.model = Qt.QStandardItemModel(self.session_table)
-
-        for row in session_list:
-            item = Qt.QStandardItem(row[0])
-            item.setCheckable(True)
-            item.setCheckState(QtCore.Qt.Checked if row[1] else QtCore.Qt.Unchecked)
-            item.sessionId = row[2]
-            self.model.appendRow(item)
-
-        self.model.itemChanged.connect(self.on_item_checked)
-
-        self.session_table.setModel(self.model)
-
-        self.download_button = Qt.QPushButton("Export Selected")
+        # button for downloading sessions
+        self.download_button = Qt.QPushButton(Qt.QIcon('blitz/static/img/desktop_download.png'),"Download", self)
+        self.download_button.setFlat(True)
         self.download_button.clicked.connect(self.download_session)
+        self.download_button.setEnabled(False)
 
-        self.view_series_button = Qt.QPushButton("View Graphs")
+        # button for saving sessions
+        self.save_button = Qt.QPushButton(Qt.QIcon('blitz/static/img/desktop_save.png'),"Export", self)
+        self.save_button.setFlat(True)
+        self.save_button.clicked.connect(self.save_session)
+        self.save_button.setEnabled(False)
 
+        # button for viewing session plots
+        self.view_series_button = Qt.QPushButton(Qt.QIcon('blitz/static/img/desktop_graph_large.png'),"View", self)
+        self.view_series_button.setFlat(True)
+        self.view_series_button.setEnabled(False)
+
+        # button for deleting sessions
+        self.delete_session_button = Qt.QPushButton(Qt.QIcon('blitz/static/img/desktop_delete.png'),"Delete", self)
+        self.delete_session_button.setFlat(True)
+        self.delete_session_button.setEnabled(False)
+
+    def build_layout(self):
+        # revised grid
         self.grid = Qt.QGridLayout()
-        self.grid.addWidget(self.session_table, 0, 0, 4, 5)
+        self.grid.addWidget(self.variable_table, 0, 0, 5, 5)
         self.grid.addWidget(self.download_button, 0, 5)
-        self.grid.addWidget(self.view_series_button, 1, 5)
+        self.grid.addWidget(self.save_button, 1, 5)
+        self.grid.addWidget(self.view_series_button, 2, 5)
+        self.grid.addWidget(self.delete_session_button, 3, 5)
         self.setLayout(self.grid)
 
+        self.variable_table.horizontalHeader().setResizeMode(Qt.QHeaderView.ResizeToContents)
+
+    def selection_changed(self):
+        items = self.variable_table.selectedItems()
+        self.__selected_id = int(items[1].text()) if items else -1
+
+        # update GUI
+        self.save_button.setEnabled(self.__selected_id >= 0)
+        self.download_button.setEnabled(self.__selected_id >= 0)
+        # self.view_series_button.setEnabled(self.__selected_id >= 0)
+        # self.delete_session_button.setEnabled(self.__selected_id >= 0)
+
+    def download_session(self):
+        if self.__selected_id < 0:
+            return
+        self.trigger_session_download(self.__selected_id)
+
     @staticmethod
-    def on_item_checked(item):
+    def trigger_session_download(session_id):
         """
         Handles clicking a checkbox in the session list.  Unchecked sessions
         are deleted from the database whilst checked sessions are downloaded
 
-        :param item: The item that was checked/unchecked
+        :param session_id: The session ref_id to download
         """
+        sigs.process_started.send("Downloading data")
+        sigs.client_requested_download.send(session_id)
 
-        if item.checkState():
-            sigs.process_started.send("Downloading data")
-            sigs.client_requested_download.send(item.sessionId)
-
-        else:
-            # delete local session data?
-            # TODO implement...
-            pass
-
-    def download_session(self):
+    def save_session(self):
         """
         Handles the 'download session' button being clicked on a session list item
         """
 
         # get the session ID of the selected item
-        selected_item = self.session_table.selectedIndexes()
-        if len(selected_item) <= 0:
+        selected_items = self.variable_table.selectedItems()
+
+        if len(selected_items) <= 0:
             return
-        else:
-            selected_item = selected_item[0]
+
+        selected_idx = int(selected_items[1].text())
+        available = selected_items[0].text() == "X"
 
         # get the file name
         file_path, _ = Qt.QFileDialog.getSaveFileName(self, 'Save session to file...', 'C:/', 'CSV Files (*.csv)')
 
+        # check we have the item downloaded and trigger download if we do not
+        if not available:
+            self.trigger_session_download(selected_idx)
+
         # show the saving dialogue
         sigs.process_started.send("Saving data")
 
-        current_item = selected_item.model().item(selected_item.row())
-        current_idx = current_item.sessionId
-
-        # check we have the item downloaded and trigger download if we do not
-        if not current_item.checkState():
-            self.on_item_checked(current_item)
-
         # get the data
-        data = self.application.data.get_session_readings(current_idx)
-        sess = self.application.data.get(Session, {"id": current_idx})
-        raw_sess_vars = self.application.data.get_session_variables(current_idx)
+        data = self.application.data.get_session_readings(selected_idx)
+        sess = self.application.data.get(Session, {"id": selected_idx})
+        raw_sess_vars = self.application.data.get_session_variables(selected_idx)
         sess_vars = dict([(x.id, x.variableName) for x in raw_sess_vars])
 
         # prepare the string to write to file
