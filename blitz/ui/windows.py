@@ -82,7 +82,7 @@ class BlitzLoggingWidget(Qt.QWidget):
     A widget which handles logger display of data
     """
 
-    def __init__(self):
+    def __init__(self, container):
         """
         Initialises the graph widget
         """
@@ -91,7 +91,7 @@ class BlitzLoggingWidget(Qt.QWidget):
 
         # set up the required data structures
         self.__lines = {}
-        self.__container = DataContainer()
+        self.__container = container
 
         # create widgets
         self.figure = Figure(figsize=(1024, 768), dpi=72, facecolor=(1, 1, 1), edgecolor=(1, 0, 0))
@@ -198,6 +198,14 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         """
         super(MainBlitzWindow, self).__init__()
 
+        # connect up external signals
+        self.__signaller = GUISignalEmitter()
+        self.__signaller.tcp_lost.connect(self.connection_lost)
+        self.__signaller.task_started.connect(self.show_process_dialogue)
+
+        # create a data context for managing data
+        self.__container = DataContainer()
+
         self.application = app
 
         self.initialise_window()
@@ -208,17 +216,12 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
 
         self.run_window()
 
-        # connect up external signals
-        self.signaller = GUISignalEmitter()
-        self.signaller.tcp_lost.connect(self.connection_lost)
-        self.signaller.task_started.connect(self.show_process_dialogue)
-
         # create a handle for a processing dialogue
         self.__indicator = None
         self.__calibration_win = None
 
     def show_process_dialogue(self, description):
-        self.__indicator = ProcessingDialog(self.signaller.task_finished, description)
+        self.__indicator = ProcessingDialog(self.__signaller.task_finished, description)
         self.__indicator.show()
 
     def connection_lost(self):
@@ -362,7 +365,7 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.main_toolbar = self.addToolBar('Main')
 
         # main graphing widget
-        self.main_widget = BlitzLoggingWidget()
+        self.main_widget = BlitzLoggingWidget(self.__container)
 
     def layout_window(self):
         """
@@ -440,7 +443,7 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
                 sess.ref_id
             ])
 
-        self.session_list_window = BlitzSessionWindow(self.application, sessions)
+        self.session_list_window = BlitzSessionTabPane(self.application, self.__container, sessions)
         self.session_list_window.show()
 
     def set_motor_position(self):
@@ -467,20 +470,37 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.__calibration_win.show()
 
 
-class BlitzSessionWindow(Qt.QWidget):
+class BlitzSessionVariableTabPane(Qt.QWidget):
     """
-    A UI window which lists available data logger sessions and
+    A UI tab pane which shows teh last variable read from each channel in the current session data
     """
+    def __init__(self, application, container):
 
-    def __init__(self, application, session_list=None):
-
-        super(BlitzSessionWindow, self).__init__()
+        super(BlitzSessionVariableTabPane, self).__init__()
 
         self.application = application
+        self.__container = container
 
-        self.setWindowTitle("Session List")
-        self.resize(800, 600)
+        self.variable_table = Qt.QTableView(self)
+        self.model = Qt.QStandardItemModel(self.variable_table)
+        self.variable_table.setModel(self.model)
 
+        self.grid = Qt.QGridLayout()
+        self.grid.addWidget(self.variable_table, 0, 0)
+        self.setLayout(self.grid)
+
+
+class BlitzSessionTabPane(Qt.QWidget):
+    """
+    A UI tab pane which lists available data logger sessions and
+    """
+
+    def __init__(self, application, container, session_list):
+
+        super(BlitzSessionTabPane, self).__init__()
+
+        self.application = application
+        self.__container = container
         self.selected_item_id = -1
 
         self.session_table = Qt.QListView(self)
