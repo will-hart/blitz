@@ -312,19 +312,11 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
 
         # send a session list request
         self.update_session_listing_action = Qt.QAction(
-            Qt.QIcon('blitz/static/img/desktop_session_list.png'), '&Update list', self)
+            Qt.QIcon('blitz/static/img/desktop_session_list.png'), '&Update session list', self)
         self.update_session_listing_action.setStatusTip("Get a list of logging sessions from the data logger")
         self.update_session_listing_action.setToolTip("Get logger session list")
         self.update_session_listing_action.triggered.connect(self.get_session_list)
         self.update_session_listing_action.setEnabled(False)
-
-        # view a session list
-        self.session_list_action = Qt.QAction('View Session List', self)
-        #self.session_list_action.setEnabled(False)
-        self.session_list_action.setStatusTip("View previously logged sessions")
-        self.session_list_action.setToolTip("View previously logged sessions")
-        self.session_list_action.setShortcut('Ctrl+L')
-        self.session_list_action.triggered.connect(self.show_session_list)
 
         # shows the settings window
         self.settings_action = Qt.QAction('&Settings', self)
@@ -356,15 +348,17 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.main_menu = self.menuBar()
         self.file_menu = self.main_menu.addMenu('&File')
         self.logger_menu = self.main_menu.addMenu('&Logger')
-        self.session_menu = self.main_menu.addMenu('&Session')
 
         # the toolbar at the top of the window
         self.main_toolbar = self.addToolBar('Main')
 
         # widgets to show in the tab
         self.__plot_widget = BlitzLoggingWidget(self.__container)
-        self.__variable_widget = BlitzSessionVariableTabPane(self.application, self.__container)
-        self.__session_list_widget = BlitzSessionTabPane(self.application, self.__container, [])
+        self.__variable_widget = BlitzTableView(["Variable", "Value"])
+        self.__variable_widget.build_layout()
+        self.__session_list_widget = BlitzSessionTabPane(["", "ID", "Readings", "Date"])
+        self.__session_list_widget.build_layout()
+        self.update_session_list()
 
         # tabbed widget for session and variable
         self.__tab_widget = Qt.QTabWidget()
@@ -372,13 +366,13 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.__tab_widget.addTab(self.__variable_widget, "Variables")
         self.__tab_widget.addTab(self.__session_list_widget, "Sessions")
 
+        # TODO: Temp
+        self.__variable_widget.set_data([[1, 2], [2, 3], ["a", "b"]])
+
         # create a layout grid
-        self.__layout = Qt.QHBoxLayout()
+        self.__layout = Qt.QSplitter()
         self.__layout.addWidget(self.__plot_widget)
         self.__layout.addWidget(self.__tab_widget)
-
-        self.__main_widget = Qt.QWidget(self)
-        self.__main_widget.setLayout(self.__layout)
 
     def layout_window(self):
         """
@@ -400,9 +394,7 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.logger_menu.addSeparator()
         self.logger_menu.addAction(self.calibration_action)
         self.logger_menu.addAction(self.reset_device_action)
-
-        self.session_menu.addAction(self.update_session_listing_action)
-        self.session_menu.addAction(self.session_list_action)
+        self.logger_menu.addAction(self.update_session_listing_action)
 
         # create the toolbar
         self.main_toolbar.addAction(self.connect_action)
@@ -415,7 +407,7 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.main_toolbar.addWidget(self.motor_control)
 
         # create a grid to display the main widgets
-        self.setCentralWidget(self.__main_widget)
+        self.setCentralWidget(self.__layout)
 
         # status bar
         self.status_bar = self.statusBar()
@@ -446,7 +438,9 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
 
         self.__plot_widget.redraw(data, replace_existing)
 
-    def show_session_list(self):
+        # update the
+
+    def update_session_list(self):
         # first get the list of sessions
         raw_sessions = self.application.data.all(Session)
         sessions = []
@@ -455,13 +449,13 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
             dt = blitz_strftimestamp(sess.timeStarted)
 
             sessions.append([
-                "Session %s (%s readings) started %s" % (sess.ref_id, sess.numberOfReadings, dt),
-                sess.available,
-                sess.ref_id
+                "Y" if sess.available else "N",
+                sess.ref_id,
+                sess.numberOfReadings,
+                dt
             ])
 
-        self.session_list_window = BlitzSessionTabPane(self.application, self.__container, sessions)
-        self.session_list_window.show()
+        self.__session_list_widget.set_data(sessions)
 
     def set_motor_position(self):
         """
@@ -487,23 +481,25 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.__calibration_win.show()
 
 
-class BlitzSessionVariableTabPane(Qt.QWidget):
+class BlitzTableView(Qt.QWidget):
     """
     A UI tab pane which shows teh last variable read from each channel in the current session data
     """
-    def __init__(self, application, container):
+    def __init__(self, headers):
 
-        super(BlitzSessionVariableTabPane, self).__init__()
+        super(BlitzTableView, self).__init__()
 
-        self.application = application
-        self.__container = container
+        self.__cols = len(headers)
+        self.__headers = headers
 
         self.variable_table = Qt.QTableWidget()
-        self.variable_table.setColumnCount(2)
+        self.variable_table.setColumnCount(self.__cols)
 
+    def build_layout(self):
         self.grid = Qt.QGridLayout()
         self.grid.addWidget(self.variable_table, 0, 0)
         self.setLayout(self.grid)
+        self.variable_table.horizontalHeader().setResizeMode(Qt.QHeaderView.Stretch)
 
     def set_data(self, data):
         """
@@ -516,52 +512,38 @@ class BlitzSessionVariableTabPane(Qt.QWidget):
         self.variable_table.setRowCount(len(data))
 
         for i, row in enumerate(data):
-            x, y = row
-            self.variable_table.setItem(i, 0, Qt.QTableWidgetItem("{0}".format(x)))
-            self.variable_table.setItem(i, 1, Qt.QTableWidgetItem("{0}".format(y)))
+            for j, val in enumerate(row):
+                self.variable_table.setItem(i, j, Qt.QTableWidgetItem("{0}".format(val)))
 
-        self.variable_table.setHorizontalHeaderLabels(["Variable","Value"])
+        self.variable_table.setHorizontalHeaderLabels(self.__headers)
 
 
-class BlitzSessionTabPane(Qt.QWidget):
+class BlitzSessionTabPane(BlitzTableView):
     """
     A UI tab pane which lists available data logger sessions and
     """
 
-    def __init__(self, application, container, session_list):
+    def __init__(self, headers):
 
-        super(BlitzSessionTabPane, self).__init__()
+        super(BlitzSessionTabPane, self).__init__(headers)
 
-        self.application = application
-        self.__container = container
-        self.selected_item_id = -1
-
-        self.session_table = Qt.QListView(self)
-        self.model = Qt.QStandardItemModel(self.session_table)
-
-        for row in session_list:
-            item = Qt.QStandardItem(row[0])
-            item.setCheckable(True)
-            item.setCheckState(QtCore.Qt.Checked if row[1] else QtCore.Qt.Unchecked)
-            item.sessionId = row[2]
-            self.model.appendRow(item)
-
-        self.model.itemChanged.connect(self.on_item_checked)
-
-        self.session_table.setModel(self.model)
-
+        # button for downloading sessions
         self.download_button = Qt.QPushButton(Qt.QIcon('blitz/static/img/desktop_download_large.png'),"Export", self)
         self.download_button.setFlat(True)
         self.download_button.clicked.connect(self.download_session)
 
+        # button for viewing session plots
         self.view_series_button = Qt.QPushButton(Qt.QIcon('blitz/static/img/desktop_graph_large.png'),"View", self)
         self.view_series_button.setFlat(True)
 
+    def build_layout(self):
+            # revised grid
         self.grid = Qt.QGridLayout()
-        self.grid.addWidget(self.session_table, 0, 0, 4, 5)
+        self.grid.addWidget(self.variable_table, 0, 0, 4, 5)
         self.grid.addWidget(self.download_button, 0, 5)
         self.grid.addWidget(self.view_series_button, 1, 5)
         self.setLayout(self.grid)
+        self.variable_table.horizontalHeader().setResizeMode(Qt.QHeaderView.ResizeToContents)
 
     @staticmethod
     def on_item_checked(item):
