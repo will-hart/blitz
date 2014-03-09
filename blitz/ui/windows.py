@@ -202,6 +202,7 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.__signaller = GUISignalEmitter()
         self.__signaller.tcp_lost.connect(self.connection_lost)
         self.__signaller.task_started.connect(self.show_process_dialogue)
+        self.__signaller.task_finished.connect(self.update_session_list)
 
         # create a data context for managing data
         self.__container = DataContainer()
@@ -353,7 +354,7 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.main_toolbar = self.addToolBar('Main')
 
         # widgets to show in the tab
-        self.__plot_widget = BlitzLoggingWidget(self.__container)
+        self.plot_widget = BlitzLoggingWidget(self.__container)
         self.__variable_widget = BlitzTableView(["Variable", "Value"])
         self.__variable_widget.build_layout()
         self.__session_list_widget = BlitzSessionTabPane(["", "ID", "Readings", "Date"], self.application)
@@ -371,7 +372,7 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
 
         # create a layout grid
         self.__layout = Qt.QSplitter()
-        self.__layout.addWidget(self.__plot_widget)
+        self.__layout.addWidget(self.plot_widget)
         self.__layout.addWidget(self.__tab_widget)
 
     def layout_window(self):
@@ -436,9 +437,10 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         #    # convert from Python datetime to matplotlib datenum
         #    data[k][0] = [MplDates.date2num(x) for x in data[k][0]]
 
-        self.__plot_widget.redraw(data, replace_existing)
+        self.plot_widget.redraw(data, replace_existing)
 
-        # update the
+        # update the variable view from the container
+        pass
 
     def update_session_list(self):
         # first get the list of sessions
@@ -556,22 +558,32 @@ class BlitzSessionTabPane(BlitzTableView):
         self.view_series_button.setFlat(True)
         self.view_series_button.setEnabled(False)
 
+        # button for deleting sessions
+        self.delete_session_button = Qt.QPushButton(Qt.QIcon('blitz/static/img/desktop_delete.png'),"Delete", self)
+        self.delete_session_button.setFlat(True)
+        self.delete_session_button.setEnabled(False)
+
     def build_layout(self):
         # revised grid
         self.grid = Qt.QGridLayout()
-        self.grid.addWidget(self.variable_table, 0, 0, 4, 5)
+        self.grid.addWidget(self.variable_table, 0, 0, 5, 5)
         self.grid.addWidget(self.download_button, 0, 5)
         self.grid.addWidget(self.save_button, 1, 5)
         self.grid.addWidget(self.view_series_button, 2, 5)
+        self.grid.addWidget(self.delete_session_button, 3, 5)
         self.setLayout(self.grid)
 
         self.variable_table.horizontalHeader().setResizeMode(Qt.QHeaderView.ResizeToContents)
 
     def selection_changed(self):
-        self.__selected_id = int(self.variable_table.selectedItems()[1].text())
+        items = self.variable_table.selectedItems()
+        self.__selected_id = int(items[1].text()) if items else -1
+
+        # update GUI
         self.save_button.setEnabled(self.__selected_id >= 0)
         self.download_button.setEnabled(self.__selected_id >= 0)
-        self.view_series_button.setEnabled(self.__selected_id >= 0)
+        # self.view_series_button.setEnabled(self.__selected_id >= 0)
+        # self.delete_session_button.setEnabled(self.__selected_id >= 0)
 
     def download_session(self):
         if self.__selected_id < 0:

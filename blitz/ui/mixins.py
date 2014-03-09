@@ -52,7 +52,7 @@ class BlitzGuiMixin(object):
         self.status_bar.showMessage("Starting session")
 
         # clear the container on the logging widget
-        self.main_widget.clear_graphs()
+        self.plot_widget.clear_graphs()
 
     def stop_session(self):
         """
