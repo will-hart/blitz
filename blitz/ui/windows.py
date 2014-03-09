@@ -494,6 +494,7 @@ class BlitzTableView(Qt.QWidget):
         # set up the table
         self.variable_table = Qt.QTableWidget()
         self.variable_table.setColumnCount(self.__cols)
+        self.variable_table.setHorizontalHeaderLabels(self.__headers)
         self.variable_table.setSelectionBehavior(Qt.QAbstractItemView.SelectRows)
         self.variable_table.setSelectionMode(Qt.QAbstractItemView.SingleSelection)
         self.variable_table.setEditTriggers(Qt.QAbstractItemView.NoEditTriggers)
