@@ -256,9 +256,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.40430762"
-     inkscape:cx="230.55883"
-     inkscape:cy="-939.53277"
+     inkscape:zoom="6.4689219"
+     inkscape:cx="179.44312"
+     inkscape:cy="-12.903299"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -828,6 +828,26 @@
            d="m 390.04517,286.9191 c 0,2.85919 -2.31784,5.17703 -5.17704,5.17703 -2.85919,0 -5.17703,-2.31784 -5.17703,-5.17703 0,-2.8592 2.31784,-5.17703 5.17703,-5.17703 2.8592,0 5.17704,2.31783 5.17704,5.17703 z"
            transform="matrix(0.75493453,-0.35310399,0.42298915,0.90434862,-26.91795,181.9158)" />
       </g>
+    </g>
+    <rect
+       inkscape:export-ydpi="90"
+       inkscape:export-xdpi="90"
+       inkscape:export-filename="C:\Users\mecharius\Dropbox\blitz\blitz\static\img\desktop_reset.png"
+       style="fill:#ff00ff;fill-opacity:1;fill-rule:nonzero;stroke:none;opacity:1"
+       id="rect3110"
+       width="32"
+       height="32.000004"
+       x="194.11963"
+       y="1020.3621" />
+    <g
+       id="g3130"
+       transform="translate(-1.5366211,0.45790749)">
+      <path
+         id="path3122"
+         transform="translate(0,1020.3621)"
+         d="m 210.6875,4.625 c -3.99499,0 -7.55592,1.7047346 -9.84375,4.34375 l 3.46875,1.71875 c 1.57575,-1.5728768 3.83721,-2.5625 6.375,-2.5625 4.77702,0 8.65625,3.502053 8.65625,7.8125 0,4.310447 -3.87923,7.78125 -8.65625,7.78125 -3.05677,0 -5.71883,-1.440827 -7.25,-3.59375 l -3.34375,1.78125 c 2.20869,3.185007 6.12081,5.3125 10.59375,5.3125 6.90699,0 12.53125,-5.048869 12.53125,-11.28125 0,-6.2323812 -5.62426,-11.3125 -12.53125,-11.3125 z m -9.72666,-0.759518 0,9.584286 9.32115,-2.497593 -6.942,-1.8601007 z"
+         style="fill:#1a1a1a;fill-opacity:1;fill-rule:nonzero;stroke:none"
+         inkscape:connector-curvature="0" />
     </g>
   </g>
 </svg>
