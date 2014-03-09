@@ -15,6 +15,7 @@ class BlitzGuiMixin(object):
         self.start_session_action.setEnabled(True)
         self.stop_session_action.setEnabled(False)
         self.update_session_listing_action.setEnabled(True)
+        self.calibration_action.setEnabled(True)
         self.motor_control.setEnabled(True)
         self.status_bar.showMessage("Connected to logger")
 
@@ -34,6 +35,7 @@ class BlitzGuiMixin(object):
         self.start_session_action.setEnabled(False)
         self.stop_session_action.setEnabled(False)
         self.update_session_listing_action.setEnabled(False)
+        self.calibration_action.setEnabled(False)
         self.motor_control.setEnabled(False)
         self.status_bar.showMessage("Disconnected from logger")
 
@@ -46,6 +48,7 @@ class BlitzGuiMixin(object):
         self.start_session_action.setEnabled(False)
         self.stop_session_action.setEnabled(True)
         self.update_session_listing_action.setEnabled(False)
+        self.calibration_action.setEnabled(False)
         self.status_bar.showMessage("Starting session")
 
         # clear the container on the logging widget
@@ -61,6 +64,7 @@ class BlitzGuiMixin(object):
         self.start_session_action.setEnabled(True)
         self.stop_session_action.setEnabled(False)
         self.update_session_listing_action.setEnabled(True)
+        self.calibration_action.setEnabled(True)
         self.status_bar.showMessage("Stopping session")
 
     def send_move_command(self, angle):

@@ -6,7 +6,6 @@ class ProcessingDialog(QtGui.QDialog):
         super(ProcessingDialog, self).__init__()
         self.setWindowModality(QtCore.Qt.ApplicationModal)
         self.resize(370, 120)
-        self.setWindowOpacity(0.8)
         self.setWindowTitle("Processing")
         self.buttonBox = QtGui.QDialogButtonBox(self)
         self.buttonBox.setGeometry(QtCore.QRect(10, 80, 351, 32))

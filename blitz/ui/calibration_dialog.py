@@ -25,12 +25,13 @@ class CalibrationDialog(QtGui.QDialog):
 
         # calculate constants
         self.__pb_step = 100.0 / self.__steps
-        self.__calibration_step = (maximum - minimum) / self.__steps
+        self.__calibration_step = (maximum - minimum) / (self.__steps - 1)
         self.__current_step = 0
         self.__current_value = self.__minimum
 
         # setup the UI
         self.resize(400, 205)
+        self.setModal(True)
         self.progress_bar = QtGui.QProgressBar(self)
         self.progress_bar.setGeometry(QtCore.QRect(10, 10, 381, 23))
         self.progress_bar.setProperty("value", 0)
@@ -58,10 +59,10 @@ class CalibrationDialog(QtGui.QDialog):
         self.current_value_label.setText("{0} {1}".format(self.__current_value, self.__units))
 
         # connect
-        self.done_button.clicked.connect(self.done)
+        self.done_button.clicked.connect(self.hide_dialog)
         self.step_button.clicked.connect(self.step)
 
-    def done(self):
+    def hide_dialog(self):
         """
         Hanles when calibration is complete
         """
@@ -78,11 +79,11 @@ class CalibrationDialog(QtGui.QDialog):
 
         # update the UI
         self.progress_bar.setValue(self.progress_bar.value() + self.__pb_step)
-        self.__current_step += self.__calibration_step
+        self.__current_value += self.__calibration_step
         self.__current_step += 1
 
         # check if we are done
-        if self.__current_step == self.__steps:
+        if self.__current_step >= self.__steps:
             self.step_button.setEnabled(False)
             self.done_button.setEnabled(True)
             self.current_value_label.setText("Done")

@@ -19,6 +19,7 @@ import blitz.communications.signals as sigs
 from blitz.communications.rs232 import ExpansionBoardNotFound
 from blitz.ui.mixins import BlitzGuiMixin
 from blitz.ui.processing_dialog import ProcessingDialog
+from blitz.ui.calibration_dialog import CalibrationDialog
 from blitz.utilities import blitz_strftimestamp
 
 
@@ -215,6 +216,7 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
 
         # create a handle for a processing dialogue
         self.__indicator = None
+        self.__calibration_win = None
 
     def show_process_dialogue(self, description):
         self.__indicator = ProcessingDialog(self.signaller.task_finished, description)
@@ -295,6 +297,13 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.stop_session_action.triggered.connect(self.stop_session)
         self.stop_session_action.setEnabled(False)
 
+        # calibrate logger
+        self.calibration_action = Qt.QAction('&Calibrate', self)
+        self.calibration_action.setStatusTip("Calibrates exansion board")
+        self.calibration_action.setToolTip("Calibrates the expansion board")
+        self.calibration_action.triggered.connect(self.calibrate)
+        self.calibration_action.setEnabled(False)
+
         # send a session list request
         self.update_session_listing_action = Qt.QAction(
             Qt.QIcon('blitz/static/img/desktop_session_list.png'), '&Update list', self)
@@ -367,6 +376,7 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.logger_menu.addAction(self.start_session_action)
         self.logger_menu.addAction(self.stop_session_action)
         self.logger_menu.addSeparator()
+        self.logger_menu.addAction(self.calibration_action)
 
         self.session_menu.addAction(self.update_session_listing_action)
         self.session_menu.addAction(self.session_list_action)
@@ -440,6 +450,14 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
 
     def get_session_list(self):
         sigs.client_requested_session_list.send()
+
+    def calibrate(self):
+        """
+        Shows the calibration form
+        """
+
+        self.__calibration_win = CalibrationDialog(5, 0, 40, "deg", "09")
+        self.__calibration_win.show()
 
 
 class BlitzSessionWindow(Qt.QWidget):
