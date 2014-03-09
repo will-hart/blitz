@@ -98,7 +98,6 @@ class BlitzLoggingWidget(Qt.QWidget):
 
         # create a plot
         self.axis = self.figure.add_subplot(111)
-        #self.figure.subplots_adjust(left=0.2)
 
         # build the chart but do not draw it yet - wait until the application is drawn
         self.redraw({}, True, False)
