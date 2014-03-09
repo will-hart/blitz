@@ -100,7 +100,7 @@ class ClientIdleState(BaseState):
             tcp.do_send(msg)
             new_state = self.go_to_state(tcp, ClientDownloadingState, int(msg.split(" ")[1]))
             return new_state
-        elif msg[0:5] == CommunicationCodes.Board:
+        elif msg[0:5] == CommunicationCodes.Board or msg[0:5] == CommunicationCodes.Reset:
             tcp.do_send(msg)
             return self
         else:
