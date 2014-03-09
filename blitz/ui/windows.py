@@ -356,7 +356,7 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.__plot_widget = BlitzLoggingWidget(self.__container)
         self.__variable_widget = BlitzTableView(["Variable", "Value"])
         self.__variable_widget.build_layout()
-        self.__session_list_widget = BlitzSessionTabPane(["", "ID", "Readings", "Date"])
+        self.__session_list_widget = BlitzSessionTabPane(["", "ID", "Readings", "Date"], self.application)
         self.__session_list_widget.build_layout()
         self.update_session_list()
 
@@ -449,7 +449,7 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
             dt = blitz_strftimestamp(sess.timeStarted)
 
             sessions.append([
-                "Y" if sess.available else "N",
+                "X" if sess.available else "",
                 sess.ref_id,
                 sess.numberOfReadings,
                 dt
@@ -492,8 +492,17 @@ class BlitzTableView(Qt.QWidget):
         self.__cols = len(headers)
         self.__headers = headers
 
+        # set up the table
         self.variable_table = Qt.QTableWidget()
         self.variable_table.setColumnCount(self.__cols)
+        self.variable_table.setSelectionBehavior(Qt.QAbstractItemView.SelectRows)
+        self.variable_table.setSelectionMode(Qt.QAbstractItemView.SingleSelection)
+
+        # slots/signals
+        self.variable_table.itemSelectionChanged.connect(self.selection_changed)
+
+    def selection_changed(self):
+        pass
 
     def build_layout(self):
         self.grid = Qt.QGridLayout()
@@ -523,75 +532,91 @@ class BlitzSessionTabPane(BlitzTableView):
     A UI tab pane which lists available data logger sessions and
     """
 
-    def __init__(self, headers):
+    def __init__(self, headers, application):
 
         super(BlitzSessionTabPane, self).__init__(headers)
 
+        self.application = application
+        self.__selected_id = -1
+
         # button for downloading sessions
-        self.download_button = Qt.QPushButton(Qt.QIcon('blitz/static/img/desktop_download_large.png'),"Export", self)
+        self.download_button = Qt.QPushButton(Qt.QIcon('blitz/static/img/desktop_download.png'),"Download", self)
         self.download_button.setFlat(True)
         self.download_button.clicked.connect(self.download_session)
+        self.download_button.setEnabled(False)
+
+        # button for saving sessions
+        self.save_button = Qt.QPushButton(Qt.QIcon('blitz/static/img/desktop_save.png'),"Export", self)
+        self.save_button.setFlat(True)
+        self.save_button.clicked.connect(self.save_session)
+        self.save_button.setEnabled(False)
 
         # button for viewing session plots
         self.view_series_button = Qt.QPushButton(Qt.QIcon('blitz/static/img/desktop_graph_large.png'),"View", self)
         self.view_series_button.setFlat(True)
+        self.view_series_button.setEnabled(False)
 
     def build_layout(self):
-            # revised grid
+        # revised grid
         self.grid = Qt.QGridLayout()
         self.grid.addWidget(self.variable_table, 0, 0, 4, 5)
         self.grid.addWidget(self.download_button, 0, 5)
-        self.grid.addWidget(self.view_series_button, 1, 5)
+        self.grid.addWidget(self.save_button, 1, 5)
+        self.grid.addWidget(self.view_series_button, 2, 5)
         self.setLayout(self.grid)
+
         self.variable_table.horizontalHeader().setResizeMode(Qt.QHeaderView.ResizeToContents)
 
+    def selection_changed(self):
+        self.__selected_id = int(self.variable_table.selectedItems()[1].text())
+        self.save_button.setEnabled(self.__selected_id >= 0)
+        self.download_button.setEnabled(self.__selected_id >= 0)
+        self.view_series_button.setEnabled(self.__selected_id >= 0)
+
+    def download_session(self):
+        if self.__selected_id < 0:
+            return
+        self.trigger_session_download(self.__selected_id)
+
     @staticmethod
-    def on_item_checked(item):
+    def trigger_session_download(session_id):
         """
         Handles clicking a checkbox in the session list.  Unchecked sessions
         are deleted from the database whilst checked sessions are downloaded
 
-        :param item: The item that was checked/unchecked
+        :param session_id: The session ref_id to download
         """
+        sigs.process_started.send("Downloading data")
+        sigs.client_requested_download.send(session_id)
 
-        if item.checkState():
-            sigs.process_started.send("Downloading data")
-            sigs.client_requested_download.send(item.sessionId)
-
-        else:
-            # delete local session data?
-            # TODO implement...
-            pass
-
-    def download_session(self):
+    def save_session(self):
         """
         Handles the 'download session' button being clicked on a session list item
         """
 
         # get the session ID of the selected item
-        selected_item = self.session_table.selectedIndexes()
-        if len(selected_item) <= 0:
+        selected_items = self.variable_table.selectedItems()
+
+        if len(selected_items) <= 0:
             return
-        else:
-            selected_item = selected_item[0]
+
+        selected_idx = int(selected_items[1].text())
+        available = selected_items[0].text() == "X"
 
         # get the file name
         file_path, _ = Qt.QFileDialog.getSaveFileName(self, 'Save session to file...', 'C:/', 'CSV Files (*.csv)')
 
+        # check we have the item downloaded and trigger download if we do not
+        if not available:
+            self.trigger_session_download(selected_idx)
+
         # show the saving dialogue
         sigs.process_started.send("Saving data")
 
-        current_item = selected_item.model().item(selected_item.row())
-        current_idx = current_item.sessionId
-
-        # check we have the item downloaded and trigger download if we do not
-        if not current_item.checkState():
-            self.on_item_checked(current_item)
-
         # get the data
-        data = self.application.data.get_session_readings(current_idx)
-        sess = self.application.data.get(Session, {"id": current_idx})
-        raw_sess_vars = self.application.data.get_session_variables(current_idx)
+        data = self.application.data.get_session_readings(selected_idx)
+        sess = self.application.data.get(Session, {"id": selected_idx})
+        raw_sess_vars = self.application.data.get_session_variables(selected_idx)
         sess_vars = dict([(x.id, x.variableName) for x in raw_sess_vars])
 
         # prepare the string to write to file

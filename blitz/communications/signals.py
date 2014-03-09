@@ -116,7 +116,7 @@ tcp_message_received = signal('tcp_message_received')
 #: Sent by:
 #:  - :mod:`ServerDownloadingState`.enter_state
 #:  - :mod:`DownloadHandler`.get
-#:  - :mod:`blitz.ui.BlitzSessionWindow`.on_item_checked
+#:  - :mod:`blitz.ui.BlitzSessionWindow`.download_session
 client_requested_download = signal('client_requested_download')
 
 #: Fired when a command was received from the desktop software for an expansion board
