@@ -17,6 +17,7 @@ class BlitzGuiMixin(object):
         self.update_session_listing_action.setEnabled(True)
         self.calibration_action.setEnabled(True)
         self.motor_control.setEnabled(True)
+        self.reset_device_action.setEnabled(True)
         self.status_bar.showMessage("Connected to logger")
         self.session_list_widget.set_connected(True)
 
@@ -38,6 +39,7 @@ class BlitzGuiMixin(object):
         self.update_session_listing_action.setEnabled(False)
         self.calibration_action.setEnabled(False)
         self.motor_control.setEnabled(False)
+        self.reset_device_action.setEnabled(False)
         self.status_bar.showMessage("Disconnected from logger")
         self.session_list_widget.set_connected(False)
 

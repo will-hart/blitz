@@ -130,14 +130,23 @@ client_requested_download = signal('client_requested_download')
 #:  - :mod:`CalibrationDialog`.step
 board_command_received = signal('board_command_received')
 
-#: Fired when a command was received from the desktop software for an expansion board
+#: Fired when an error was received by the client from the data logger
 #:
 #: Subscribers (subscribed in >> subscribed to):
 #:  - `GUISignalEmitter`.__init__
 #:
 #: Sent by:
 #:  - :mod:`ClientIdleState`.receive_message
-board_error_received = signal('board_error_received')
+logger_error_received = signal('logger_error_received')
+
+#: Fired when the client wishes to force the board to be RESET to fix an error
+#:
+#: Subscribers (subscribed in >> subscribed to):
+#:  - `ApplicationClient`.__init__ >> ApplicationClient.force_board_reset
+#:
+#: Sent by:
+#:  - `BlitzMainWindow`.force_board_reset
+force_board_reset = signal('force_board_reset')
 
 #: Fired when the client loses the TCP connection (after three attempts)
 #:

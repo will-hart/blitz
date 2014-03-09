@@ -115,6 +115,7 @@ class ApplicationClient(object):
         sigs.client_requested_download.connect(self.send_download_request)
         sigs.client_requested_session_list.connect(self.request_session_list)
         sigs.board_command_received.connect(self.send_command)
+        sigs.force_board_reset.connect(self.force_board_reset)
 
     def run(self):
         """
@@ -238,6 +239,12 @@ class ApplicationClient(object):
         """
         self.tcp.send(CommunicationCodes.composite(
             CommunicationCodes.Board, "{0} {1}".format(command[:2], command[2:])))
+
+    def force_board_reset(self, args):
+        """
+        Forces the logger to be reset, can fix some errors
+        """
+        self.tcp.send(CommunicationCodes.Reset)
 
     def __del__(self):
         """

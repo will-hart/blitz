@@ -37,7 +37,7 @@ class GUISignalEmitter(QtCore.QObject):
         sigs.lost_tcp_connection.connect(self.trigger_connection_lost)
         sigs.process_started.connect(self.trigger_task_started)
         sigs.process_finished.connect(self.trigger_task_finished)
-        sigs.board_error_received.connect(self.trigger_board_error)
+        sigs.logger_error_received.connect(self.trigger_board_error)
 
     def trigger_connection_lost(self, args):
         self.tcp_lost.emit()
@@ -238,8 +238,8 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         # inform the user
         Qt.QMessageBox.critical(
             self, "Blitz Data Logger Error", "There has been an error communicating with the logger!" + \
-            " The error code is: \n\n\t\t{0}\n\n.  You can try resetting the data logger using".format(error) + \
-            "the 'logger' menu, however you will lose logging session data if if one is in progress.")
+            " The error code is: \n\n\t\t{0}\n\nYou can try resetting the data logger using ".format(error) + \
+            "the 'logger' menu - this may result in the loss of logged data.")
         self.status_bar.showMessage("The connection to the data logger has been lost")
 
     def connection_lost(self):
@@ -255,6 +255,7 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         Qt.QMessageBox.critical(
             self, "Blitz Data Logger Connection Error", "Unable to establish a connection to the data logger")
         self.status_bar.showMessage("The connection to the data logger has been lost")
+        sigs.process_finished.send()
 
     def initialise_window(self):
         """
@@ -325,7 +326,7 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.reset_device_action = Qt.QAction(Qt.QIcon('blitz/static/img/desktop_reset.png'), '&Reset', self)
         self.reset_device_action.setStatusTip("Reset logger to idle state")
         self.reset_device_action.setToolTip("Forces the logger to reset to idle state")
-        # TODO self.reset_device_action.triggered.connect(self.reset_device)
+        self.reset_device_action.triggered.connect(self.reset_device)
         self.reset_device_action.setEnabled(False)
 
         # send a session list request
@@ -495,6 +496,9 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
 
         self.__calibration_win = CalibrationDialog(5, 0, 40, "deg", "09")
         self.__calibration_win.show()
+
+    def reset_device(self):
+        sigs.force_board_reset.send()
 
 
 class BlitzTableView(Qt.QWidget):
