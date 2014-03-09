@@ -94,7 +94,7 @@ class BlitzLoggingWidget(Qt.QWidget):
         self.__container = container
 
         # create widgets
-        self.figure = Figure(figsize=(1024, 768), dpi=72, facecolor=(1, 1, 1), edgecolor=(1, 0, 0))
+        self.figure = Figure(figsize=(800, 600), dpi=72, facecolor=(1, 1, 1), edgecolor=(1, 0, 0))
 
         # create a plot
         self.axis = self.figure.add_subplot(111)
@@ -260,9 +260,6 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
 
         Automatically created by __init__
         """
-        # status bar
-        self.status_bar = self.statusBar()
-        self.status_bar.showMessage("Blitz Logger is ready")
 
         ##
         # menu bar actions
@@ -364,8 +361,24 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         # the toolbar at the top of the window
         self.main_toolbar = self.addToolBar('Main')
 
-        # main graphing widget
-        self.main_widget = BlitzLoggingWidget(self.__container)
+        # widgets to show in the tab
+        self.__plot_widget = BlitzLoggingWidget(self.__container)
+        self.__variable_widget = BlitzSessionVariableTabPane(self.application, self.__container)
+        self.__session_list_widget = BlitzSessionTabPane(self.application, self.__container, [])
+
+        # tabbed widget for session and variable
+        self.__tab_widget = Qt.QTabWidget()
+        self.__tab_widget.setMinimumWidth(300)
+        self.__tab_widget.addTab(self.__variable_widget, "Variables")
+        self.__tab_widget.addTab(self.__session_list_widget, "Sessions")
+
+        # create a layout grid
+        self.__layout = Qt.QHBoxLayout()
+        self.__layout.addWidget(self.__plot_widget)
+        self.__layout.addWidget(self.__tab_widget)
+
+        self.__main_widget = Qt.QWidget(self)
+        self.__main_widget.setLayout(self.__layout)
 
     def layout_window(self):
         """
@@ -401,8 +414,12 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.main_toolbar.addWidget(self.motor_control_label)
         self.main_toolbar.addWidget(self.motor_control)
 
-        # set the central widget
-        self.setCentralWidget(self.main_widget)
+        # create a grid to display the main widgets
+        self.setCentralWidget(self.__main_widget)
+
+        # status bar
+        self.status_bar = self.statusBar()
+        self.status_bar.showMessage("Blitz Logger is ready")
 
     def run_window(self):
         """
@@ -427,7 +444,7 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         #    # convert from Python datetime to matplotlib datenum
         #    data[k][0] = [MplDates.date2num(x) for x in data[k][0]]
 
-        self.main_widget.redraw(data, replace_existing)
+        self.__plot_widget.redraw(data, replace_existing)
 
     def show_session_list(self):
         # first get the list of sessions
