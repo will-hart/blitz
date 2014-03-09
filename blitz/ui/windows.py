@@ -498,13 +498,29 @@ class BlitzSessionVariableTabPane(Qt.QWidget):
         self.application = application
         self.__container = container
 
-        self.variable_table = Qt.QTableView(self)
-        self.model = Qt.QStandardItemModel(self.variable_table)
-        self.variable_table.setModel(self.model)
+        self.variable_table = Qt.QTableWidget()
+        self.variable_table.setColumnCount(2)
 
         self.grid = Qt.QGridLayout()
         self.grid.addWidget(self.variable_table, 0, 0)
         self.setLayout(self.grid)
+
+    def set_data(self, data):
+        """
+        Sets the data on the table by providing a 2d list of variable/value pairs
+
+        :param data: the list of variable/value pairs
+        """
+
+        self.variable_table.clear()
+        self.variable_table.setRowCount(len(data))
+
+        for i, row in enumerate(data):
+            x, y = row
+            self.variable_table.setItem(i, 0, Qt.QTableWidgetItem("{0}".format(x)))
+            self.variable_table.setItem(i, 1, Qt.QTableWidgetItem("{0}".format(y)))
+
+        self.variable_table.setHorizontalHeaderLabels(["Variable","Value"])
 
 
 class BlitzSessionTabPane(Qt.QWidget):
