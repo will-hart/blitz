@@ -303,6 +303,13 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.calibration_action.triggered.connect(self.calibrate)
         self.calibration_action.setEnabled(False)
 
+        # force reset device
+        self.reset_device_action = Qt.QAction(Qt.QIcon('blitz/static/img/desktop_reset.png'), '&Reset', self)
+        self.reset_device_action.setStatusTip("Reset logger to idle state")
+        self.reset_device_action.setToolTip("Forces the logger to reset to idle state")
+        # TODO self.reset_device_action.triggered.connect(self.reset_device)
+        self.reset_device_action.setEnabled(False)
+
         # send a session list request
         self.update_session_listing_action = Qt.QAction(
             Qt.QIcon('blitz/static/img/desktop_session_list.png'), '&Update list', self)
@@ -376,6 +383,7 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.logger_menu.addAction(self.stop_session_action)
         self.logger_menu.addSeparator()
         self.logger_menu.addAction(self.calibration_action)
+        self.logger_menu.addAction(self.reset_device_action)
 
         self.session_menu.addAction(self.update_session_listing_action)
         self.session_menu.addAction(self.session_list_action)
