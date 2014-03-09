@@ -30,12 +30,14 @@ class GUISignalEmitter(QtCore.QObject):
     tcp_lost = QtCore.Signal()
     task_started = QtCore.Signal(str)
     task_finished = QtCore.Signal()
+    board_error = QtCore.Signal(str)
 
     def __init__(self):
         super(GUISignalEmitter, self).__init__()
         sigs.lost_tcp_connection.connect(self.trigger_connection_lost)
         sigs.process_started.connect(self.trigger_task_started)
         sigs.process_finished.connect(self.trigger_task_finished)
+        sigs.board_error_received.connect(self.trigger_board_error)
 
     def trigger_connection_lost(self, args):
         self.tcp_lost.emit()
@@ -45,6 +47,9 @@ class GUISignalEmitter(QtCore.QObject):
 
     def trigger_task_finished(self, args):
         self.task_finished.emit()
+
+    def trigger_board_error(self, args):
+        self.board_error.emit(args)
 
 
 class MainBlitzApplication(ApplicationClient):
@@ -203,6 +208,7 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.__signaller.tcp_lost.connect(self.connection_lost)
         self.__signaller.task_started.connect(self.show_process_dialogue)
         self.__signaller.task_finished.connect(self.update_session_list)
+        self.__signaller.board_error.connect(self.show_board_error)
 
         # create a data context for managing data
         self.__container = DataContainer()
@@ -224,6 +230,17 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
     def show_process_dialogue(self, description):
         self.__indicator = ProcessingDialog(self.__signaller.task_finished, description)
         self.__indicator.show()
+
+    def show_board_error(self, error):
+        """
+        Displays a board error to the user and suggests a logger reset
+        """
+        # inform the user
+        Qt.QMessageBox.critical(
+            self, "Blitz Data Logger Error", "There has been an error communicating with the logger!" + \
+            " The error code is: \n\n\t\t{0}\n\n.  You can try resetting the data logger using".format(error) + \
+            "the 'logger' menu, however you will lose logging session data if if one is in progress.")
+        self.status_bar.showMessage("The connection to the data logger has been lost")
 
     def connection_lost(self):
         """

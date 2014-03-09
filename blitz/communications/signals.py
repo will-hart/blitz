@@ -130,6 +130,15 @@ client_requested_download = signal('client_requested_download')
 #:  - :mod:`CalibrationDialog`.step
 board_command_received = signal('board_command_received')
 
+#: Fired when a command was received from the desktop software for an expansion board
+#:
+#: Subscribers (subscribed in >> subscribed to):
+#:  -
+#:
+#: Sent by:
+#:  -
+board_error_received = signal('board_error_received')
+
 #: Fired when the client loses the TCP connection (after three attempts)
 #:
 #: Subscribers (subscribed in >> subscribed to):

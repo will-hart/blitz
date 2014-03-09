@@ -69,6 +69,9 @@ class ClientInitState(BaseState):
         elif msg == CommunicationCodes.Negative:
             # logger is not logging, go to idle
             return self.go_to_state(tcp, ClientIdleState)
+        elif msg[0:5] == CommunicationCodes.Error:
+            sigs.board_error_received.send(msg)
+            return self
         else:
             if msg == "":
                 self.logger.warning("Received empty message, ignoring")
