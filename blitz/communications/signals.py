@@ -133,10 +133,10 @@ board_command_received = signal('board_command_received')
 #: Fired when a command was received from the desktop software for an expansion board
 #:
 #: Subscribers (subscribed in >> subscribed to):
-#:  -
+#:  - `GUISignalEmitter`.__init__
 #:
 #: Sent by:
-#:  -
+#:  - :mod:`ClientIdleState`.receive_message
 board_error_received = signal('board_error_received')
 
 #: Fired when the client loses the TCP connection (after three attempts)
