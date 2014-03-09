@@ -144,7 +144,7 @@ class BlitzLoggingWidget(Qt.QWidget):
             # clear the existing plot
             self.axis.cla()
             self.__lines = {}
-            self.__container = DataContainer()
+            self.__container.clear_data()
 
         for key in new_data.keys():
             # massage key to str
@@ -367,9 +367,6 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.__tab_widget.addTab(self.__variable_widget, "Variables")
         self.__tab_widget.addTab(self.__session_list_widget, "Sessions")
 
-        # TODO: Temp
-        self.__variable_widget.set_data([[1, 2], [2, 3], ["a", "b"]])
-
         # create a layout grid
         self.__layout = Qt.QSplitter()
         self.__layout.addWidget(self.plot_widget)
@@ -440,7 +437,7 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.plot_widget.redraw(data, replace_existing)
 
         # update the variable view from the container
-        pass
+        self.__variable_widget.set_data(self.__container.get_latest())
 
     def update_session_list(self):
         # first get the list of sessions
@@ -499,6 +496,7 @@ class BlitzTableView(Qt.QWidget):
         self.variable_table.setColumnCount(self.__cols)
         self.variable_table.setSelectionBehavior(Qt.QAbstractItemView.SelectRows)
         self.variable_table.setSelectionMode(Qt.QAbstractItemView.SingleSelection)
+        self.variable_table.setEditTriggers(Qt.QAbstractItemView.NoEditTriggers)
 
         # slots/signals
         self.variable_table.itemSelectionChanged.connect(self.selection_changed)

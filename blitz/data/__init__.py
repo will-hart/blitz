@@ -14,6 +14,7 @@ class DataContainer(object):
 
     def __init__(self):
         self.clear_data()
+        self.__series = OrderedDict()
 
     def clear_data(self):
         """
@@ -79,6 +80,18 @@ class DataContainer(object):
         for key in self.__series.keys():
             idx = self.__series[key]
             yield [key, self.x[idx], self.y[idx]]
+
+    def get_latest(self):
+        """
+        Gets the latest readings for each variable type and returns them in a pair of variable name / value pairs
+
+        :returns: A list of tuples.  Each tuple is in the form `(variable_name, value)`
+        """
+        result = []
+        for k in self.__series.keys():
+            result.append((k, self.y[self.__series[k]][-1]))
+
+        return result
 
     def get_x(self, series_name):
         """
