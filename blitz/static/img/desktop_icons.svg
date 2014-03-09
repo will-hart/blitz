@@ -257,7 +257,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="6.4689219"
-     inkscape:cx="289.65675"
+     inkscape:cx="265.54145"
      inkscape:cy="30.64245"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
@@ -856,9 +856,9 @@
          inkscape:connector-curvature="0" />
     </g>
     <rect
-       inkscape:export-ydpi="90"
-       inkscape:export-xdpi="90"
-       inkscape:export-filename="C:\Users\mecharius\Dropbox\blitz\blitz\static\img\desktop_download.png"
+       inkscape:export-ydpi="135"
+       inkscape:export-xdpi="135"
+       inkscape:export-filename="C:\Users\mecharius\Dropbox\blitz\blitz\static\img\desktop_download_large.png"
        style="fill:#ff00ff;fill-opacity:1;fill-rule:nonzero;stroke:none;opacity:1"
        id="rect3099"
        width="32"
@@ -867,7 +867,7 @@
        y="1020.3621" />
     <g
        id="g3112"
-       transform="matrix(0,1,-1,0,1283.8286,788.89568)"
+       transform="matrix(0,1.18781,-1.18781,0,1478.4678,742.419)"
        style="stroke:#0055d4">
       <path
          style="fill:none;stroke:#0055d4;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
@@ -901,9 +901,9 @@
        inkscape:export-xdpi="90"
        inkscape:export-ydpi="90" />
     <rect
-       inkscape:export-ydpi="90"
-       inkscape:export-xdpi="90"
-       inkscape:export-filename="C:\Users\mecharius\Dropbox\blitz\blitz\static\img\desktop_graph.png"
+       inkscape:export-ydpi="135"
+       inkscape:export-xdpi="135"
+       inkscape:export-filename="C:\Users\mecharius\Dropbox\blitz\blitz\static\img\desktop_graph_large.png"
        style="fill:#ff00ff;fill-opacity:1;fill-rule:nonzero;stroke:none;opacity:1"
        id="rect3911"
        width="32"
@@ -931,19 +931,19 @@
          transform="matrix(-0.70710678,0.70710678,0.70710678,0.70710678,0,0)" />
     </g>
     <path
-       style="fill:none;stroke:#333333;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       style="fill:none;stroke:#333333;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
        d="m 341.01509,27.053272 -22.72403,0 0,-22.7240343"
        id="path3931"
        inkscape:connector-curvature="0"
        transform="translate(0,1020.3621)" />
     <path
-       style="fill:none;stroke:#aa2222;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       style="fill:none;stroke:#aa2222;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
        d="m 320.14608,23.18864 6.338,-12.675992 6.64716,-0.6183408 5.71966,-4.3283874"
        id="path3933"
        inkscape:connector-curvature="0"
        transform="translate(0,1020.3621)" />
     <path
-       style="fill:none;stroke:#7cb742;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       style="fill:none;stroke:#7cb742;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
        d="m 320.60984,13.758939 11.59389,6.337996 8.65678,-6.337996"
        id="path3935"
        inkscape:connector-curvature="0"

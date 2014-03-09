@@ -517,10 +517,12 @@ class BlitzSessionTabPane(Qt.QWidget):
 
         self.session_table.setModel(self.model)
 
-        self.download_button = Qt.QPushButton("Export Selected")
+        self.download_button = Qt.QPushButton(Qt.QIcon('blitz/static/img/desktop_download_large.png'),"Export", self)
+        self.download_button.setFlat(True)
         self.download_button.clicked.connect(self.download_session)
 
-        self.view_series_button = Qt.QPushButton("View Graphs")
+        self.view_series_button = Qt.QPushButton(Qt.QIcon('blitz/static/img/desktop_graph_large.png'),"View", self)
+        self.view_series_button.setFlat(True)
 
         self.grid = Qt.QGridLayout()
         self.grid.addWidget(self.session_table, 0, 0, 4, 5)
