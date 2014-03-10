@@ -116,6 +116,8 @@ class ApplicationClient(object):
         sigs.client_requested_session_list.connect(self.request_session_list)
         sigs.board_command_received.connect(self.send_command)
         sigs.force_board_reset.connect(self.force_board_reset)
+        sigs.board_list_requested.connect(self.send_boards_command)
+        sigs.board_list_received.connect(self.process_boards_command)
 
     def run(self):
         """
@@ -240,11 +242,31 @@ class ApplicationClient(object):
         self.tcp.send(CommunicationCodes.composite(
             CommunicationCodes.Board, "{0} {1}".format(command[:2], command[2:])))
 
-    def force_board_reset(self, args):
+    def force_board_reset(self, args=None):
         """
         Forces the logger to be reset, can fix some errors
         """
         self.tcp.send(CommunicationCodes.Reset)
+
+    def send_boards_command(self, args=None):
+        """
+        Requests a list of connected expansion boards to the data logger
+        """
+        self.tcp.send(CommunicationCodes.Boards)
+
+    def process_boards_command(self, args):
+        """
+        Process a BOARDS response received from the server
+
+        :param args: A string containing "BOARDS " followed by a list of board IDs
+        """
+
+        if args[0:6] != CommunicationCodes.Boards:
+            self.logger.warning("Boards response does not match expected format - {0}".format(args))
+            return
+
+        board_descriptions = self.board_manager.get_board_descriptions(args[7:].split())
+        sigs.board_list_processed(board_descriptions)
 
     def __del__(self):
         """

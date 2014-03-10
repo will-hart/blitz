@@ -33,6 +33,7 @@ class GUISignalEmitter(QtCore.QObject):
     board_error = QtCore.Signal(str)
     logging_started = QtCore.Signal()
     logging_stopped = QtCore.Signal()
+    boards_updated=  QtCore.Signal()
 
     def __init__(self):
         super(GUISignalEmitter, self).__init__()
@@ -42,6 +43,7 @@ class GUISignalEmitter(QtCore.QObject):
         sigs.logger_error_received.connect(self.trigger_board_error)
         sigs.logging_started.connect(self.trigger_logging_started)
         sigs.logging_stopped.connect(self.trigger_logging_stopped)
+        sigs.board_list_processed.connect(self.trigger_boards_updated)
 
     def trigger_connection_lost(self, args):
         self.tcp_lost.emit()
@@ -60,6 +62,9 @@ class GUISignalEmitter(QtCore.QObject):
 
     def trigger_logging_stopped(self, args):
         self.logging_stopped.emit()
+
+    def trigger_boards_updated(self, args):
+        self.boards_updated.emit()
 
 
 class MainBlitzApplication(ApplicationClient):
@@ -221,6 +226,7 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.__signaller.board_error.connect(self.show_board_error)
         self.__signaller.logging_started.connect(self.logging_started_ui_update)
         self.__signaller.logging_stopped.connect(self.logging_stopped_ui_update)
+        self.__signaller.boards_updated.connect(self.update_connected_boards)
 
         # create a data context for managing data
         self.__container = DataContainer()
@@ -389,6 +395,8 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.variable_widget.build_layout()
         self.session_list_widget = BlitzSessionTabPane(["", "ID", "Readings", "Date"], self.application)
         self.session_list_widget.build_layout()
+        self.board_list_widget = BlitzTableView(["ID", "Description"])
+        self.board_list_widget.build_layout()
         self.update_session_list()
 
         # tabbed widget for session and variable
@@ -396,6 +404,7 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.__tab_widget.setMinimumWidth(300)
         self.__tab_widget.addTab(self.variable_widget, "Variables")
         self.__tab_widget.addTab(self.session_list_widget, "Sessions")
+        self.__tab_widget.addTab(self.board_list_widget, "Boards")
 
         # create a layout grid
         self.__layout = Qt.QSplitter()
@@ -501,6 +510,9 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
     def get_session_list(self):
         sigs.client_requested_session_list.send()
 
+    def update_connected_boards(self, data):
+        self.board_list_widget.set_data(data)
+
     def calibrate(self):
         """
         Shows the calibration form
@@ -511,6 +523,12 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
 
     def reset_device(self):
         sigs.force_board_reset.send()
+
+    def send_boards_request(self):
+        """
+        Sends a request for connected expansion boards to the server
+        """
+        sigs.board_list_requested.send()
 
 
 class BlitzTableView(Qt.QWidget):

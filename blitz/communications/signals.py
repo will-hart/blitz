@@ -134,10 +134,29 @@ board_command_received = signal('board_command_received')
 #:
 #: Subscribers (subscribed in >> subscribed to):
 #:  - :mod:`ApplicationServer`.__init__ >> ApplicationClient.send_connected_boards
-#:
+#:  - :mod:`ApplicationClient`.__init__ >> ApplicationClient.send_boards_command
 #: Sent by:
 #:  - :mod:`ServerIdleState`.receive_message
-board_list_requested = signal('board_command_received')
+#:  - :mod:`MainBlitzWindow`.send_board_list
+board_list_requested = signal('board_list_requested')
+
+#: Fired when the client wants to find out which boards are connected
+#:
+#: Subscribers (subscribed in >> subscribed to):
+#:  - :mod:`ApplicationClient`.__init__ >> ApplicationClient.process_boards_command
+#:
+#: Sent by:
+#:  - :mod:`ClientIdleState`.receive_message
+board_list_received = signal('board_list_received')
+
+#: Fired when the client wants to find out which boards are connected
+#:
+#: Subscribers (subscribed in >> subscribed to):
+#:  - `GUISignalEmitter`.__init__
+#:
+#: Sent by:
+#:  - :mod:`ApplicationClient`.process_boards_command
+board_list_processed = signal('board_list_processed')
 
 #: Fired when an error was received by the client from the data logger
 #:

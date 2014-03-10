@@ -119,6 +119,20 @@ class BoardManager(object):
 
         return readings
 
+    def get_board_descriptions(self, boards):
+        """
+        Gets the descriptions of the boards given in a list
+
+        :param boards: a list of board ID strings
+        :returns: A list of tuples. each tuple containing `(ID, DESCRIPTION)`
+        """
+        result = []
+
+        for b in boards:
+            result.append((b, "Unknown") if b in self.boards.keys() else (b, self.boards[b].description))
+
+        return result
+
 
 class BaseExpansionBoard(Plugin):
     """
