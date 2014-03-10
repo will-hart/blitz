@@ -148,12 +148,12 @@ class NetScannerManager(object):
                 delta_t = (datetime.datetime.now() - self.__logging_start).microseconds / 1000.0
                 delta_t = hex(int(delta_t))[2:].rjust(8, '0').upper()
 
-                if len(self.__data) / 8 == 55:
+                if len(message) / 8 == 55:
                     # we just received the response to a calibration message 'h'
                     pass
-                elif len(self.__data) / 8 != 16:
+                elif len(message) / 8 != 16:
                     self.logger.warning(
-                        "Received NetScanner message of unexpected length, read %s channels (not 16)" % len(results))
+                        "Received NetScanner message of unexpected length, read %s channels" % (len(message) / 8))
                 else:
                     self.__data.queue(self.__board_id + "0AA1" + delta_t + message.upper())
 
