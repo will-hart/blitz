@@ -42,6 +42,8 @@ class NetScannerManager(object):
 
     SAMPLE_FREQUENCY = 2.0
 
+    MAX_RETRIES = 10
+
     logger = logging.getLogger(__name__)
 
     def __init__(self, database, host, board_id="0A", port=9000):
@@ -86,6 +88,7 @@ class NetScannerManager(object):
         self.__logging_start = datetime.datetime.now()
 
         current_state = 0
+        retries = 0
         self.logger.debug("NetScanner starting polling loop")
 
         while not stop_event.is_set():
@@ -112,8 +115,14 @@ class NetScannerManager(object):
             except Exception as e:
                 self.logger.warning("NetScanner receive failed with exception... retrying. Exception was:")
                 self.logger.warning(e)
+                retries += 1
+
+                if retries > self.MAX_RETRIES:
+                    self.logger.error("Max retries on NetScanner exceeded. Aborting")
+                    stop_event.set()
             else:
                 self.receive_message(data)
+                retries = 0
 
                 if current_state < len(self.INIT_SEQUENCE) - 1:
                     current_state += 1
