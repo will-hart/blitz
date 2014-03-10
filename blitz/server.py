@@ -131,8 +131,8 @@ class ApplicationServer(object):
         # create a NetScanner server
         if (self.config['use_netscanner']):
             db = self.serial_server.database
-            self.netscanner_one = NetScannerManager(db, self.config['netscanner_one_ip'], "OA")
-            self.netscanner_two = NetScannerManager(db, self.config['netscanner_two_ip'], "OB")
+            self.netscanner_one = NetScannerManager(db, self.config['netscanner_one_ip'], "0A")
+            #self.netscanner_two = NetScannerManager(db, self.config['netscanner_two_ip'], "0B")
 
         # hook up signals
         sigs.client_requested_session_list.connect(self.update_session_list)
