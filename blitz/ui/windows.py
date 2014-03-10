@@ -31,6 +31,8 @@ class GUISignalEmitter(QtCore.QObject):
     task_started = QtCore.Signal(str)
     task_finished = QtCore.Signal()
     board_error = QtCore.Signal(str)
+    logging_started = QtCore.Signal()
+    logging_stopped = QtCore.Signal()
 
     def __init__(self):
         super(GUISignalEmitter, self).__init__()
@@ -38,6 +40,8 @@ class GUISignalEmitter(QtCore.QObject):
         sigs.process_started.connect(self.trigger_task_started)
         sigs.process_finished.connect(self.trigger_task_finished)
         sigs.logger_error_received.connect(self.trigger_board_error)
+        sigs.logging_started.connect(self.trigger_logging_started)
+        sigs.logging_stopped.connect(self.trigger_logging_stopped)
 
     def trigger_connection_lost(self, args):
         self.tcp_lost.emit()
@@ -50,6 +54,12 @@ class GUISignalEmitter(QtCore.QObject):
 
     def trigger_board_error(self, args):
         self.board_error.emit(args)
+
+    def trigger_logging_started(self, args):
+        self.logging_started.emit()
+
+    def trigger_logging_stopped(self, args):
+        self.logging_stopped.emit()
 
 
 class MainBlitzApplication(ApplicationClient):
@@ -209,6 +219,8 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.__signaller.task_started.connect(self.show_process_dialogue)
         self.__signaller.task_finished.connect(self.update_session_list)
         self.__signaller.board_error.connect(self.show_board_error)
+        self.__signaller.logging_started.connect(self.logging_started_ui_update)
+        self.__signaller.logging_stopped.connect(self.logging_stopped_ui_update)
 
         # create a data context for managing data
         self.__container = DataContainer()

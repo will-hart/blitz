@@ -181,6 +181,7 @@ class ClientLoggingState(BaseState):
     """
     def enter_state(self, tcp, state, args=None):
         """sets up a timer which periodically polls the data logger for updates"""
+        sigs.logging_started.send()
         self.logger.debug("[TCP] Calling logging.enter_state")
         self.__stop_updater = threading.Event()
         self.update_thread = threading.Thread(target=self.request_update, args=[self.__stop_updater, tcp])
@@ -248,6 +249,7 @@ class ClientStoppingState(BaseState):
         sigs.process_finished.send()
 
         if msg == CommunicationCodes.Acknowledge:
+            sigs.logging_stopped.send()
             return self.go_to_state(tcp, ClientSessionListState)
         return self
 

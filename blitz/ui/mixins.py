@@ -49,6 +49,11 @@ class BlitzGuiMixin(object):
         """
 
         self.application.start_logging()
+
+    def logging_started_ui_update(self):
+        """
+        Updates the UI when logging has started
+        """
         self.start_session_action.setEnabled(False)
         self.stop_session_action.setEnabled(True)
         self.update_session_listing_action.setEnabled(False)
@@ -62,9 +67,12 @@ class BlitzGuiMixin(object):
         """
         Disconnects the application from the data logger
         """
-
         self.application.stop_logging()
 
+    def logging_stopped_ui_update(self):
+        """
+        Updates the UI when logging has stopped
+        """
         self.start_session_action.setEnabled(True)
         self.stop_session_action.setEnabled(False)
         self.update_session_listing_action.setEnabled(True)
