@@ -110,11 +110,12 @@ class BoardManager(object):
             else:
                 # adding to cache
                 cached_item = self.data.add_cache(time_logged, category_id, result[key])
-                readings.append({
-                    'categoryId': cached_item.categoryId,
-                    'timeLogged': cached_item.timeLogged / 1000,
-                    'value': float(cached_item.value)
-                })
+                if cached_item.value:
+                    readings.append({
+                        'categoryId': cached_item.categoryId,
+                        'timeLogged': cached_item.timeLogged / 1000,
+                        'value': float(cached_item.value)
+                    })
 
         return readings
 
@@ -227,7 +228,8 @@ class BaseExpansionBoard(Plugin):
         """
         Gets a 32 bit IEEE single precision double stored in big endian format starting at the given index.
         """
-        return self._payload_array[start_bit:start_bit + 32].floatbe
+        val = self._payload_array[start_bit:start_bit + 32].floatbe
+        return val if val else 0
 
     def get_flag(self, flag_number):
         """
@@ -338,6 +340,7 @@ class NetScannerEthernetBoard(BaseExpansionBoard):
         self.do_not_register = False
         self.id = 10
         self.description = description
+        self.channel_offset = 0
 
     def register_signals(self):
         # signal to register the board
@@ -346,25 +349,9 @@ class NetScannerEthernetBoard(BaseExpansionBoard):
             "Board [%s:%s] now listening for registering_boards signal" % (self['id'], self['description']))
 
     def get_variables(self, channel_min=1):
-        var_vals = [
-            self.get_float(0),
-            self.get_float(8),
-            self.get_float(16),
-            self.get_float(24)
-        ]
-        if self.get_flag(0):
-            var_names = ["Channel_{0}".format(i) for i in range(channel_min, channel_min + 4)]
-        elif self.get_flag(1):
-            var_names = ["Channel_{0}".format(i) for i in range(channel_min + 4, channel_min + 8)]
-        elif self.get_flag(2):
-            var_names = ["Channel_{0}".format(i) for i in range(channel_min + 8, channel_min + 12)]
-        elif self.get_flag(3):
-            var_names = ["Channel_{0}".format(i) for i in range(channel_min + 12, channel_min + 16)]
-        else:
-            self.logger.warning("NetScanner board tried to parse message with no channel flag set - ignoring")
-            return {}
-
-        return dict(zip(var_names, var_vals))
+        var_vals = [self.get_float(i * 8) for i in xrange(0, 16)]
+        channels = ["Channel_{0}".format(i + self.channel_offset) for i in xrange(1, 17)]
+        return dict(zip(channels, var_vals))
 
 
 class NetScannerEthernetBoardTwo(NetScannerEthernetBoard):
@@ -373,6 +360,7 @@ class NetScannerEthernetBoardTwo(NetScannerEthernetBoard):
     """
     def __init__(self, description="NetScanner Ethernet Interface Board Two"):
         NetScannerEthernetBoard.__init__(self, description)
+        self.channel_offset = 16
         self.id = 11
 
     def get_variables(self, channel_min=17):
