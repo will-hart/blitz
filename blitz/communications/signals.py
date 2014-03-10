@@ -130,6 +130,15 @@ client_requested_download = signal('client_requested_download')
 #:  - :mod:`CalibrationDialog`.step
 board_command_received = signal('board_command_received')
 
+#: Fired when the client wants to find out which boards are connected
+#:
+#: Subscribers (subscribed in >> subscribed to):
+#:  - :mod:`ApplicationServer`.__init__ >> ApplicationClient.send_connected_boards
+#:
+#: Sent by:
+#:  - :mod:`ServerIdleState`.receive_message
+board_list_requested = signal('board_command_received')
+
 #: Fired when an error was received by the client from the data logger
 #:
 #: Subscribers (subscribed in >> subscribed to):

@@ -56,7 +56,7 @@ class NetScannerManager(object):
         self.__host = host
         self.__port = port
         self.__data = database
-        self.__board_id = board_id
+        self.board_id = board_id
         self.receive_queue = Queue.Queue()
         self.__stop_event = threading.Event()
         self.__socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -155,7 +155,7 @@ class NetScannerManager(object):
                     self.logger.warning(
                         "Received NetScanner message of unexpected length, read %s channels" % (len(message) / 8))
                 else:
-                    self.__data.queue(self.__board_id + "0AA1" + delta_t + message.upper())
+                    self.__data.queue(self.board_id + "0AA1" + delta_t + message.upper())
 
     def stop_client(self):
         """

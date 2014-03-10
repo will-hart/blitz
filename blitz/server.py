@@ -131,13 +131,16 @@ class ApplicationServer(object):
         # create a NetScanner server
         if (self.config['use_netscanner']):
             db = self.serial_server.database
-            self.netscanner_one = NetScannerManager(db, self.config['netscanner_one_ip'], "0A")
-            #self.netscanner_two = NetScannerManager(db, self.config['netscanner_two_ip'], "0B")
+            self.netscanner = [
+                NetScannerManager(db, self.config['netscanner_one_ip'], "0A") # ,
+                #NetScannerManager(db, self.config['netscanner_two_ip'], "0B")
+            ]
 
         # hook up signals
         sigs.client_requested_session_list.connect(self.update_session_list)
         sigs.server_status_request.connect(self.serve_client_status)
         sigs.client_requested_download.connect(self.serve_client_download)
+        sigs.board_list_requested.connect(self.send_connected_boards)
 
         # start the TCP server
         self.tcp = TcpBase(port=self.config["tcp_port"])
@@ -178,6 +181,17 @@ class ApplicationServer(object):
         # todo set the '100' value to a constant
         split_session_data = [session_data[i:i + 100] for i in range(0, len(session_data), 100)]
         self.tcp.send(split_session_data)
+
+    def send_connected_boards(self):
+        """
+        Handles the BOARDS request from the client, wanting to know which boards are connected
+        """
+        boards = "BOARDS " + " ".join([x for x in self.serial_server.serial_mapping.keys()])
+
+        if self.config['use_netscanner']:
+            boards += " ".join([x.board_id for x in self.netscanner])
+
+        self.tcp.send(boards)
 
     def __del__(self):
         self.logger.warning("Shutting down server Application")

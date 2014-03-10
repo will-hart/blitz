@@ -22,6 +22,7 @@ class CommunicationCodes(object):
     Download = "DOWNLOAD"
     Error = "ERROR"
     Board = "BOARD"
+    Boards = "BOARDS"
     BoardError = "BOARDERROR"
     NoBoard = "NOBOARD"
     Ready = "READY"
