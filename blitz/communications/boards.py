@@ -130,7 +130,8 @@ class BoardManager(object):
 
         for b in boards:
             id = int(b, 16)
-            result.append((b, "Unknown") if id in self.boards.keys() else (b, self.boards[id].description))
+            id_str = "{0} ({1})".format(id, b)
+            result.append((id_str, self.boards[id].description) if id in self.boards.keys() else (id_str, "Unknown"))
 
         return result
 

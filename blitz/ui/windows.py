@@ -33,7 +33,7 @@ class GUISignalEmitter(QtCore.QObject):
     board_error = QtCore.Signal(str)
     logging_started = QtCore.Signal()
     logging_stopped = QtCore.Signal()
-    boards_updated =  QtCore.Signal(str)
+    boards_updated =  QtCore.Signal(dict)
 
     def __init__(self):
         super(GUISignalEmitter, self).__init__()
