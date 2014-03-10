@@ -189,7 +189,7 @@ class ApplicationServer(object):
         boards = "BOARDS " + " ".join([x for x in self.serial_server.serial_mapping.keys()])
 
         if self.config['use_netscanner']:
-            boards += " ".join([x.board_id for x in self.netscanner])
+            boards += " " + " ".join([x.board_id for x in self.netscanner])
 
         self.tcp.send(boards)
 
