@@ -15,7 +15,7 @@ import socket
 import threading
 import time
 
-from blitz.communications.signals import logging_started
+from blitz.communications.signals import logging_started, logging_stopped
 
 
 class NetScannerManager(object):
@@ -38,7 +38,7 @@ class NetScannerManager(object):
         ('b', 'digital read data')
     ]
 
-    REQUEST_TIMEOUT = 3.0
+    REQUEST_TIMEOUT = 5.0
 
     SAMPLE_FREQUENCY = 2.0
 
@@ -64,8 +64,11 @@ class NetScannerManager(object):
         self.__run_thread(self.run_client)
         self.__thread = None
         self.__logging_start = datetime.datetime.now()
+        self.__logging = False
+        self.__logging_lock = threading.RLock()
 
         logging_started.connect(self.start_logging)
+        logging_stopped.connect(self.stop_logging)
 
     def __run_thread(self, thread_target):
         self.__thread = threading.Thread(target=thread_target, args=[self.__stop_event])
@@ -86,17 +89,31 @@ class NetScannerManager(object):
         self.logger.debug("NetScanner starting polling loop")
 
         while not stop_event.is_set():
+
+            if self.INIT_SEQUENCE[current_state][0] == self.INIT_SEQUENCE[-1][0]:
+                # the handshake is finished, check if we should be logging
+                with self.__logging_lock:
+                    if not self.__logging:
+                        time.sleep(1.0 / self.SAMPLE_FREQUENCY)
+                        continue
+
             self.__socket.send(self.INIT_SEQUENCE[current_state][0])
             if current_state < len(self.INIT_SEQUENCE) - 1:
                 self.logger.debug("Netscanner sent {0} message".format(self.INIT_SEQUENCE[current_state][1]))
-            data = self.__socket.recv(1024)
-            self.receive_message(data)
 
-            if current_state < len(self.INIT_SEQUENCE) - 1:
-                current_state += 1
+            try:
+                data = self.__socket.recv(1024)
+            except Exception as e:
+                self.logger.warning("NetScanner receive failed with exception... retrying. Exception was:")
+                self.logger.warning(e)
             else:
-                # sample at approximately 2 Hz
-                time.sleep(1.0 / self.SAMPLE_FREQUENCY)
+                self.receive_message(data.encode('hex'))
+
+                if current_state < len(self.INIT_SEQUENCE) - 1:
+                    current_state += 1
+                else:
+                    # sample at approximately 2 Hz
+                    time.sleep(1.0 / self.SAMPLE_FREQUENCY)
 
         # terminate the context before exiting
         self.__socket.close()
@@ -107,6 +124,16 @@ class NetScannerManager(object):
         Stores the current time when data logging commences so the correct timestamp can be provided to messages
         """
         self.__logging_start = datetime.datetime.now()
+
+        with self.__logging_lock:
+            self.__logging = True
+
+    def stop_logging(self, args):
+        """
+        Stops the NetScanner manager from sampling from the NetScanner device
+        """
+        with self.__logging_lock:
+            self.__logging = False
 
     def receive_message(self, message):
         """
@@ -119,22 +146,16 @@ class NetScannerManager(object):
         else:
             if self.__data:
                 delta_t = (datetime.datetime.now() - self.__logging_start).microseconds / 1000.0
-                delta_t = hex(delta_t).rjust(8, '0').upper()
-                results = [message[i:i+4] for i in xrange(0, len(message), 4)]
+                delta_t = hex(int(delta_t))[2:].rjust(8, '0').upper()
 
-                if len(results) != 16:
+                if len(self.__data) / 8 == 55:
+                    # we just received the response to a calibration message 'h'
+                    pass
+                elif len(self.__data) / 8 != 16:
                     self.logger.warning(
-                        "Received incomplete NetScanner message, only read %s channels (not 16)" % len(results))
+                        "Received NetScanner message of unexpected length, read %s channels (not 16)" % len(results))
                 else:
-                    # hackity hack
-                    self.__data.queue(
-                        self.__board_id + "0ABO" + delta_t + results[0] + results[1] + results[2] + results[3])
-                    self.__data.queue(
-                        self.__board_id + "0AA8" + delta_t + results[4] + results[5] + results[6] + results[7])
-                    self.__data.queue(
-                        self.__board_id + "0AA4" + delta_t + results[8] + results[9] + results[10] + results[11])
-                    self.__data.queue(
-                        self.__board_id + "0AA2" + delta_t + results[12] + results[13] + results[14] + results[15])
+                    self.__data.queue(self.__board_id + "0AA1" + delta_t + message.upper())
 
     def stop_client(self):
         """
