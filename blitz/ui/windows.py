@@ -546,12 +546,13 @@ class BlitzTableView(Qt.QWidget):
     """
     A UI tab pane which shows teh last variable read from each channel in the current session data
     """
-    def __init__(self, headers):
+    def __init__(self, headers, stretch_columns=True):
 
         super(BlitzTableView, self).__init__()
 
         self.__cols = len(headers)
         self.__headers = headers
+        self.__stretch = stretch_columns
 
         # set up the table
         self.variable_table = Qt.QTableWidget()
@@ -564,6 +565,11 @@ class BlitzTableView(Qt.QWidget):
         # slots/signals
         self.variable_table.itemSelectionChanged.connect(self.selection_changed)
 
+        if self.__stretch:
+            self.variable_table.horizontalHeader().setResizeMode(Qt.QHeaderView.Stretch)
+        else:
+            self.variable_table.horizontalHeader().setResizeMode(Qt.QHeaderView.ResizeToContents)
+
     def selection_changed(self):
         pass
 
@@ -571,7 +577,6 @@ class BlitzTableView(Qt.QWidget):
         self.grid = Qt.QGridLayout()
         self.grid.addWidget(self.variable_table, 0, 0)
         self.setLayout(self.grid)
-        self.variable_table.horizontalHeader().setResizeMode(Qt.QHeaderView.Stretch)
 
     def set_data(self, data):
         """
@@ -597,7 +602,7 @@ class BlitzSessionTabPane(BlitzTableView):
 
     def __init__(self, headers, application):
 
-        super(BlitzSessionTabPane, self).__init__(headers)
+        super(BlitzSessionTabPane, self).__init__(headers, False)
 
         self.application = application
         self.__selected_id = -1
@@ -640,8 +645,6 @@ class BlitzSessionTabPane(BlitzTableView):
         self.grid.addWidget(self.view_series_button, 2, 5)
         self.grid.addWidget(self.delete_session_button, 3, 5)
         self.setLayout(self.grid)
-
-        self.variable_table.horizontalHeader().setResizeMode(Qt.QHeaderView.ResizeToContents)
 
     def selection_changed(self):
         items = self.variable_table.selectedItems()
