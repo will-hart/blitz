@@ -95,7 +95,6 @@ class BoardManager(object):
 
         # get session metadata
         if session_id:
-            # TODO add timestamp to session start time
             time_logged = board["timestamp"]
         else:
             time_logged = blitz_timestamp()  # for cached just pretend its now
@@ -208,8 +207,9 @@ class BaseExpansionBoard(Plugin):
             else:
                 self[key] = self.__message[self.__mapping[key]["start"]]
 
-        # get the payload into a bit_array
-        self._payload_array = BitArray(uint=self["payload"], length=PAYLOAD_LENGTH + (len(raw_message) - 28) * 4)
+        # get the payload into a bit_array.
+        # the first 48 bitsare the meta data, ignore these
+        self['payload'] = self.__message[48:]
 
         # create a flags array
         self['flags'] = [
@@ -238,14 +238,7 @@ class BaseExpansionBoard(Plugin):
         """
         start = start_bit
         end = start + length
-        return self._payload_array[start:end].uint
-
-    def get_float(self, start_bit):
-        """
-        Gets a 32 bit IEEE single precision double stored in big endian format starting at the given index.
-        """
-        val = self._payload_array[start_bit:start_bit + 32].floatbe
-        return 0 if abs(val) < 1e-10 else val if val else 0
+        return self['payload'][start:end].uint
 
     def get_flag(self, flag_number):
         """
@@ -303,7 +296,6 @@ class BlitzBasicExpansionBoard(BaseExpansionBoard):
         registering_boards.connect(self.register_board)
 
     def get_variables(self):
-        #print self._payload_array.hex
         return {
             "adc_channel_one": self.get_number(0, 12),
             "adc_channel_two": self.get_number(12, 12),
@@ -365,7 +357,7 @@ class NetScannerEthernetBoard(BaseExpansionBoard):
             "Board [%s:%s] now listening for registering_boards signal" % (self['id'], self['description']))
 
     def get_variables(self, channel_min=1):
-        var_vals = [self.get_float(i * 8) for i in xrange(0, 16)]
+        var_vals = [float(self.get_number(i * 32, 32)) / 1.0e6 for i in xrange(0, 16)]
         channels = ["Channel_{0}".format(i + self.channel_offset) for i in xrange(1, 17)]
         return dict(zip(channels, var_vals))
 

@@ -74,6 +74,7 @@ VALID_CLIENT_COMMANDS = [
 MAX_MESSAGE_LENGTH = 112  # max length of message in bits
 PAYLOAD_LENGTH = 64  # min length of payload in bits
 MESSAGE_BYTE_LENGTH = 28  # number of characters in a hex message string (0-f is 4 bytes)
+PAYLOAD_OFFSET_BITS = 48  # number of bits of meta data before the payload starts
 
 BOARD_MESSAGE_MAPPING = {
     "sender": {"start": 0, "end": 8},
@@ -83,8 +84,7 @@ BOARD_MESSAGE_MAPPING = {
     "flag3": {"start": 13},
     "flag4": {"start": 14},
     "flag5": {"start": 15},
-    "timestamp": {"start": 16, "end": 48},
-    "payload": {"start": 48, "end": -1}
+    "timestamp": {"start": 16, "end": 48}
 }
 
 SerialUpdatePeriod = 1.0  # serial update period in seconds

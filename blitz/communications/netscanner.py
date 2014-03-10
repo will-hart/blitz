@@ -35,7 +35,7 @@ class NetScannerManager(object):
         ('B', 'reset device'),
         ('v01101 6.894757', 'use kPa'),
         ('h', 'zero offsets'),
-        ('b', 'digital read data')
+        ('rFFFF0', 'digital read data') # or b for binary format
     ]
 
     REQUEST_TIMEOUT = 5.0
@@ -91,11 +91,17 @@ class NetScannerManager(object):
         while not stop_event.is_set():
 
             if self.INIT_SEQUENCE[current_state][0] == self.INIT_SEQUENCE[-1][0]:
+
+                skip = False
+
                 # the handshake is finished, check if we should be logging
                 with self.__logging_lock:
                     if not self.__logging:
-                        time.sleep(1.0 / self.SAMPLE_FREQUENCY)
-                        continue
+                        skip = True
+
+                if skip:
+                    time.sleep(1.0 / self.SAMPLE_FREQUENCY)
+                    continue
 
             self.__socket.send(self.INIT_SEQUENCE[current_state][0])
             if current_state < len(self.INIT_SEQUENCE) - 1:
@@ -107,7 +113,7 @@ class NetScannerManager(object):
                 self.logger.warning("NetScanner receive failed with exception... retrying. Exception was:")
                 self.logger.warning(e)
             else:
-                self.receive_message(data.encode('hex'))
+                self.receive_message(data)
 
                 if current_state < len(self.INIT_SEQUENCE) - 1:
                     current_state += 1
@@ -141,21 +147,24 @@ class NetScannerManager(object):
 
         :param message: the message that was received
         """
+        delta_t = 0
+
         if message == "A":
             self.logger.debug("NetScanner received ACK from device")
         else:
             if self.__data:
-                delta_t = (datetime.datetime.now() - self.__logging_start).microseconds / 1000.0
+                delta_t = (datetime.datetime.now() - self.__logging_start).total_seconds() * 1000.0
                 delta_t = hex(int(delta_t))[2:].rjust(8, '0').upper()
 
-                if len(message) / 8 == 55:
-                    # we just received the response to a calibration message 'h'
-                    pass
-                elif len(message) / 8 != 16:
-                    self.logger.warning(
-                        "Received NetScanner message of unexpected length, read %s channels" % (len(message) / 8))
+                raw = message.decode('hex').split()
+                if len(raw) == 16:
+                    out_message = ""
+                    for r in raw:
+                        out_message += hex(int(float(r) * 1e6))[2:].rjust(8, "0").upper()
+
+                    self.__data.queue(self.board_id + "50" + delta_t + out_message)
                 else:
-                    self.__data.queue(self.board_id + "0AA1" + delta_t + message.upper())
+                    self.logger.debug("Received {0} variables from the NetScanner device, ignoring".format(len(raw)))
 
     def stop_client(self):
         """
