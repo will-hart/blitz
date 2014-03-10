@@ -266,7 +266,7 @@ class ApplicationClient(object):
             return
 
         board_descriptions = self.board_manager.get_board_descriptions(args[7:].split())
-        sigs.board_list_processed(board_descriptions)
+        sigs.board_list_processed.send(board_descriptions)
 
     def __del__(self):
         """

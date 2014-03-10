@@ -129,7 +129,8 @@ class BoardManager(object):
         result = []
 
         for b in boards:
-            result.append((b, "Unknown") if b in self.boards.keys() else (b, self.boards[b].description))
+            id = int(b, 16)
+            result.append((b, "Unknown") if id in self.boards.keys() else (b, self.boards[id].description))
 
         return result
 

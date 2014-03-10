@@ -29,7 +29,7 @@ class ServerBaseState(BaseState):
 
         :returns: True if the message was handled here, False if it was not
         """
-        if msg[0:5] == CommunicationCodes.Board:
+        if msg[0:6] == CommunicationCodes.Board + " ":
             sigs.board_command_received.send(msg.split(" ")[1:])
             tcp.send(CommunicationCodes.Acknowledge)
             return True
@@ -70,6 +70,8 @@ class ServerIdleState(ServerBaseState):
         elif msg == CommunicationCodes.IsLogging:
             self.logger.debug("Responding with NACK, server not currently logging")
             tcp.do_send(CommunicationCodes.Negative)
+        elif msg[0:6] == CommunicationCodes.Boards:
+            sigs.board_list_requested.send()
         elif not self.process_standard_messages(tcp, msg):
             tcp.do_send(validate_command(msg, VALID_SERVER_COMMANDS) + "IDLE")
 

@@ -33,7 +33,7 @@ class GUISignalEmitter(QtCore.QObject):
     board_error = QtCore.Signal(str)
     logging_started = QtCore.Signal()
     logging_stopped = QtCore.Signal()
-    boards_updated=  QtCore.Signal()
+    boards_updated =  QtCore.Signal(str)
 
     def __init__(self):
         super(GUISignalEmitter, self).__init__()
@@ -63,8 +63,8 @@ class GUISignalEmitter(QtCore.QObject):
     def trigger_logging_stopped(self, args):
         self.logging_stopped.emit()
 
-    def trigger_boards_updated(self, args):
-        self.boards_updated.emit()
+    def trigger_boards_updated(self, boards):
+        self.boards_updated.emit(boards)
 
 
 class MainBlitzApplication(ApplicationClient):
@@ -355,6 +355,14 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.update_session_listing_action.triggered.connect(self.get_session_list)
         self.update_session_listing_action.setEnabled(False)
 
+        # send a board list request
+        self.update_board_listing_action = Qt.QAction(
+            Qt.QIcon('blitz/static/img/desktop_session_list.png'), 'Update &board list', self)
+        self.update_board_listing_action.setStatusTip("Get a list of expansion boards connected to the data logger")
+        self.update_board_listing_action.setToolTip("Get logger board list")
+        self.update_board_listing_action.triggered.connect(self.send_boards_request)
+        self.update_board_listing_action.setEnabled(False)
+
         # shows the settings window
         self.settings_action = Qt.QAction('&Settings', self)
         self.settings_action.setShortcut('Ctrl+Alt+S')
@@ -432,6 +440,7 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.logger_menu.addAction(self.calibration_action)
         self.logger_menu.addAction(self.reset_device_action)
         self.logger_menu.addAction(self.update_session_listing_action)
+        self.logger_menu.addAction(self.update_board_listing_action)
 
         # create the toolbar
         self.main_toolbar.addAction(self.connect_action)
@@ -512,6 +521,7 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
 
     def update_connected_boards(self, data):
         self.board_list_widget.set_data(data)
+        sigs.process_finished.send()
 
     def calibrate(self):
         """
@@ -528,6 +538,7 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         """
         Sends a request for connected expansion boards to the server
         """
+        sigs.process_started.send("Requesting connected boards")
         sigs.board_list_requested.send()
 
 

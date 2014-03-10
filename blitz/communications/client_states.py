@@ -87,11 +87,15 @@ class ClientIdleState(BaseState):
     """
     def receive_message(self, tcp, msg):
         # only ACK is acceptable in this state
+        if msg[0:6] == CommunicationCodes.Boards:
+            sigs.board_list_received.send(msg)
+            return self
         if msg == CommunicationCodes.Acknowledge:
             sigs.process_finished.send()
             return self
 
         self.logger.warning("[TCP] Calling idle.receive_message: " + msg)
+        return self
 
     def send_message(self, tcp, msg):
         self.logger.debug("[TCP] Calling idle.send_message: " + msg)

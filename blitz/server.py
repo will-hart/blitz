@@ -182,7 +182,7 @@ class ApplicationServer(object):
         split_session_data = [session_data[i:i + 100] for i in range(0, len(session_data), 100)]
         self.tcp.send(split_session_data)
 
-    def send_connected_boards(self):
+    def send_connected_boards(self, args=None):
         """
         Handles the BOARDS request from the client, wanting to know which boards are connected
         """
