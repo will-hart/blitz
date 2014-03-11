@@ -1,6 +1,5 @@
 __author__ = 'Will Hart'
 
-import logging
 import unittest
 import datetime
 from nose.tools import raises
@@ -8,15 +7,12 @@ import sqlalchemy
 from sqlalchemy import orm
 
 from blitz.data import DataContainer, BaseDataTransform
-from blitz.data.fixtures import *
-from blitz.data.models import *
 import blitz.data.transforms as data_transforms
 from blitz.communications.boards import *
 from blitz.communications.client_states import *
 from blitz.data.database import *
 from blitz.communications.server_states import *
 from blitz.utilities import blitz_timestamp, to_blitz_date
-
 
 # set up logging globally for tests
 ch = logging.StreamHandler()

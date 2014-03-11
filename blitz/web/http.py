@@ -37,7 +37,7 @@ class ConnectHandler(ApiRequestHandler):
             try:
                 tcp = TcpBase("127.0.0.1", 8999)  # TODO get from config
                 tcp.create_client()
-            except TcpCommunicationException as tce:
+            except TcpCommunicationException:
                 data = self.application.settings['data']
                 data.log_error("Communication error with the board - connection closed")
                 tcp.stop()

@@ -22,11 +22,13 @@ class CommunicationCodes(object):
     Download = "DOWNLOAD"
     Error = "ERROR"
     Board = "BOARD"
+    Boards = "BOARDS"
     BoardError = "BOARDERROR"
     NoBoard = "NOBOARD"
     Ready = "READY"
     IsLogging = "LOGGING"
     GetSessions = "SESSIONS"
+    Reset = "RESET"
 
     @classmethod
     def composite(cls, base_code, code_id):
@@ -51,7 +53,8 @@ VALID_SERVER_COMMANDS = [
     CommunicationCodes.Download,
     CommunicationCodes.Board,
     CommunicationCodes.IsLogging,
-    CommunicationCodes.GetSessions
+    CommunicationCodes.GetSessions,
+    CommunicationCodes.Reset
 ]
 
 # commands that are valid to send TO the client
@@ -64,12 +67,14 @@ VALID_CLIENT_COMMANDS = [
     CommunicationCodes.BoardError,
     CommunicationCodes.NoBoard,
     CommunicationCodes.Error,
-    CommunicationCodes.Ready
+    CommunicationCodes.Ready,
+    CommunicationCodes.Reset
 ]
 
 MAX_MESSAGE_LENGTH = 112  # max length of message in bits
 PAYLOAD_LENGTH = 64  # min length of payload in bits
 MESSAGE_BYTE_LENGTH = 28  # number of characters in a hex message string (0-f is 4 bytes)
+PAYLOAD_OFFSET_BITS = 48  # number of bits of meta data before the payload starts
 
 BOARD_MESSAGE_MAPPING = {
     "sender": {"start": 0, "end": 8},
@@ -79,8 +84,7 @@ BOARD_MESSAGE_MAPPING = {
     "flag3": {"start": 13},
     "flag4": {"start": 14},
     "flag5": {"start": 15},
-    "timestamp": {"start": 16, "end": 48},
-    "payload": {"start": 48, "end": -1}
+    "timestamp": {"start": 16, "end": 48}
 }
 
 SerialUpdatePeriod = 1.0  # serial update period in seconds
@@ -90,5 +94,8 @@ SerialCommands = {
     'TRANSMIT': 'C0',
     'ID': '81',
     'START': '00',
-    'STOP': '20'
+    'STOP': '20',
+    'SET_SPEED': '85',
+    'SET_ANGLE': '86',
+    'MOTOR_HOME': '87',
 }

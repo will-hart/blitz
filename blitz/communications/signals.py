@@ -4,7 +4,7 @@ from blinker import signal
 
 #: Fired when the client has requested a connection to the data logger
 #:
-#: Subscribed to by:
+#: Subscribers (subscribed in >> subscribed to):
 #:  - BaseApplicationClient.__init__ >> BaseApplicationClient.connect_to_logger()
 #:
 #: Sent by:
@@ -13,7 +13,7 @@ logger_connecting = signal('logger_connected')
 
 #: Fired when the client receives a line of cached data
 #:
-#: Subscribed to by:
+#: Subscribers (subscribed in >> subscribed to):
 #:  - :mod:`ApplicationClient`.__init__ >> ApplicationClient.cache_line_received
 #:
 #: Sent by:
@@ -23,7 +23,7 @@ cache_line_received = signal('cache_line_received')
 #: Fired when the expansion board receives a data row for processing
 #: during a download.  Allows pre-processing of data
 #:
-#: Subscribed to by:
+#: Subscribers (subscribed in >> subscribed to):
 #:  - :mod:`BoardManager`.__init__ >> BoardManager.parse_session_message
 #:
 #: Sent by:
@@ -39,7 +39,7 @@ data_line_processed = signal('data_line_processed')
 
 #: Fired when expansion boards should be registered with the board manager
 #:
-#: Subscribed to by:
+#: Subscribers (subscribed in >> subscribed to):
 #:  - [Expansion Boards].register_signals >> BaseExpansionBoard.register_board
 #:
 #: Sent by:
@@ -54,7 +54,7 @@ plugin_loaded = signal('plugin_loaded')
 
 #: Fired when logging starts on the server
 #:
-#: Subscribed to by:
+#: Subscribers (subscribed in >> subscribed to):
 #:  - :mod:`SerialManager`.__init__ >> SerialManager.start
 #:
 #: Sent by:
@@ -63,7 +63,7 @@ logging_started = signal('logging_started')
 
 #: Fired when logging stops on the server
 #:
-#: Subscribed to by:
+#: Subscribers (subscribed in >> subscribed to):
 #:  - :mod:`SerialManager`.__init__ >> SerialManager.stop
 #:
 #: Sent by:
@@ -72,7 +72,7 @@ logging_stopped = signal('logging_stopped')
 
 #: Fired when the client requests a status update from the server
 #:
-#: Subscribed to by:
+#: Subscribers (subscribed in >> subscribed to):
 #:  - ApplicationServer.__init__ >> ApplicationServer.serve_client_status
 #:
 #: Sent by:
@@ -81,16 +81,18 @@ server_status_request = signal('server_status_request')
 
 #: Fired when the client has requested a status list update, TcpServer as argument
 #:
-#: Subscribed to by:
+#: Subscribers (subscribed in >> subscribed to):
 #:  - :mod:`ApplicationServer`.__init__ >> ApplicationServer.update_session_list
+#:  - :mod:`ApplicationClient`.__init__ >> ApplicationClient.request_session_list
 #:
 #: Sent by:
 #:  - :mod:`ServerIdleState`.receive_message
+#:  - :mod:`MainBlitzWindow`.get_session_list
 client_requested_session_list = signal('client_requested_session_list')
 
 #: Fired when the client has a completed session list received from the server
 #:
-#: Subscribed to by:
+#: Subscribers (subscribed in >> subscribed to):
 #:  - :mod:`DatabaseClient`.__init__ >> DatabaseClient.update_session_list
 #:
 #: Sent by:
@@ -107,11 +109,96 @@ tcp_message_received = signal('tcp_message_received')
 
 #: Fired when a client requests a download of a particular session
 #:
-#: Subscribed to by:
+#: Subscribers (subscribed in >> subscribed to):
 #:  - :mod:`ApplicationServer`.__init__ >> ApplicationServer.serve_client_download
 #:  - :mod:`ApplicationClient`.__init__ >> ApplicationClient.send_download_request
 #:
 #: Sent by:
 #:  - :mod:`ServerDownloadingState`.enter_state
 #:  - :mod:`DownloadHandler`.get
+#:  - :mod:`blitz.ui.BlitzSessionWindow`.download_session
 client_requested_download = signal('client_requested_download')
+
+#: Fired when a command was received from the desktop software for an expansion board
+#:
+#: Subscribers (subscribed in >> subscribed to):
+#:  - :mod:`SerialManager`.__init__ >> BoardManager.handle_board_command
+#:  - :mod:`ApplicationClient`.__init__ >> ApplicationClient.send_command
+#:
+#: Sent by:
+#:  - :mod:`ServerBaseState`.process_standard_messages
+#:  - :mod:`CalibrationDialog`.step
+board_command_received = signal('board_command_received')
+
+#: Fired when the client wants to find out which boards are connected
+#:
+#: Subscribers (subscribed in >> subscribed to):
+#:  - :mod:`ApplicationServer`.__init__ >> ApplicationClient.send_connected_boards
+#:  - :mod:`ApplicationClient`.__init__ >> ApplicationClient.send_boards_command
+#: Sent by:
+#:  - :mod:`ServerIdleState`.receive_message
+#:  - :mod:`MainBlitzWindow`.send_board_list
+board_list_requested = signal('board_list_requested')
+
+#: Fired when the client wants to find out which boards are connected
+#:
+#: Subscribers (subscribed in >> subscribed to):
+#:  - :mod:`ApplicationClient`.__init__ >> ApplicationClient.process_boards_command
+#:
+#: Sent by:
+#:  - :mod:`ClientIdleState`.receive_message
+board_list_received = signal('board_list_received')
+
+#: Fired when the client wants to find out which boards are connected
+#:
+#: Subscribers (subscribed in >> subscribed to):
+#:  - `GUISignalEmitter`.__init__
+#:
+#: Sent by:
+#:  - :mod:`ApplicationClient`.process_boards_command
+board_list_processed = signal('board_list_processed')
+
+#: Fired when an error was received by the client from the data logger
+#:
+#: Subscribers (subscribed in >> subscribed to):
+#:  - `GUISignalEmitter`.__init__
+#:
+#: Sent by:
+#:  - :mod:`ClientIdleState`.receive_message
+logger_error_received = signal('logger_error_received')
+
+#: Fired when the client wishes to force the board to be RESET to fix an error
+#:
+#: Subscribers (subscribed in >> subscribed to):
+#:  - `ApplicationClient`.__init__ >> ApplicationClient.force_board_reset
+#:
+#: Sent by:
+#:  - `BlitzMainWindow`.force_board_reset
+force_board_reset = signal('force_board_reset')
+
+#: Fired when the client loses the TCP connection (after three attempts)
+#:
+#: Subscribers (subscribed in >> subscribed to):
+#:  - `GUISignalEmitter`.__init__
+#:
+#: Sent by:
+#:  - :mod:`TcpBase`.run_client
+lost_tcp_connection = signal('lost_tcp_connection')
+
+#: Fired when an asynchronous process starts to allow clients to update the UI
+#:
+#: Subscribers (subscribed in >> subscribed to):
+#:  - `GUISignalEmitter`.__init__
+#:
+#: Sent by:
+#:  - :mod:`TcpBase`.run_client
+process_started = signal('process_started')
+
+#: Fired when an asynchronous process finishes to allow clients to update the UI
+#:
+#: Subscribers (subscribed in >> subscribed to):
+#:  - `GUISignalEmitter`.__init__
+#:
+#: Sent by:
+#:  - :mod:`TcpBase`.run_client
+process_finished = signal('process_finished')

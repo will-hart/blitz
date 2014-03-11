@@ -32,7 +32,7 @@ class BaseState(object):
         Send the passed message over TCP and return the current state
         """
         self.logger.debug("[TCP] Calling base.send_message: " + str(msg))
-        tcp._do_send(msg)
+        tcp.do_send(msg)
         return self
 
     def go_to_state(self, tcp, state, args=None):
@@ -56,20 +56,29 @@ class ClientInitState(BaseState):
     def enter_state(self, tcp, state, args=None):
         """Send a logging query to the logger"""
         self.logger.debug("[TCP] Calling init.enter_state")
-        tcp._do_send(CommunicationCodes.IsLogging)
+        tcp.do_send(CommunicationCodes.IsLogging)
         return self
 
     def receive_message(self, tcp, msg):
         self.logger.debug("[TCP] Calling init.receive_message: " + msg)
+        sigs.process_finished.send()
+
         if msg == CommunicationCodes.Acknowledge:
             # logger is logging, transition to LOGGING state
             return self.go_to_state(tcp, ClientLoggingState)
         elif msg == CommunicationCodes.Negative:
             # logger is not logging, go to idle
             return self.go_to_state(tcp, ClientIdleState)
+        elif msg[0:5] == CommunicationCodes.Error:
+            sigs.logger_error_received.send(msg)
+            return self
         else:
-            # no other messages are acceptable in this state
-            raise Exception("Unable to process the given message from InitState: " + msg)
+            if msg == "":
+                self.logger.warning("Received empty message, ignoring")
+                return self
+            else:
+                # no other messages are acceptable in this state
+                raise Exception("Unable to process the given message from InitState: " + msg)
 
 
 class ClientIdleState(BaseState):
@@ -77,9 +86,16 @@ class ClientIdleState(BaseState):
     Handles the client idling, waiting for further commands
     """
     def receive_message(self, tcp, msg):
-        # no server messages are acceptable in this state
-        self.logger.debug("[TCP] Calling idle.receive_message: " + msg)
-        raise Exception("Received unexpected message in IdleState: " + msg)
+        # only ACK is acceptable in this state
+        if msg[0:6] == CommunicationCodes.Boards:
+            sigs.board_list_received.send(msg)
+            return self
+        if msg == CommunicationCodes.Acknowledge:
+            sigs.process_finished.send()
+            return self
+
+        self.logger.warning("[TCP] Calling idle.receive_message: " + msg)
+        return self
 
     def send_message(self, tcp, msg):
         self.logger.debug("[TCP] Calling idle.send_message: " + msg)
@@ -88,10 +104,18 @@ class ClientIdleState(BaseState):
         elif msg == CommunicationCodes.GetSessions:
             return self.go_to_state(tcp, ClientSessionListState)
         elif msg[0:8] == CommunicationCodes.Download:
-            tcp._do_send(msg)
+            tcp.do_send(msg)
             new_state = self.go_to_state(tcp, ClientDownloadingState, int(msg.split(" ")[1]))
             return new_state
+        elif msg[0:5] == CommunicationCodes.Board:
+            tcp.do_send(msg)
+            return self
+        if msg[0:5] == CommunicationCodes.Reset:
+            self.logger.warning("[TCP] Forcing logger reset")
+            tcp.do_send(msg)
+            return self.go_to_state(tcp, ClientIdleState)
         else:
+            self.logger.error("Attempted to send unknown message for IDLE state: {0}".format(msg))
             raise Exception("Unknown message for IDLE state - " + msg)
 
 
@@ -103,7 +127,8 @@ class ClientSessionListState(BaseState):
         """Send a logging session list to the logger"""
         self.sessions = []
         self.logger.debug("[TCP] Calling session_list.enter_state")
-        tcp._do_send(CommunicationCodes.GetSessions)
+        sigs.process_started.send("Downloading session data from the logger")
+        tcp.do_send(CommunicationCodes.GetSessions)
         return self
 
     def receive_message(self, tcp, msg):
@@ -130,6 +155,7 @@ class ClientSessionListState(BaseState):
         """
         sends a signal to save the session list to database, and then calls super go_to_state
         """
+        sigs.process_finished.send()
         sigs.client_session_list_updated.send(self.sessions)
         return super(ClientSessionListState, self).go_to_state(tcp, state)
 
@@ -138,13 +164,17 @@ class ClientStartingState(BaseState):
     """Handles logging starting - waits for ACK from server"""
     def enter_state(self, tcp, state, args=None):
         self.logger.debug("[TCP] Calling starting.enter_state: " + state.__name__)
-        tcp._do_send(CommunicationCodes.Start)
+        tcp.do_send(CommunicationCodes.Start)
         return self
 
     def receive_message(self, tcp, msg):
         self.logger.debug("[TCP] Calling starting.receive_message: " + msg)
+        sigs.process_finished.send()
+
         if msg == CommunicationCodes.Acknowledge or msg == CommunicationCodes.InSession:
             return self.go_to_state(tcp, ClientLoggingState)
+        elif msg[0:5] == CommunicationCodes.Error:
+            sigs.logger_error_received.send(msg)
 
         return self.go_to_state(tcp, ClientIdleState)
 
@@ -155,6 +185,7 @@ class ClientLoggingState(BaseState):
     """
     def enter_state(self, tcp, state, args=None):
         """sets up a timer which periodically polls the data logger for updates"""
+        sigs.logging_started.send()
         self.logger.debug("[TCP] Calling logging.enter_state")
         self.__stop_updater = threading.Event()
         self.update_thread = threading.Thread(target=self.request_update, args=[self.__stop_updater, tcp])
@@ -166,7 +197,7 @@ class ClientLoggingState(BaseState):
         """called on timer tick to request an update from the TCP server"""
         while not stop_event.is_set():
             tcp.send(CommunicationCodes.Update)
-            time.sleep(2.0)  # TODO get this value from config
+            time.sleep(1.0)  # TODO get this value from config
         self.logger.info("Stopping update request thread on TcpClient")
 
     def send_message(self, tcp, msg):
@@ -178,10 +209,15 @@ class ClientLoggingState(BaseState):
 
         # if not, are we requesting a status?
         if msg == CommunicationCodes.Update:
-            tcp._do_send(CommunicationCodes.Update)
+            tcp.do_send(CommunicationCodes.Update)
+
+        elif msg[0:5] == CommunicationCodes.Board:
+            tcp.do_send(msg)
+            return self
+
         else:
             # otherwise we just send the message and let the server sort it out
-            tcp._do_send(msg)
+            tcp.do_send(msg)
         return self
 
     def receive_message(self, tcp, msg):
@@ -191,7 +227,7 @@ class ClientLoggingState(BaseState):
             if len(msg) >= 5 and msg[0:5] == CommunicationCodes.Error:
                 self.logger.error("Received error code from logger [%s], stopping logging" % msg)
                 return self.go_to_state(tcp, ClientStoppingState)
-            else:
+            elif msg != CommunicationCodes.Acknowledge:
                 self.logger.warning("Ignoring unknown message [%s] in logging state" % msg)
 
         return self
@@ -209,12 +245,15 @@ class ClientStoppingState(BaseState):
     """
     def enter_state(self, tcp, state, args=None):
         self.logger.debug("[TCP] Calling stopping.enter_state: " + state.__name__)
-        tcp._do_send(CommunicationCodes.Stop)
+        tcp.do_send(CommunicationCodes.Stop)
         return self
 
     def receive_message(self, tcp, msg):
         self.logger.debug("[TCP] Calling stopping.receive_message: " + msg)
+        sigs.process_finished.send()
+
         if msg == CommunicationCodes.Acknowledge:
+            sigs.logging_stopped.send()
             return self.go_to_state(tcp, ClientSessionListState)
         return self
 
@@ -244,10 +283,17 @@ class ClientDownloadingState(BaseState):
         if msg[-4:] == CommunicationCodes.Negative:
             # the data has been received
             return self.go_to_state(tcp, ClientIdleState)
+
+        elif msg[0:5] == CommunicationCodes.Error:
+            tcp.send(CommunicationCodes.Reset)
+            self.logger.warning("Error on download, forcing server to transition to idle state")
+            return self.go_to_state(tcp, ClientIdleState)
+
         # and then request the next dump from the server
         tcp.send(CommunicationCodes.Acknowledge)
         return self
 
     def go_to_state(self, tcp, state, args=None):
+        sigs.process_finished.send()
         self.logger.debug("[TCP] Calling downloading.go_to_state >> " + state.__name__)
         return super(ClientDownloadingState, self).go_to_state(tcp, state)

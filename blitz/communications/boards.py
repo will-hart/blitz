@@ -7,6 +7,7 @@ from bitstring import BitArray
 from blitz.constants import BOARD_MESSAGE_MAPPING, PAYLOAD_LENGTH, MESSAGE_BYTE_LENGTH
 from blitz.data.models import Reading
 from blitz.communications.signals import data_line_received, data_line_processed, registering_boards
+from blitz.communications.rs232 import SerialManager
 from blitz.plugins import Plugin
 from blitz.utilities import blitz_timestamp
 
@@ -62,7 +63,7 @@ class BoardManager(object):
         self.data.add_many(decoded_vars)
 
         # work out if the session is fully downloaded
-        self.data.update_session_availability(session_id, len(messages))
+        self.data.update_session_availability(session_id)
 
     def parse_message(self, message, session_id=None, board_id=None):
         """
@@ -75,8 +76,12 @@ class BoardManager(object):
 
         readings = []
 
-        if board_id is None:
-            board_id = int(message[0:2], 16)
+        try:
+            if board_id is None:
+                board_id = int(message[0:2], 16)
+        except ValueError:
+            self.logger.warning("Unable to parse message... skipping - {0}".format(message))
+            return []
 
         try:
             board = self.boards[board_id]
@@ -89,11 +94,7 @@ class BoardManager(object):
         result = board.get_variables()
 
         # get session metadata
-        if session_id:
-            # TODO add timestamp to session start time
-            timeLogged = - board["timestamp"]
-        else:
-            timeLogged = blitz_timestamp()  # for cached just pretend its now
+        time_logged = board["timestamp"]
 
         # write the variables to the database
         for key in result.keys():
@@ -101,18 +102,35 @@ class BoardManager(object):
             if session_id:
                 # adding a reading
                 readings.append(
-                    Reading(sessionId=session_id, timeLogged=timeLogged, categoryId=category_id, value=result[key]))
+                    Reading(sessionId=session_id, timeLogged=time_logged, categoryId=category_id, value=result[key]))
             else:
                 # adding to cache
-                cached_item = self.data.add_cache(timeLogged, category_id, result[key])
-                readings.append({
-                    'categoryId': cached_item.categoryId,
-                    #'timeLogged': dt.datetime.fromtimestamp(cached_item.timeLogged / 1000),  # convert unix to python dates
-                    'timeLogged': cached_item.timeLogged / 1000,
-                    'value': int(cached_item.value)
-                })
+                cached_item = self.data.add_cache(time_logged, category_id, result[key])
+                if cached_item.value:
+                    readings.append({
+                        'categoryName': key,
+                        'categoryId': cached_item.categoryId,
+                        'timeLogged': cached_item.timeLogged / 1000,
+                        'value': float(cached_item.value)
+                    })
 
         return readings
+
+    def get_board_descriptions(self, boards):
+        """
+        Gets the descriptions of the boards given in a list
+
+        :param boards: a list of board ID strings
+        :returns: A list of tuples. each tuple containing `(ID, DESCRIPTION)`
+        """
+        result = []
+
+        for b in boards:
+            id = int(b, 16)
+            id_str = "{0} ({1})".format(id, b)
+            result.append((id_str, self.boards[id].description) if id in self.boards.keys() else (id_str, "Unknown"))
+
+        return result
 
 
 class BaseExpansionBoard(Plugin):
@@ -125,7 +143,6 @@ class BaseExpansionBoard(Plugin):
     """
 
     logger = logging.getLogger(__name__)
-    board_id = -1
     do_not_register = True  # prevent registration of this board in the plugins list
 
     def __init__(self, description="Base Expansion Board"):
@@ -138,6 +155,7 @@ class BaseExpansionBoard(Plugin):
         self.__message = None
         self.__attributes = {}
         self.__mapping = BOARD_MESSAGE_MAPPING
+        self._payload_array = None
 
     def __getitem__(self, item):
         """Override get item to provide access to attributes"""
@@ -187,8 +205,9 @@ class BaseExpansionBoard(Plugin):
             else:
                 self[key] = self.__message[self.__mapping[key]["start"]]
 
-        # get the payload into a bit_array
-        self._payload_array = BitArray(uint=self["payload"], length=PAYLOAD_LENGTH + (len(raw_message) - 28) * 4)
+        # get the payload into a bit_array.
+        # the first 48 bitsare the meta data, ignore these
+        self['payload'] = self.__message[48:]
 
         # create a flags array
         self['flags'] = [
@@ -217,7 +236,7 @@ class BaseExpansionBoard(Plugin):
         """
         start = start_bit
         end = start + length
-        return self._payload_array[start:end].uint
+        return self['payload'][start:end].uint
 
     def get_flag(self, flag_number):
         """
@@ -242,6 +261,18 @@ class BaseExpansionBoard(Plugin):
         This method MUST be overridden by derived classes
         """
         return {}
+
+    def send_command(self, command):
+        """
+        Sends a command using the preferred method of the board.  Can be overridden in inherited classes
+        to provide behaviour other than the default RS232 transmission
+        """
+        result = SerialManager.Instance().send_command_with_ack(command, self.id)
+
+        if not result:
+            return
+
+        self.logger.warning("Board unable to process command (%s) received response (%s)" % (command, result))
 
 
 class BlitzBasicExpansionBoard(BaseExpansionBoard):
@@ -269,4 +300,100 @@ class BlitzBasicExpansionBoard(BaseExpansionBoard):
             "adc_channel_three": self.get_number(24, 12),
             "adc_channel_four": self.get_number(36, 12),
             "adc_channel_five": self.get_number(48, 12)
+        }
+
+
+class MotorExpansionBoard(BaseExpansionBoard):
+    """
+    A simple expansion board which allows setting a motor position or speed
+    and returns three values as 16 bit integers:
+
+     1. the current ADC value
+     2. the current measured position / speed
+     3. the set position / speed
+    """
+
+    def __init__(self, description="Motor Expansion Board"):
+        BaseExpansionBoard.__init__(self, description)
+        self.do_not_register = False
+        self.id = 9
+        self.description = description
+
+    def register_signals(self):
+        """Connect to the board loading signal"""
+        self.logger.debug(
+            "Board [%s:%s] now listening for registering_boards signal" % (self['id'], self['description']))
+        registering_boards.connect(self.register_board)
+
+    def get_variables(self):
+        #print self._payload_array.hex
+        return {
+            "raw_adc": self.get_number(0, 16),
+            "motor_value": self.get_number(16, 16),
+            "set_point": self.get_number(32, 16)
+        }
+
+
+class NetScannerEthernetBoard(BaseExpansionBoard):
+    """
+    An ethernet based expansion board for communicating with two NetScanner 9116 devices
+    connected to a NetScanner 9IFC.  The protocol is available from the NetScanner manuals
+    """
+
+    def __init__(self, description="NetScanner Ethernet Interface Board"):
+        """load the correct description for the board"""
+        BaseExpansionBoard.__init__(self, description)
+        self.do_not_register = False
+        self.id = 10
+        self.description = description
+        self.channel_offset = 0
+
+    def register_signals(self):
+        # signal to register the board
+        registering_boards.connect(self.register_board)
+        self.logger.debug(
+            "Board [%s:%s] now listening for registering_boards signal" % (self['id'], self['description']))
+
+    def get_variables(self, channel_min=1):
+        var_vals = [float(self.get_number(i * 32, 32)) / 1.0e6 for i in xrange(0, 16)]
+        channels = ["Channel_{0}".format(i + self.channel_offset) for i in xrange(1, 17)]
+        return dict(zip(channels, var_vals))
+
+
+class NetScannerEthernetBoardTwo(NetScannerEthernetBoard):
+    """
+    In lieu of extended messages on the ehternet board, provide a second board for channels 17-32
+    """
+    def __init__(self, description="NetScanner Ethernet Interface Board Two"):
+        NetScannerEthernetBoard.__init__(self, description)
+        self.channel_offset = 16
+        self.id = 11
+
+    def get_variables(self, channel_min=17):
+        return super(NetScannerEthernetBoardTwo, self).get_variables(channel_min)
+
+
+class ExpansionBoardMock(BaseExpansionBoard):
+    """
+    Test the parsing abilities of expansion boards
+    """
+
+    def identify_board(self):
+        self['id'] = 0
+        self['description'] = "Expansion Board Mock For Testing"
+
+    def get_variables(self):
+        return {
+            "flag_one": self.get_flag(0),
+            "flag_two": self.get_flag(1),
+            "flag_three": self.get_flag(2),
+            "flag_four": self.get_flag(3),
+            "flag_five": self.get_flag(4),
+
+            "type": self['type'],
+
+            "full_payload": self.get_raw_payload(),
+
+            "variable_a": self.get_number(0, 16),
+            "variable_b": self.get_number(16, 16)
         }

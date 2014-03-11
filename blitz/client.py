@@ -70,7 +70,7 @@ class Config(object):
         return self.set(key, value)
 
 
-class BaseApplicationClient(object):
+class ApplicationClient(object):
     """
     A basic application which provides access method agnostic functionality
     for running a Blitz client side application.  Can be inherited to run
@@ -113,6 +113,11 @@ class BaseApplicationClient(object):
         # subscribe to signals
         sigs.cache_line_received.connect(self.cache_line_received)
         sigs.client_requested_download.connect(self.send_download_request)
+        sigs.client_requested_session_list.connect(self.request_session_list)
+        sigs.board_command_received.connect(self.send_command)
+        sigs.force_board_reset.connect(self.force_board_reset)
+        sigs.board_list_requested.connect(self.send_boards_command)
+        sigs.board_list_received.connect(self.process_boards_command)
 
     def run(self):
         """
@@ -135,6 +140,7 @@ class BaseApplicationClient(object):
         self.logger.debug("Handling client download request")
 
         if self.tcp is None:
+            sigs.process_finished.send()
             self.logger.debug("Failed to handle client download request - no TCP connection")
             self.data.log_error(
                 "Unable to request download for session #%s as the logger is not connected" % session_id)
@@ -150,28 +156,32 @@ class BaseApplicationClient(object):
         with the data logger.  If a connection already exists, close it and reopen
         """
 
+
         if self.tcp is None:
             # we are connecting
+            sigs.process_started.send("Creating connection to data logger")
+
             self.logger.debug("Created TCP connection at client request")
             try:
                 self.tcp = TcpBase("127.0.0.1", 8999)  # TODO get from config
                 self.tcp.create_client()
-            except TcpCommunicationException as tce:
+            except TcpCommunicationException:
                 self.data.log_error("Communication error with the board - connection closed")
                 self.tcp.stop()
                 self.tcp = None
 
         else:
+            sigs.process_started.send("Closing connection to data logger")
             self.tcp.stop()
             self.logger.debug("Closed TCP connection at client request")
-
-            # write a connection error to database for the user
-            self.data.log_error("Unable to connect to the network")
+            self.tcp = None
+            sigs.process_finished.send()
 
     def start_logging(self, args=None):
         """
         Sends a 'start logging' signal to the data logger
         """
+        sigs.process_started.send("Getting logger to start logging")
 
         if self.tcp is None:
             self.logger.warning("Attempt to start logging on TCP connection failed - there is no TCP connection")
@@ -183,6 +193,7 @@ class BaseApplicationClient(object):
         """
         Sends a 'stop logging' signal to the data logger
         """
+        sigs.process_started.send("Getting logger to stop logging")
 
         if self.tcp is None:
             self.logger.warning("Attempt to stop logging on TCP connection failed - there is no TCP connection")
@@ -191,10 +202,17 @@ class BaseApplicationClient(object):
             self.logger.debug("Web client requested logging stop")
             self.tcp.send(CommunicationCodes.Stop)
 
+    def request_session_list(self, args=None):
+        """
+        Gets an update of the session list from the device. Must usually be called when in IDLE state so the
+        UI should prevent calling at other times
+        """
+        self.tcp.send(CommunicationCodes.GetSessions)
+
     def update_interface(self, data, replace_existing=False):
         """
         Updates the user interface with new cache data received.  This method generates the required data structure,
-        the actual interface imlementation is provided by the inheriting class.  Note that this means the inheriting
+        the actual interface implementation is provided by the inheriting class.  Note that this means the inheriting
         class should call `results = super(...).update_interface` to gather the data in the correct format.
 
         :param data: A list of Cache models or Reading models to convert into a dictionary: {'variable_name': [[x][y]] }
@@ -206,14 +224,49 @@ class BaseApplicationClient(object):
         result = {}
 
         for item in data:
-            cat_id = str(item['categoryId'])
+            cat_id = (str(item['categoryId']), item['categoryName'])
             if not cat_id in result.keys():
-                result[cat_id] = [[],[]]  # set up an empty list
+                result[cat_id] = [[], []]  # set up an empty list
 
             result[cat_id][0].append(item['timeLogged'])
             result[cat_id][1].append(item['value'])
 
         return None if len(result.keys()) == 0 else result
+
+    def send_command(self, command):
+        """
+        Sends a message to the board with the given id.  The message should be packed as a hex string
+
+        :param command: the hex payload to send
+        """
+        self.tcp.send(CommunicationCodes.composite(
+            CommunicationCodes.Board, "{0} {1}".format(command[:2], command[2:])))
+
+    def force_board_reset(self, args=None):
+        """
+        Forces the logger to be reset, can fix some errors
+        """
+        self.tcp.send(CommunicationCodes.Reset)
+
+    def send_boards_command(self, args=None):
+        """
+        Requests a list of connected expansion boards to the data logger
+        """
+        self.tcp.send(CommunicationCodes.Boards)
+
+    def process_boards_command(self, args):
+        """
+        Process a BOARDS response received from the server
+
+        :param args: A string containing "BOARDS " followed by a list of board IDs
+        """
+
+        if args[0:6] != CommunicationCodes.Boards:
+            self.logger.warning("Boards response does not match expected format - {0}".format(args))
+            return
+
+        board_descriptions = self.board_manager.get_board_descriptions(args[7:].split())
+        sigs.board_list_processed.send(board_descriptions)
 
     def __del__(self):
         """
@@ -222,7 +275,7 @@ class BaseApplicationClient(object):
         self.logger.warning("Closing Client Application")
 
 
-class WebApplicationClient(BaseApplicationClient):
+class WebApplicationClient(ApplicationClient):
     """
     A basic application which exposes the Api and HTTP request handlers
     provided by Tornado
@@ -236,13 +289,6 @@ class WebApplicationClient(BaseApplicationClient):
         """
 
         super(WebApplicationClient, self).__init__()
-
-        # todo remove fixture loading
-        try:
-            self.data.load_fixtures()
-            self.logger.info("Loaded fixtures")
-        except Exception:
-            pass
 
         # create an application
         self.application = tornado.web.Application([
@@ -294,7 +340,7 @@ class WebApplicationClient(BaseApplicationClient):
             self.io_loop.add_callback(self.io_loop.stop)
             self.logger.warning("Stopped IO loop with callback")
 
-    def connect_to_logger(self, args):
+    def connect_to_logger(self, args=None):
         """
         Extend the BaseApplicationClient.connect_to_logger method to save the
         TCP socket to application settings
@@ -305,6 +351,3 @@ class WebApplicationClient(BaseApplicationClient):
 
         # save off the socket for later use in the application
         self.application.settings['socket'] = self.tcp
-
-
-

@@ -1,6 +1,5 @@
 __author__ = 'Will Hart'
 
-import json
 import time
 from tornado.web import RequestHandler
 

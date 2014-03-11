@@ -1,22 +1,64 @@
-import matplotlib
 from blitz.data import DataContainer
 from blitz.data.models import Session
 
-matplotlib.rc_file('matplotlibrc')
-matplotlib.use('Qt4Agg')
-matplotlib.rcParams['backend.qt4']='PySide'
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
-from matplotlib.widgets import Cursor as MplCursor
 import PySide.QtGui as Qt
 import PySide.QtCore as QtCore
 import sys
 
-from blitz.client import BaseApplicationClient
+from blitz.client import ApplicationClient
+import blitz.communications.signals as sigs
+from blitz.communications.rs232 import ExpansionBoardNotFound
 from blitz.ui.mixins import BlitzGuiMixin
+from blitz.ui.dialogs import ProcessingDialog, CalibrationDialog
+from blitz.ui.widgets import BlitzLoggingWidget, BlitzTableView, BlitzSessionTabPane
+from blitz.utilities import blitz_strftimestamp
 
 
-class MainBlitzApplication(BaseApplicationClient):
+class GUISignalEmitter(QtCore.QObject):
+    """
+    Used for passing events and signals from other threads onto the GUI thread
+    """
+    tcp_lost = QtCore.Signal()
+    task_started = QtCore.Signal(str)
+    task_finished = QtCore.Signal()
+    board_error = QtCore.Signal(str)
+    logging_started = QtCore.Signal()
+    logging_stopped = QtCore.Signal()
+    boards_updated = QtCore.Signal(dict)
+
+    def __init__(self):
+        super(GUISignalEmitter, self).__init__()
+        sigs.lost_tcp_connection.connect(self.trigger_connection_lost)
+        sigs.process_started.connect(self.trigger_task_started)
+        sigs.process_finished.connect(self.trigger_task_finished)
+        sigs.logger_error_received.connect(self.trigger_board_error)
+        sigs.logging_started.connect(self.trigger_logging_started)
+        sigs.logging_stopped.connect(self.trigger_logging_stopped)
+        sigs.board_list_processed.connect(self.trigger_boards_updated)
+
+    def trigger_connection_lost(self, args):
+        self.tcp_lost.emit()
+
+    def trigger_task_started(self, description):
+        self.task_started.emit(description)
+
+    def trigger_task_finished(self, args):
+        self.task_finished.emit()
+
+    def trigger_board_error(self, args):
+        self.board_error.emit(args)
+
+    def trigger_logging_started(self, args):
+        self.logging_started.emit()
+
+    def trigger_logging_stopped(self, args):
+        self.logging_stopped.emit()
+
+    def trigger_boards_updated(self, boards):
+        self.boards_updated.emit(boards)
+
+
+class MainBlitzApplication(ApplicationClient):
 
     def __init__(self, args):
         """
@@ -46,109 +88,6 @@ class MainBlitzApplication(BaseApplicationClient):
             self.gui_application.window.update_cached_data(result, replace_existing)
 
 
-class BlitzLoggingWidget(Qt.QWidget):
-    """
-    A widget which handles logger display of data
-    """
-
-    def __init__(self):
-        """
-        Initialises the graph widget
-        """
-
-        super(BlitzLoggingWidget, self).__init__()
-
-        # set up the required data structures
-        self.__lines = {}
-        self.__container = DataContainer()
-
-        # create widgets
-        self.figure = Figure(figsize=(1024, 768), dpi=72, facecolor=(1, 1, 1), edgecolor=(1, 0, 0))
-
-        # create a plot
-        self.axis = self.figure.add_subplot(111)
-        #self.figure.subplots_adjust(left=0.2)
-
-        # build the chart but do not draw it yet - wait until the application is drawn
-        self.redraw({}, True, False)
-
-        # create the canvas
-        self.canvas = FigureCanvas(self.figure)
-
-        # initialise the data point label
-        self.data_point_label = Qt.QLabel('X: 0.000000, Y: 0.000000')
-
-        # conect up the canvas
-        self.canvas.mpl_connect('motion_notify_event', self.mouse_over_event)
-
-        # create a cursor
-        self.data_cursor = MplCursor(self.axis, useblit=True, color='blue', linewidth=1)
-
-        # layout widgets
-        self.grid = Qt.QGridLayout()
-        self.grid.addWidget(self.canvas, 0, 0, 1, 3)
-        self.grid.addWidget(self.data_point_label, 1, 0)
-
-        # Save the layout
-        self.setLayout(self.grid)
-
-    def mouse_over_event(self, event):
-        """
-        Handles the mouse rolling over the plot
-        """
-
-        if not event.inaxes:
-            self.data_point_label.setText('X: 0.000000, Y: 0.000000')
-        else:
-            self.data_point_label.setText(self.axis.format_coord(event.xdata, event.ydata))
-
-    def redraw(self, new_data, replace_existing=False, draw_canvas=True):
-        """
-        Redraws the graph when new cached data is supplied
-
-        :param new_data: A list of lists containing new data to be added
-        :param replace_existing: If True, then the existing data will be deleted before appending
-        :param draw_canvas: Prevents attempting to draw the canvas before the Qt window is drawn on startup
-        """
-        if replace_existing:
-            # clear the existing plot
-            self.axis.cla()
-            self.__lines = {}
-            self.__container = DataContainer()
-
-        for key in new_data.keys():
-            # massage key to str
-            key = str(key)
-
-            # get the new plot data
-            x, y = new_data[key]
-
-            # push the new plot data on to the Container, checking if we need a new plot
-            if self.__container.push(key, x, y):
-                # TODO: determine how to manage plot ordering and new variables being suddenly added
-                # TODO: after a 'replace_existing'
-                # add an empty plot and record the ID
-                self.__lines[key], = self.axis.plot([], [], 'o-')
-
-            x, y = self.__container.get_series(key)
-
-            # update the chart at the correct index
-            self.__lines[key].set_xdata(x)
-            self.__lines[key].set_ydata(y)
-
-        # tidy up and rescale
-        if self.__container.empty():
-            self.axis.set_xlim(left=0, right=100)
-            self.axis.set_ylim(bottom=0, top=100)
-        else:
-            self.axis.set_xlim(left=self.__container.x_min - 1, right=self.__container.x_max + 1, auto=False)
-            self.axis.set_ylim(bottom=self.__container.y_min * 0.9, top=self.__container.y_max * 1.1, auto=False)
-
-        # redraw if required
-        if draw_canvas:
-            self.canvas.draw()
-
-
 class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
     """
     Contains a Qt Main Window that handles user interactions on the Blitz Logger desktop software
@@ -159,6 +98,19 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         """
         super(MainBlitzWindow, self).__init__()
 
+        # connect up external signals
+        self.__signaller = GUISignalEmitter()
+        self.__signaller.tcp_lost.connect(self.connection_lost)
+        self.__signaller.task_started.connect(self.show_process_dialogue)
+        self.__signaller.task_finished.connect(self.update_session_list)
+        self.__signaller.board_error.connect(self.show_board_error)
+        self.__signaller.logging_started.connect(self.logging_started_ui_update)
+        self.__signaller.logging_stopped.connect(self.logging_stopped_ui_update)
+        self.__signaller.boards_updated.connect(self.update_connected_boards)
+
+        # create a data context for managing data
+        self.__container = DataContainer()
+
         self.application = app
 
         self.initialise_window()
@@ -168,6 +120,40 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.layout_window()
 
         self.run_window()
+
+        # create a handle for a processing dialogue
+        self.__indicator = None
+        self.__calibration_win = None
+
+    def show_process_dialogue(self, description):
+        self.__indicator = ProcessingDialog(self.__signaller.task_finished, description)
+        self.__indicator.show()
+
+    def show_board_error(self, error):
+        """
+        Displays a board error to the user and suggests a logger reset
+        """
+        # inform the user
+        Qt.QMessageBox.critical(
+            self, "Blitz Data Logger Error", "There has been an error communicating with the logger!" +
+            " The error code is: \n\n\t\t{0}\n\nYou can try resetting the data logger using ".format(error) +
+            "the 'logger' menu - this may result in the loss of logged data.")
+        self.status_bar.showMessage("The connection to the data logger has been lost")
+
+    def connection_lost(self):
+        """
+        Triggered when the connection is lost - tidies up the UI
+        """
+
+        # disconnect TCP and update the UI
+        self.application.tcp = None
+        self.disconnect_from_logger(ui_only=True)
+
+        # inform the user
+        Qt.QMessageBox.critical(
+            self, "Blitz Data Logger Connection Error", "Unable to establish a connection to the data logger")
+        self.status_bar.showMessage("The connection to the data logger has been lost")
+        sigs.process_finished.send()
 
     def initialise_window(self):
         """
@@ -191,9 +177,6 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
 
         Automatically created by __init__
         """
-        # status bar
-        self.status_bar = self.statusBar()
-        self.status_bar.showMessage("Blitz Logger is ready")
 
         ##
         # menu bar actions
@@ -230,13 +213,35 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.stop_session_action.triggered.connect(self.stop_session)
         self.stop_session_action.setEnabled(False)
 
-        # view a session list
-        self.session_list_action = Qt.QAction('View Session List', self)
-        #self.session_list_action.setEnabled(False)
-        self.session_list_action.setStatusTip("View previously logged sessions")
-        self.session_list_action.setToolTip("View previously logged sessions")
-        self.session_list_action.setShortcut('Ctrl+L')
-        self.session_list_action.triggered.connect(self.show_session_list)
+        # calibrate logger
+        self.calibration_action = Qt.QAction('&Calibrate', self)
+        self.calibration_action.setStatusTip("Calibrates exansion board")
+        self.calibration_action.setToolTip("Calibrates the expansion board")
+        self.calibration_action.triggered.connect(self.calibrate)
+        self.calibration_action.setEnabled(False)
+
+        # force reset device
+        self.reset_device_action = Qt.QAction(Qt.QIcon('blitz/static/img/desktop_reset.png'), '&Reset', self)
+        self.reset_device_action.setStatusTip("Reset logger to idle state")
+        self.reset_device_action.setToolTip("Forces the logger to reset to idle state")
+        self.reset_device_action.triggered.connect(self.reset_device)
+        self.reset_device_action.setEnabled(False)
+
+        # send a session list request
+        self.update_session_listing_action = Qt.QAction(
+            Qt.QIcon('blitz/static/img/desktop_session_list.png'), '&Update session list', self)
+        self.update_session_listing_action.setStatusTip("Get a list of logging sessions from the data logger")
+        self.update_session_listing_action.setToolTip("Get logger session list")
+        self.update_session_listing_action.triggered.connect(self.get_session_list)
+        self.update_session_listing_action.setEnabled(False)
+
+        # send a board list request
+        self.update_board_listing_action = Qt.QAction(
+            Qt.QIcon('blitz/static/img/desktop_session_list.png'), 'Update &board list', self)
+        self.update_board_listing_action.setStatusTip("Get a list of expansion boards connected to the data logger")
+        self.update_board_listing_action.setToolTip("Get logger board list")
+        self.update_board_listing_action.triggered.connect(self.send_boards_request)
+        self.update_board_listing_action.setEnabled(False)
 
         # shows the settings window
         self.settings_action = Qt.QAction('&Settings', self)
@@ -253,17 +258,46 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.exit_action.setToolTip('Exit application')
         self.exit_action.triggered.connect(self.close)
 
+        # label for diffuser position
+        self.motor_control_label = Qt.QLabel(" Diffuser position: ")
+
+        # allows setting of the motor angle
+        self.motor_control = Qt.QSpinBox()
+        self.motor_control.setMinimum(0)
+        self.motor_control.setMaximum(40)
+        self.motor_control.setValue(0)
+        self.motor_control.setEnabled(False)
+        self.motor_control.valueChanged.connect(self.set_motor_position)
+
         # menus
         self.main_menu = self.menuBar()
         self.file_menu = self.main_menu.addMenu('&File')
         self.logger_menu = self.main_menu.addMenu('&Logger')
-        self.session_menu = self.main_menu.addMenu('&Session')
 
         # the toolbar at the top of the window
         self.main_toolbar = self.addToolBar('Main')
 
-        # main graphing widget
-        self.main_widget = BlitzLoggingWidget()
+        # widgets to show in the tab
+        self.plot_widget = BlitzLoggingWidget(self.__container)
+        self.variable_widget = BlitzTableView(["Variable", "Value"])
+        self.variable_widget.build_layout()
+        self.session_list_widget = BlitzSessionTabPane(["", "ID", "Readings", "Date"], self.application)
+        self.session_list_widget.build_layout()
+        self.board_list_widget = BlitzTableView(["ID", "Description"])
+        self.board_list_widget.build_layout()
+        self.update_session_list()
+
+        # tabbed widget for session and variable
+        self.__tab_widget = Qt.QTabWidget()
+        self.__tab_widget.setMinimumWidth(300)
+        self.__tab_widget.addTab(self.variable_widget, "Variables")
+        self.__tab_widget.addTab(self.session_list_widget, "Sessions")
+        self.__tab_widget.addTab(self.board_list_widget, "Boards")
+
+        # create a layout grid
+        self.__layout = Qt.QSplitter()
+        self.__layout.addWidget(self.plot_widget)
+        self.__layout.addWidget(self.__tab_widget)
 
     def layout_window(self):
         """
@@ -282,8 +316,11 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.logger_menu.addSeparator()
         self.logger_menu.addAction(self.start_session_action)
         self.logger_menu.addAction(self.stop_session_action)
-
-        self.session_menu.addAction(self.session_list_action)
+        self.logger_menu.addSeparator()
+        self.logger_menu.addAction(self.calibration_action)
+        self.logger_menu.addAction(self.reset_device_action)
+        self.logger_menu.addAction(self.update_session_listing_action)
+        self.logger_menu.addAction(self.update_board_listing_action)
 
         # create the toolbar
         self.main_toolbar.addAction(self.connect_action)
@@ -291,9 +328,16 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.main_toolbar.addSeparator()
         self.main_toolbar.addAction(self.start_session_action)
         self.main_toolbar.addAction(self.stop_session_action)
+        self.main_toolbar.addSeparator()
+        self.main_toolbar.addWidget(self.motor_control_label)
+        self.main_toolbar.addWidget(self.motor_control)
 
-        # set the central widget
-        self.setCentralWidget(self.main_widget)
+        # create a grid to display the main widgets
+        self.setCentralWidget(self.__layout)
+
+        # status bar
+        self.status_bar = self.statusBar()
+        self.status_bar.showMessage("Blitz Logger is ready")
 
     def run_window(self):
         """
@@ -309,7 +353,7 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         Updates the cached and plotted data, optionally clearing the existing data
 
         :param data: The x-y data that should be appended to cached data
-        :param replace_existing: If false, the existing data will be entirely replaced as opposed ot appended.  Default True
+        :param replace_existing: If false, the existing data will be entirely replaced as opposed to appended.
 
         :returns: Nothing
         """
@@ -318,75 +362,64 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         #    # convert from Python datetime to matplotlib datenum
         #    data[k][0] = [MplDates.date2num(x) for x in data[k][0]]
 
-        self.main_widget.redraw(data, replace_existing)
+        self.plot_widget.redraw(data, replace_existing)
 
-    def show_session_list(self):
+        # update the variable view from the container
+        self.variable_widget.set_data(self.__container.get_latest(named=True))
+
+    def update_session_list(self):
         # first get the list of sessions
         raw_sessions = self.application.data.all(Session)
         sessions = []
 
         for sess in raw_sessions:
+            dt = blitz_strftimestamp(sess.timeStarted)
+
             sessions.append([
-                "Session %s (%s readings) started %s" % (sess.ref_id, sess.numberOfReadings, sess.timeStarted),
-                sess.available
-            ])
-            comment = """
-            ##### for table model
-            [
+                "X" if sess.available else "",
                 sess.ref_id,
-                0 if sess.timeStarted == "None" else sess.timeStarted / 1000,
-                0 if sess.timeStopped == "None" else sess.timeStopped / 1000,
                 sess.numberOfReadings,
-                sess.available
-            ]
-            """
+                dt
+            ])
 
-        self.session_list_window = BlitzSessionWindow(sessions)
-        self.session_list_window.show()
+        self.session_list_widget.set_data(sessions)
 
+    def set_motor_position(self):
+        """
+        Sets the motor position from the QSpinBox in the toolbar
+        """
+        pos = self.motor_control.value()
+        try:
+            self.send_move_command(pos)
+        except ExpansionBoardNotFound:
+            self.status_bar.showMessage("ERROR! Unable to contact the expansion board to set motor position")
+        else:
+            self.status_bar.showMessage("Set motor to %s" % pos)
 
-class BlitzSessionWindow(Qt.QWidget):
-    """
-    A UI window which lists available data logger sessions and
-    """
+    def update_connected_boards(self, data):
+        self.board_list_widget.set_data(data)
+        sigs.process_finished.send()
 
-    def __init__(self, session_list=None):
-        super(BlitzSessionWindow, self).__init__()
-        self.setWindowTitle("Session List")
-        self.resize(800, 600)
-
-        comment = """
-
-        ##### TABLE version
-        # set up the table for listing sessions
-        self.session_table = Qt.QTableWidget()
-        #self.session_table.setRowCount(10)
-        self.session_table.setColumnCount(5)
-        self.session_table.setHorizontalHeaderLabels(("Session ID", "Start Time", "End Time", "Readings", "Downloaded"))
-        self.session_table.setSizePolicy(Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Expanding)
-
-        # load session data into the table
-        if session_list:
-            for row, cols in enumerate(session_list):
-                for col, item in enumerate(cols):
-                    table_item = Qt.QTableWidgetItem(item)
-                    self.session_table.setItem(row, col, table_item)
-
-        self.session_table.resizeColumnsToContents()
+    def calibrate(self):
+        """
+        Shows the calibration form
         """
 
-        self.session_table = Qt.QListView(self)
-        model = Qt.QStandardItemModel(self.session_table)
+        self.__calibration_win = CalibrationDialog(5, 0, 40, "deg", "09")
+        self.__calibration_win.show()
 
-        for row in session_list:
-            item = Qt.QStandardItem(row[0])
-            item.setCheckable(True)
-            item.setCheckState(QtCore.Qt.Checked if row[1] else QtCore.Qt.Unchecked)
-            model.appendRow(item)
+    @staticmethod
+    def reset_device():
+        sigs.force_board_reset.send()
 
-        self.session_table.setModel(model)
+    @staticmethod
+    def send_boards_request():
+        """
+        Sends a request for connected expansion boards to the server
+        """
+        sigs.process_started.send("Requesting connected boards")
+        sigs.board_list_requested.send()
 
-        self.vertical_layout = Qt.QVBoxLayout()
-        self.vertical_layout.addWidget(self.session_table)
-
-        self.setLayout(self.vertical_layout)
+    @staticmethod
+    def get_session_list():
+        sigs.client_requested_session_list.send()

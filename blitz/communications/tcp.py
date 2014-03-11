@@ -1,7 +1,5 @@
 __author__ = 'Will Hart'
 
-import logging
-import threading
 import Queue
 import zmq
 
@@ -31,6 +29,7 @@ class TcpBase(object):
         self.__stop_event = threading.Event()
         self.__thread = None
         self.__state_machine = None
+        self.__context = None
 
     def create_client(self, autorun=True):
         self.__context = zmq.Context(1)
@@ -68,7 +67,7 @@ class TcpBase(object):
             self.__state_machine.join()
         self.__stop_event.clear()
 
-    def _do_send(self, message):
+    def do_send(self, message):
         self.send_queue.put(message)
 
     def send(self, message):
@@ -93,6 +92,10 @@ class TcpBase(object):
                 # now wait until a response is ready to send
                 self.waiting = False
                 while not self.waiting:
+
+                    if self.__stop_event.is_set():
+                        break
+
                     try:
                         response = self.send_queue.get(True, 0.1)
                     except Queue.Empty:
@@ -102,7 +105,8 @@ class TcpBase(object):
 
                     # check if we need to break up the response
                     if len(response) == 0:
-                        self.logger.warn("Ignored attempt to send zero length message to client via TCP. Sending newline")
+                        self.logger.debug(
+                            "Ignored attempt to send zero length message to client via TCP. Sending newline")
                         self.__socket.send("")
                     elif len(response) > self.MAX_RESPONSE_LENGTH:
                         parts = [response[i:i + self.MAX_RESPONSE_LENGTH] for i in
@@ -159,26 +163,18 @@ class TcpBase(object):
 
                 else:
                     # nothing was received from the server in the timeout period
-                    # reconnect with the socket and then try resending again a
-                    # couple of times before just giving up :)
-                    # todo disconnect and reconnect the socket
-                    # self.__socket.setsockopt(zmq.LINGER, 0)
-                    # self.__poller.unregister(self.__socket)
-                    # self.__socket.close()
-
                     retries -= 1
 
                     if retries <= 0:
+                        self.logger.warning(
+                            "Unable to send message after {0} attempts: {1}".format(self.REQUEST_RETRIES, request))
+                        sigs.lost_tcp_connection.send()
+                        self.waiting = False
                         self.__stop_event.set()
-                        self.logger.error(
-                            "Unable to send message after %s attempts: %s" % (self.REQUEST_RETRIES, request))
-                        raise TcpCommunicationException(
-                            "Failed to receive message from client after %s attempts" % self.REQUEST_RETRIES)
+                        continue
 
                     # otherwise recreate the connection and attempt to resend
                     self.logger.info("Client attempting resend of message %s (#%s)" % (request, retries))
-                    # TODO self.create_client(autorun=False)
-                    # TODO self.__socket.send(request)
 
             # now handle the reply
             self.receive_message(reply)

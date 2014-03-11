@@ -28,7 +28,6 @@ class PluginMount(type):
             # track of it later.
             cls.register_plugin(cls)
 
-
     def register_plugin(cls, plugin):
         """
         Add the plugin to the plugin list and register it's signals
