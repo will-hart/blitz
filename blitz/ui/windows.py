@@ -166,6 +166,9 @@ class BlitzLoggingWidget(Qt.QWidget):
             self.__lines = {}
             self.__container.clear_data()
 
+            self.axis.set_xlabel("Time Logged (s)")
+            self.axis.set_ylabel("Value")
+
         for key in new_data.keys():
             # massage key to str
             key = str(key)
