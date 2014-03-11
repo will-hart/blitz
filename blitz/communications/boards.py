@@ -94,10 +94,7 @@ class BoardManager(object):
         result = board.get_variables()
 
         # get session metadata
-        if session_id:
-            time_logged = board["timestamp"]
-        else:
-            time_logged = blitz_timestamp()  # for cached just pretend its now
+        time_logged = board["timestamp"]
 
         # write the variables to the database
         for key in result.keys():
