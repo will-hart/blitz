@@ -1,0 +1,112 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Blitz by will-hart</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1 class="header">Blitz</h1>
+        <p class="header">An open source data acquisition system in Python</p>
+
+        <ul>
+          <li class="download"><a class="buttons" href="https://github.com/will-hart/blitz/zipball/master">Download ZIP</a></li>
+          <li class="download"><a class="buttons" href="https://github.com/will-hart/blitz/tarball/master">Download TAR</a></li>
+          <li><a class="buttons github" href="https://github.com/will-hart/blitz">View On GitHub</a></li>
+        </ul>
+
+        <p class="header">This project is maintained by <a class="header name" href="https://github.com/will-hart">will-hart</a></p>
+
+
+      </header>
+      <section>
+        <h1>
+<a name="blitz-gui-02" class="anchor" href="#blitz-gui-02"><span class="octicon octicon-link"></span></a>Blitz GUI 0.2</h1>
+
+<h2>
+<a name="introduction" class="anchor" href="#introduction"><span class="octicon octicon-link"></span></a>Introduction</h2>
+
+<p>The Blitz GUI is an open source data acquisition solution. It is designed to be used with boards implementing the Arduino library that you can find at <a href="https://github.com/will-hart/BlitzExpansion">the Blitz Expansion github repository</a>.  </p>
+
+<p>The source code for this repository is available from <a href="https://github.com/will-hart/blitz">https://github.com/will-hart/blitz</a></p>
+
+<h2>
+<a name="what-is-blitz" class="anchor" href="#what-is-blitz"><span class="octicon octicon-link"></span></a>What is Blitz?</h2>
+
+<p>Blitz is a project that is being completed for my final dissertation on my engineering degree. It is a highly modular and flexible data acquisition system that is currently being used to gather pressure data and move an actuator in our wind tunnel. It has been designed so that it is very easy to set up "expansion boards" which can read for a wide variety of sensor types, allowing different types of data acquisition system to be used. </p>
+
+<p>Blitz was originally conceived as a standalone data logger that can be run on anything that can run Python. It has been tested on a RaspberryPi, but also on a laptop running Windows 7.  The initial prototypes used a web based UI so that the data logger could be controlled through any device with a web browser, such as a mobile phone.  Whilst the core of this UI is there, it needs to be rewritten using websockets to be truly functional.  The current UI being developed is a Python / PySide (Qt) UI.  </p>
+
+<p>It is written mostly in Python, the programming language of the gods. Blitz is named after an Kelpie (an Australian dog) called Mister Blitz. </p>
+
+<h2>
+<a name="what-is-the-status" class="anchor" href="#what-is-the-status"><span class="octicon octicon-link"></span></a>What is the status</h2>
+
+<p>Blitz has been under development for the better part of a year.  It is in a fully functional state and is frequently being improved and worked on. There are some known issues which are in the github issue tracker, as well as some others that are on the long term to-do list.  </p>
+
+<p>Blitz is the brainchild and sole work of <a href="www.williamhart.info">me</a>. </p>
+
+<h2>
+<a name="what-is-the-short-term-roadmap" class="anchor" href="#what-is-the-short-term-roadmap"><span class="octicon octicon-link"></span></a>What is the short term roadmap</h2>
+
+<p>The short term focus is on getting stability and improving usability. A list of current issues is on the github issue tracker.</p>
+
+<h2>
+<a name="what-is-the-long-term-roadmap" class="anchor" href="#what-is-the-long-term-roadmap"><span class="octicon octicon-link"></span></a>What is the long term roadmap</h2>
+
+<p>Eventually I would like to implement some of these features:</p>
+
+<ul>
+<li>Build "frozen" (e.g. *.exe) versions of the applications for people who don't want to install Python</li>
+<li>Implement an improved plugin system to make it easier to extend the supported data acquisition sources</li>
+<li>Re-implement the web based GUI for control from mobile devices over wireless</li>
+<li>Implement data "filters" for the desktop UI (such as FFT, moving averages, scale and offsets) that can be applied in various orders and combinations</li>
+</ul><h2>
+<a name="feedback" class="anchor" href="#feedback"><span class="octicon octicon-link"></span></a>Feedback</h2>
+
+<p>Feedback or contributions are more than welcome, you can get in touch @wlhart on twitter or via my website linked above.</p>
+
+<h2>
+<a name="license" class="anchor" href="#license"><span class="octicon octicon-link"></span></a>License</h2>
+
+<p>This software is provided under the AGPLv3 license.  For the full text of the license, look at the LICENSE file.</p>
+
+<blockquote>
+<p>Usually for open source software I prefer a less restrictive license - something like the MIT license.  However in
+this case I would like to ensure that if anybody makes changes or improvements to the Blitz software then those
+changes should be available to everybody who uses it!</p>
+</blockquote>
+
+<h2>
+<a name="change-log" class="anchor" href="#change-log"><span class="octicon octicon-link"></span></a>Change Log</h2>
+
+<p><strong>0.2</strong></p>
+
+<p>Too many changes to list individually... some highlights are:</p>
+
+<ul>
+<li>Numerous bug fixes and API documentation improvements</li>
+<li>Fully functional expansion boards</li>
+<li>Vastly improved desktop UI which allows control of expansion boards and server</li>
+</ul><p><strong>0.1</strong></p>
+
+<p>Initial version</p>
+      </section>
+      <footer>
+        <p><small>Hosted on <a href="http://pages.github.com">GitHub Pages</a> using the Dinky theme</small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+		
+  </body>
+</html>
