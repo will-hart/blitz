@@ -162,12 +162,12 @@ class BlitzLoggingWidget(Qt.QWidget):
         """
         if replace_existing:
             # clear the existing plot
-            self.axis.cla()
-            self.__lines = {}
             self.__container.clear_data()
 
-            self.axis.set_xlabel("Time Logged (s)")
-            self.axis.set_ylabel("Value")
+        self.axis.cla()
+        self.__lines = {}
+        self.axis.set_xlabel("Time Logged (s)")
+        self.axis.set_ylabel("Value")
 
         for key in new_data.keys():
             # massage key to str
@@ -175,19 +175,10 @@ class BlitzLoggingWidget(Qt.QWidget):
 
             # get the new plot data
             x, y = new_data[key]
-
-            # push the new plot data on to the Container, checking if we need a new plot
-            if self.__container.push(key, x, y):
-                # TODO: determine how to manage plot ordering and new variables being suddenly added
-                # TODO: after a 'replace_existing'
-                # add an empty plot and record the ID
-                self.__lines[key], = self.axis.plot([], [], 'o-', label=key)
+            self.__container.push(key, x, y)
 
             x, y = self.__container.get_series(key)
-
-            # update the chart at the correct index
-            self.__lines[key].set_xdata(x)
-            self.__lines[key].set_ydata(y)
+            self.__lines[key], = self.axis.plot(x, y, 'o-', label=key)
 
         # tidy up and rescale
         if self.__container.empty():
