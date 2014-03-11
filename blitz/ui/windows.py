@@ -9,8 +9,7 @@ from blitz.client import ApplicationClient
 import blitz.communications.signals as sigs
 from blitz.communications.rs232 import ExpansionBoardNotFound
 from blitz.ui.mixins import BlitzGuiMixin
-from blitz.ui.processing_dialog import ProcessingDialog
-from blitz.ui.calibration_dialog import CalibrationDialog
+from blitz.ui.dialogs import ProcessingDialog, CalibrationDialog
 from blitz.ui.widgets import BlitzLoggingWidget, BlitzTableView, BlitzSessionTabPane
 from blitz.utilities import blitz_strftimestamp
 
