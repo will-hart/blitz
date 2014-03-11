@@ -212,7 +212,7 @@ class ApplicationClient(object):
     def update_interface(self, data, replace_existing=False):
         """
         Updates the user interface with new cache data received.  This method generates the required data structure,
-        the actual interface imlementation is provided by the inheriting class.  Note that this means the inheriting
+        the actual interface implementation is provided by the inheriting class.  Note that this means the inheriting
         class should call `results = super(...).update_interface` to gather the data in the correct format.
 
         :param data: A list of Cache models or Reading models to convert into a dictionary: {'variable_name': [[x][y]] }

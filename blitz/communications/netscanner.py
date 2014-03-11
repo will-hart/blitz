@@ -165,7 +165,8 @@ class NetScannerManager(object):
                 delta_t = (datetime.datetime.now() - self.__logging_start).total_seconds() * 1000.0
                 delta_t = hex(int(delta_t))[2:].rjust(8, '0').upper()
 
-                raw = message.decode('hex').split()
+                raw = message.split()
+
                 if len(raw) == 16:
                     out_message = ""
                     for r in raw:
