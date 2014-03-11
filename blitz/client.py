@@ -224,7 +224,7 @@ class ApplicationClient(object):
         result = {}
 
         for item in data:
-            cat_id = str(item['categoryId'])
+            cat_id = (str(item['categoryId']), item['categoryName'])
             if not cat_id in result.keys():
                 result[cat_id] = [[], []]  # set up an empty list
 

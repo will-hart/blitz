@@ -170,15 +170,14 @@ class BlitzLoggingWidget(Qt.QWidget):
         self.axis.set_ylabel("Value")
 
         for key in new_data.keys():
-            # massage key to str
-            key = str(key)
+            series_id, series_name = key
 
             # get the new plot data
             x, y = new_data[key]
-            self.__container.push(key, x, y)
+            self.__container.push(series_id, series_name, x, y)
 
-            x, y = self.__container.get_series(key)
-            self.__lines[key], = self.axis.plot(x, y, 'o-', label=key)
+            x, y = self.__container.get_series(series_id)
+            self.__lines[series_id], = self.axis.plot(x, y, 'o-', label=series_name.replace("_", " ").title())
 
         # tidy up and rescale
         if self.__container.empty():
@@ -475,7 +474,7 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.plot_widget.redraw(data, replace_existing)
 
         # update the variable view from the container
-        self.variable_widget.set_data(self.__container.get_latest())
+        self.variable_widget.set_data(self.__container.get_latest(named=True))
 
     def update_session_list(self):
         # first get the list of sessions

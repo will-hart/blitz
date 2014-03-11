@@ -108,6 +108,7 @@ class BoardManager(object):
                 cached_item = self.data.add_cache(time_logged, category_id, result[key])
                 if cached_item.value:
                     readings.append({
+                        'categoryName': key,
                         'categoryId': cached_item.categoryId,
                         'timeLogged': cached_item.timeLogged / 1000,
                         'value': float(cached_item.value)
