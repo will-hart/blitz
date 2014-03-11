@@ -182,12 +182,8 @@ class BlitzLoggingWidget(Qt.QWidget):
 
         # tidy up and rescale
         if self.__container.empty():
-            self.axis.set_xlim(left=0, right=100)
-            self.axis.set_ylim(bottom=0, top=100)
-        else:
-            self.axis.set_xlim(left=self.__container.x_min - 1, right=self.__container.x_max + 1, auto=False)
-            self.axis.set_ylim(
-                bottom=self.__container.y_min * 0.9 - 1, top=self.__container.y_max * 1.1 + 1, auto=False)
+            self.axis.set_xlim(left=0, right=100, auto=True)
+            self.axis.set_ylim(bottom=0, top=100, auto=True)
 
         # redraw if required
         if draw_canvas:

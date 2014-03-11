@@ -10,11 +10,16 @@ class DataContainer(object):
     A class for saving and managing data that can be used in the interface.  It
     also provides an interface for adding DataTransform objects which can be used
     to apply filters (i.e. moving average, multiplication, etc) to the data
+
+    :param persistent: Indicates if all data is kept, (True) or only 200 values for each series (False, default)
     """
 
-    def __init__(self):
+    MAX_VALUES = 50
+
+    def __init__(self, persistent=False):
         self.clear_data()
         self.__series = OrderedDict()
+        self.__persistent = persistent
 
     def clear_data(self):
         """
@@ -26,11 +31,6 @@ class DataContainer(object):
         self.y = []
         self.number_of_series = 0
         self.__transforms = []
-
-        self.y_min = sys.maxint
-        self.y_max = - sys.maxint - 1
-        self.x_min = sys.maxint
-        self.x_max = - sys.maxint - 1
 
         self.x_transformed = []
         self.y_transformed = []
@@ -64,11 +64,9 @@ class DataContainer(object):
         self.x[idx] += x
         self.y[idx] += y
 
-        self.x_min = min(min(x), self.x_min)
-        self.x_max = max(max(x), self.x_max)
-
-        self.y_min = min(min(y), self.y_min)
-        self.y_max = max(max(y), self.y_max)
+        if not self.__persistent:
+            self.x[idx] = self.x[idx][-self.MAX_VALUES:]
+            self.y[idx] = self.y[idx][-self.MAX_VALUES:]
 
         return created
 
