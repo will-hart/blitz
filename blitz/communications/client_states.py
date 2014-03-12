@@ -134,7 +134,7 @@ class ClientSessionListState(BaseState):
     def receive_message(self, tcp, msg):
 
         parts = msg.split("\n")
-        delimiter = parts[len(parts) - 1]
+        delimiter = parts[-1]
         parts = parts[:-1]
 
         if delimiter != CommunicationCodes.Negative:
