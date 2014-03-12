@@ -33,8 +33,8 @@ class NetScannerManager(object):
     INIT_SEQUENCE = [
         ('A', 'NOP connection check'),
         ('B', 'reset device'),
-        ('v01101 6.894757', 'use kPa'),
-        ('h', 'zero offsets'),
+        #('v01101 6.894757', 'use kPa'),
+        #('h', 'zero offsets'),
         ('rFFFF0', 'digital read data') # or b for binary format
     ]
 
@@ -169,8 +169,9 @@ class NetScannerManager(object):
 
                 if len(raw) == 16:
                     out_message = ""
-                    for r in raw:
-                        out_message += hex(int(float(r) * 1e6))[2:].rjust(8, "0").upper()
+                    for r in reversed(raw):
+                        # scale by 1e6 and offset by 2e6 to avoid negative numbers and encode as int
+                        out_message += hex(int(float(r) * 1e6 + 2e6))[2:].rjust(8, "0").upper()
 
                     self.__data.queue(self.board_id + "50" + delta_t + out_message)
                 else:
