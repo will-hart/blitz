@@ -1,6 +1,3 @@
-from blitz.data import DataContainer
-from blitz.data.models import Session
-
 import PySide.QtGui as Qt
 import PySide.QtCore as QtCore
 import sys
@@ -8,6 +5,8 @@ import sys
 from blitz.client import ApplicationClient
 import blitz.communications.signals as sigs
 from blitz.communications.rs232 import ExpansionBoardNotFound
+from blitz.data import DataContainer
+from blitz.data.models import Session
 from blitz.ui.mixins import BlitzGuiMixin
 from blitz.ui.dialogs import ProcessingDialog, CalibrationDialog
 from blitz.ui.widgets import BlitzLoggingWidget, BlitzTableView, BlitzSessionTabPane
