@@ -33,7 +33,7 @@ class NetScannerManager(object):
     INIT_SEQUENCE = [
         ('A', 'NOP connection check'),
         ('B', 'reset device'),
-        #('v01101 6.894757', 'use kPa'),
+        ('v01101 6.894757', 'use kPa'),
         #('h', 'zero offsets'),
         ('rFFFF0', 'digital read data') # or b for binary format
     ]
