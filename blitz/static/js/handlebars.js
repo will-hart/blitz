@@ -1,0 +1,1 @@
+alert("Please replace blitz/static/js/handlebars.min.js with the latest handlebars version!");
