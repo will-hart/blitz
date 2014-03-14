@@ -11,6 +11,8 @@ from matplotlib.widgets import Cursor as MplCursor
 from PySide import QtGui as Qt
 
 import blitz.communications.signals as sigs
+from blitz.data.models import Session
+from blitz.utilities import blitz_strftimestamp
 
 
 class BlitzLoggingWidget(Qt.QWidget):

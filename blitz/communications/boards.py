@@ -236,7 +236,11 @@ class BaseExpansionBoard(Plugin):
         """
         start = start_bit
         end = start + length
-        return self['payload'][start:end].uint
+
+        try:
+            return self['payload'][start:end].uint
+        except Exception as e:
+            return 0
 
     def get_flag(self, flag_number):
         """
@@ -355,7 +359,7 @@ class NetScannerEthernetBoard(BaseExpansionBoard):
             "Board [%s:%s] now listening for registering_boards signal" % (self['id'], self['description']))
 
     def get_variables(self, channel_min=1):
-        var_vals = [float(self.get_number(i * 32, 32)) / 1.0e6 for i in xrange(0, 16)]
+        var_vals = [float(self.get_number(i * 32, 32) - 2e6) / 1.0e6 for i in xrange(0, 16)]
         channels = ["Channel_{0}".format(i + self.channel_offset) for i in xrange(1, 17)]
         return dict(zip(channels, var_vals))
 

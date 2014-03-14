@@ -132,8 +132,8 @@ class ApplicationServer(object):
         if (self.config['use_netscanner']):
             db = self.serial_server.database
             self.netscanner = [
-                NetScannerManager(db, self.config['netscanner_one_ip'], "0A") # ,
-                #NetScannerManager(db, self.config['netscanner_two_ip'], "0B")
+                NetScannerManager(db, self.config['netscanner_one_ip'], "0A"),
+                NetScannerManager(db, self.config['netscanner_two_ip'], "0B")
             ]
 
         # hook up signals

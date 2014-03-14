@@ -1,5 +1,5 @@
-Blitz GUI 0.2
-=============
+Blitz GUI 0.2.1
+===============
 
 Introduction
 ------------
@@ -56,6 +56,10 @@ This software is provided under the AGPLv3 license.  For the full text of the li
 
 Change Log
 ----------
+
+**0.2.1**
+
+Remove deprecated web UI to separate branch
 
 **0.2**
 
