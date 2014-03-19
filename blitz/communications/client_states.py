@@ -45,7 +45,7 @@ class BaseState(object):
         return state().enter_state(tcp, state, args)
 
     def __str__(self):
-        return "<" + __name__ + ">"
+        return "<" + self.__name__ + ">"
 
 
 class ClientInitState(BaseState):
@@ -53,6 +53,8 @@ class ClientInitState(BaseState):
     Handles the client starting up - sends a "logging" query
     to the logger and waits for the response
     """
+    __name__ = "ClientInitState"
+
     def enter_state(self, tcp, state, args=None):
         """Send a logging query to the logger"""
         self.logger.debug("[TCP] Calling init.enter_state")
@@ -85,6 +87,8 @@ class ClientIdleState(BaseState):
     """
     Handles the client idling, waiting for further commands
     """
+    __name__ = "ClientIdleState"
+
     def receive_message(self, tcp, msg):
         # only ACK is acceptable in this state
         if msg[0:6] == CommunicationCodes.Boards:
@@ -122,6 +126,7 @@ class ClientIdleState(BaseState):
 class ClientSessionListState(BaseState):
 
     sessions = []
+    __name__ = "ClientSessionListState"
 
     def enter_state(self, tcp, state, args=None):
         """Send a logging session list to the logger"""
@@ -162,6 +167,8 @@ class ClientSessionListState(BaseState):
 
 class ClientStartingState(BaseState):
     """Handles logging starting - waits for ACK from server"""
+    __name__ = "ClientStartingState"
+
     def enter_state(self, tcp, state, args=None):
         self.logger.debug("[TCP] Calling starting.enter_state: " + state.__name__)
         tcp.do_send(CommunicationCodes.Start)
@@ -183,6 +190,9 @@ class ClientLoggingState(BaseState):
     """
     Handles the client in logging state - sends periodic status updates
     """
+
+    __name__ = "ClientLoggingState"
+
     def enter_state(self, tcp, state, args=None):
         """sets up a timer which periodically polls the data logger for updates"""
         sigs.logging_started.send()
@@ -243,6 +253,9 @@ class ClientStoppingState(BaseState):
     """
     Handles waiting for acknowledgement from a client before entering IDLE state
     """
+
+    __name__ = "ClientStoppingState"
+
     def enter_state(self, tcp, state, args=None):
         self.logger.debug("[TCP] Calling stopping.enter_state: " + state.__name__)
         tcp.do_send(CommunicationCodes.Stop)
@@ -262,6 +275,8 @@ class ClientDownloadingState(BaseState):
     """
     Handles the client in logging state - sends periodic status updates
     """
+
+    __name__ = "ClientDownloadingState"
 
     session_id = 0
 

@@ -22,6 +22,8 @@ class ServerBaseState(BaseState):
     received in all states such as BOARD commands
     """
 
+    __name__ = "ServerBaseState"
+
     @staticmethod
     def process_standard_messages(tcp, msg):
         """
@@ -38,6 +40,8 @@ class ServerBaseState(BaseState):
 
 
 class ServerIdleState(ServerBaseState):
+
+    __name__ = "ServerIdleState"
 
     def enter_state(self, tcp, state, args=None):
         self.logger.debug("[TCP] Calling ServerIdleState.enter_state: " + state.__name__)
@@ -80,6 +84,8 @@ class ServerIdleState(ServerBaseState):
 
 class ServerLoggingState(ServerBaseState):
 
+    __name__ = "ServerLoggingState"
+
     def enter_state(self, tcp, state, args=None):
         self.logger.debug("[TCP] Calling ServerLoggingState.enter_state: " + state.__name__)
         sigs.logging_started.send(tcp)
@@ -114,6 +120,8 @@ class ServerLoggingState(ServerBaseState):
 
 
 class ServerDownloadingState(ServerBaseState):
+
+    __name__ = "ServerDownloadingState"
 
     session_data = []
     send_index = 0
@@ -165,7 +173,7 @@ class ServerDownloadingState(ServerBaseState):
         # All other messages are in error
         if msg == CommunicationCodes.Acknowledge:
             self.logger.debug("[TCP] Sending next download part")
-            self.send_message(tcp, None)
+            return self.send_message(tcp, None)
 
         elif msg[0:5] == CommunicationCodes.Reset:
             return self.go_to_state(tcp, ServerIdleState)
@@ -178,6 +186,9 @@ class ServerDownloadingState(ServerBaseState):
 
 
 class ServerClosedState(ServerBaseState):
+
+    __name__ = "ServerClosedState"
+
     def receive_message(self, tcp, msg):
         self.logger.debug("[TCP] Calling ServerClosedState.receive_message" + msg)
 
