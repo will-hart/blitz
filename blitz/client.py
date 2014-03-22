@@ -11,63 +11,7 @@ from blitz.data.database import DatabaseClient
 from blitz.communications.boards import BoardManager
 import blitz.communications.signals as sigs
 from blitz.communications.tcp import TcpCommunicationException, TcpBase
-import blitz.web.api as blitz_api
-import blitz.web.http as blitz_http
-
-
-class Config(object):
-    """
-    Holds configuration for a client application
-    """
-
-    settings = {}
-
-    def __init__(self):
-        """
-        Sets up default settings
-        """
-        self.settings = {
-            "template_path": os.path.join(os.path.dirname(__file__), "templates"),
-            "static_path": os.path.join(os.path.dirname(__file__), "static"),
-            "database_path": os.path.join(os.path.dirname(__file__), "data", "app.db"),
-            "port": 8989,
-            "autoescape": None,
-            "debug": True
-        }
-
-    def get(self, key):
-        """
-        Gets an item from settings
-
-        :raises: KeyError if the item doesn't exist
-        :returns: A value corresponding to the given key
-        """
-        if key in self.settings.keys():
-            return self.settings[key]
-        raise KeyError("Unknown configuration setting - " + key)
-
-    def set(self, key, value):
-        """
-        Sets the given configuration key to value
-
-        :param key: the key to set
-        :param value: the value to set the key to
-        :returns: the value that was set
-        """
-        self.settings[key] = value
-        return value
-
-    def __getitem__(self, item):
-        """
-        A custom implementation of dict getters
-        """
-        return self.get(item)
-
-    def __setitem__(self, key, value):
-        """
-        A custom implementation of dict setters
-        """
-        return self.set(key, value)
+from blitz.server import Config
 
 
 class ApplicationClient(object):
@@ -161,9 +105,10 @@ class ApplicationClient(object):
             # we are connecting
             sigs.process_started.send("Creating connection to data logger")
 
-            self.logger.debug("Created TCP connection at client request")
+            self.logger.debug("Creating TCP connection {0}:{1}".format(
+                self.config["server_ip"], self.config["server_port"]))
             try:
-                self.tcp = TcpBase("127.0.0.1", 8999)  # TODO get from config
+                self.tcp = TcpBase(self.config["server_ip"], self.config["server_port"])
                 self.tcp.create_client()
             except TcpCommunicationException:
                 self.data.log_error("Communication error with the board - connection closed")

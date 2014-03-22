@@ -3,6 +3,7 @@ __author__ = 'Will Hart'
 import json
 import logging
 import os
+import six
 
 from blitz.constants import CommunicationCodes
 from blitz.communications.netscanner import NetScannerManager
@@ -25,11 +26,16 @@ class Config(object):
         """
         self.logger.info("Loading Server Configuration")
         self.settings = {
+            #"template_path": os.path.join(os.path.dirname(__file__), "templates"),
+            #"static_path": os.path.join(os.path.dirname(__file__), "static"),
+            "database_path": os.path.join(os.path.dirname(__file__), "data", "app.db"),
             "application_path": os.path.dirname(__file__),
-            "tcp_port": 8999,
+            "server_ip": "127.0.0.1",
+            "server_port": 8999,
             "database_port": 6379,
             "debug": True,
-            "use_netscanner": False
+            "use_netscanner": False,
+            "autoescape": None,
         }
 
         self.load_from_file()
@@ -37,7 +43,12 @@ class Config(object):
     def write_to_file(self):
         # take a defensive copy and remove the settings path, then convert to json
         config = self.settings.copy()
+
+        # remove anything which shouldn't be serialised
         del config["application_path"]
+        del config["board_manager"]
+
+        # serialise the string
         json_str = json.dumps(config)
 
         # write to file
@@ -86,6 +97,7 @@ class Config(object):
         """
         self.settings[key] = value
         self.write_to_file()
+
         return value
 
     def __getitem__(self, item):
@@ -143,10 +155,10 @@ class ApplicationServer(object):
         sigs.board_list_requested.connect(self.send_connected_boards)
 
         # start the TCP server
-        self.tcp = TcpBase(port=self.config["tcp_port"])
+        self.tcp = TcpBase(port=self.config["server_port"])
         self.tcp.create_server()
         self.is_running = True
-        self.logger.info("Started TCP on port %s" % self.config["tcp_port"])
+        self.logger.info("Started TCP on port %s" % self.config["server_port"])
 
     def update_session_list(self, args):
         """
