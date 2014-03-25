@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="A manual page for the Blitz Data Acquisition System">
+
+        <title>About Blitz | Blitz Manual</title>
+
+        <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.4.2/pure.css">
+      
+        <!--[if lte IE 8]>
+            <link rel="stylesheet" href="/static/css/main-grid-old-ie.css">
+        <![endif]-->
+        <!--[if gt IE 8]><!-->
+            <link rel="stylesheet" href="/static/css/main-grid.css">
+        <!--<![endif]-->
+        
+        <!--[if lte IE 8]>
+            <link rel="stylesheet" href="/static/css/layouts/splash-old-ie.css">
+        <![endif]-->
+        <!--[if gt IE 8]><!-->
+            <link rel="stylesheet" href="/static/css/layouts/splash.css">
+        <!--<![endif]-->
+      
+        <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
+        <link rel="stylesheet" href="/static/css/base.css">
+        
+        <link rel="shortcut icon" href="/static/favicon.ico">
+
+    </head>
+
+    <body>
+        <div class="header">
+            <div class="home-menu pure-menu pure-menu-open pure-menu-horizontal pure-menu-fixed">
+                <a class="pure-menu-heading" href="/">Blitz Manual</a>
+
+                <ul>
+                    <li class="pure-menu-selected"><a href="/server/">Server</a></li>
+                    <li><a href="/client/">Client</a></li>
+                    <li><a href="/expansions/">Expansions</a></li>
+                </ul>
+            </div>
+        </div>
+
+        
+        <div class="pure-g-r top-pad">
+            <div class="pure-u-3-24">&nbsp;</div>
+            <div class="pure-u-18-24">
+                <h1>Blitz GUI 0.2.1</h1>
+
+<h2>Introduction</h2>
+
+<p>The Blitz GUI is an open source data acquisition solution. It is designed to be used with boards implementing the Arduino library that you can find at <a href="https://github.com/will-hart/BlitzExpansion">the Blitz Expansion github repository</a>.  </p>
+
+<p>The source code for this repository is available from <a href="https://github.com/will-hart/blitz">https://github.com/will-hart/blitz</a></p>
+
+<h2>What is Blitz?</h2>
+
+<p>Blitz is a project that is being completed for my final dissertation on my engineering degree. It is a highly modular and flexible data acquisition system that is currently being used to gather pressure data and move an actuator in our wind tunnel. It has been designed so that it is very easy to set up "expansion boards" which can read for a wide variety of sensor types, allowing different types of data acquisition system to be used. </p>
+
+<p>Blitz was originally conceived as a standalone data logger that can be run on anything that can run Python. It has been tested on a RaspberryPi, but also on a laptop running Windows 7.  The initial prototypes used a web based UI so that the data logger could be controlled through any device with a web browser, such as a mobile phone.  Whilst the core of this UI is there, it needs to be rewritten using websockets to be truly functional.  The current UI being developed is a Python / PySide (Qt) UI.  </p>
+
+<p>It is written mostly in Python, the programming language of the gods. Blitz is named after an Kelpie (an Australian dog) called Mister Blitz. </p>
+
+<h2>What is the status</h2>
+
+<p>Blitz has been under development for the better part of a year.  It is in a fully functional state and is frequently being improved and worked on. There are some known issues which are in the github issue tracker, as well as some others that are on the long term to-do list.   </p>
+
+<h2>What is the short term roadmap</h2>
+
+<p>The short term focus is on getting stability and improving usability. A list of current issues is on the github issue tracker.</p>
+
+<h2>What is the long term roadmap</h2>
+
+<p>Eventually I would like to implement some of these features:</p>
+
+<ul>
+<li>Build "frozen" (e.g. *.exe) versions of the applications for people who don't want to install Python</li>
+<li>Implement an improved plugin system to make it easier to extend the supported data acquisition sources</li>
+<li>Re-implement the web based GUI for control from mobile devices over wireless</li>
+<li>Implement data "filters" for the desktop UI (such as FFT, moving averages, scale and offsets) that can be applied in various orders and combinations</li>
+</ul>
+
+<h2>Feedback</h2>
+
+<p>Feedback or contributions are more than welcome, you can get in touch @wlhart on twitter or via my website linked above.</p>
+
+<h2>License</h2>
+
+<p>This software is provided under the AGPLv3 license.  For the full text of the license, look at the LICENSE file.</p>
+
+<blockquote>
+  <p>Usually for open source software I prefer a less restrictive license - something like the MIT license.  However in
+  this case I would like to ensure that if anybody makes changes or improvements to the Blitz software then those
+  changes should be available to everybody who uses it!</p>
+</blockquote>
+
+<p>You can view the <a href="/changelog.html">CHANGELOG</a>.</p>
+
+            </div>
+            <div class="pure-u-3-24">&nbsp;</div>
+        </div>
+        
+        
+        
+
+        <div class="footer l-box is-center">
+            
+            Blitz DAQ was made by <a href="http://www.williamhart.info">William Hart</a> and is open source (AGPLv3+) software
+            
+        </div>
+    </body>
+<html>

@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="A manual page for the Blitz Data Acquisition System">
+
+        <title>RaspberryPi Server Configuration Guide | Blitz Manual</title>
+
+        <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.4.2/pure.css">
+      
+        <!--[if lte IE 8]>
+            <link rel="stylesheet" href="/static/css/main-grid-old-ie.css">
+        <![endif]-->
+        <!--[if gt IE 8]><!-->
+            <link rel="stylesheet" href="/static/css/main-grid.css">
+        <!--<![endif]-->
+        
+        <!--[if lte IE 8]>
+            <link rel="stylesheet" href="/static/css/layouts/splash-old-ie.css">
+        <![endif]-->
+        <!--[if gt IE 8]><!-->
+            <link rel="stylesheet" href="/static/css/layouts/splash.css">
+        <!--<![endif]-->
+      
+        <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
+        <link rel="stylesheet" href="/static/css/base.css">
+        
+        <link rel="shortcut icon" href="/static/favicon.ico">
+
+    </head>
+
+    <body>
+        <div class="header">
+            <div class="home-menu pure-menu pure-menu-open pure-menu-horizontal pure-menu-fixed">
+                <a class="pure-menu-heading" href="/">Blitz Manual</a>
+
+                <ul>
+                    <li class="pure-menu-selected"><a href="/server/">Server</a></li>
+                    <li><a href="/client/">Client</a></li>
+                    <li><a href="/expansions/">Expansions</a></li>
+                </ul>
+            </div>
+        </div>
+
+        
+        <div class="pure-g-r top-pad">
+            <div class="pure-u-3-24">&nbsp;</div>
+            <div class="pure-u-18-24">
+                <h1>RaspberryPi Server Setup Guide</h1>
+
+<h2>1. Introduction</h2>
+
+<p>The aim of this document is to provide a set of instructions for configuring the RaspberryPi to act as a Blitz Logger "server". It is intended to be followed sequentially.</p>
+
+<h3>1.1 Definitions</h3>
+
+<p><strong>Terminal</strong>: the command line interface on the RaspberryPi, accessed by clicking the <code>LXTerminal</code> icon on the desktop</p>
+
+<h3>1.2 References</h3>
+
+<p>(1) Raspbi Distribution</p>
+
+<p>(2) SD card writing instructions</p>
+
+<p>(3) <a href="http://elinux.org/R-Pi_Troubleshooting">Troubleshooting</a></p>
+
+<h3>1.3 Overview</h3>
+
+<p>The Blitz Logger is a low cost data logger which is being designed for lab based application and also to provide live wireless telemetry and downloadable data logging for mobile applications.  The software is designed to be networked and multi-user.</p>
+
+<h2>2. RaspberryPi Distribution</h2>
+
+<h3>2.1. Downloading</h3>
+
+<p>The RaspberryPi distribution used is the basic Wheezy Raspbian available from the RaspberryPi downloads page.  Download the image and unpack.</p>
+
+<h3>2.2. Installing</h3>
+
+<p>Instructions for writing an image to an SD card can be found at [2]. Using win32diskimager, perform the following steps:</p>
+
+<ol>
+<li>STEP 1</li>
+<li>STEP 2</li>
+</ol>
+
+<blockquote>
+  <p>Steps?</p>
+</blockquote>
+
+<p>If the RaspberryPi doesn't boot, you may need to update the <code>kernel.img</code> file and <code>start.elf</code> on the SD card. Visit <a href="http://elinux.org/R-Pi_Troubleshooting">[3]</a> and download the links to these files, then drag and drop them on to your SD card, replacing the existing ones.</p>
+
+<h3>2.3. Configuration</h3>
+
+<p>Insert the SD card with image into the RaspberryPi, connect power, keyboard and mouse and the HDMI-DVI adapter to your monitor.  Leave the Wi-Fi adapter (if any) unplugged and use an Ethernet cable for network connection.  When the device boots set the following options</p>
+
+<ol>
+<li>Expand file system to fit card</li>
+<li>Change the password to something other than <code>raspberry</code> (I often just use a space)</li>
+<li>Optionally change the internationalisation options to your region in particular the keyboard layout</li>
+<li>Make sure the boot option is set to boot to terminal</li>
+<li>In advanced options change the memory split to 32 for the GPU</li>
+</ol>
+
+<p>Select <code>&lt;finish&gt;</code> and reboot the device to save changes. You will need to login with the username <code>pi</code> and whatever password you set above.</p>
+
+<h3>2.4. Autologin on boot</h3>
+
+<p>To automatically login to the console we need to edit some config files</p>
+
+<pre><code>$ sudo vi /etc/inittab
+</code></pre>
+
+<p>Find the line:</p>
+
+<pre><code>1:2345:respawn:/sbin/getty --noclear 38400 tty1
+</code></pre>
+
+<p>Replace with</p>
+
+<pre><code>1:2345:respawn:/sbin/getty --autologin pi --noclear 38400 tty1
+</code></pre>
+
+<h3>2.5. Configure the network connection</h3>
+
+<p>To start with, use a network cable plugged into a DHCP enabled router to configure and install updates. </p>
+
+<p>We need to configure our network adapter. From the command line by type</p>
+
+<pre><code>$ sudo vi /etc/network/interfaces
+</code></pre>
+
+<p>Then change the file so that it contains the following:</p>
+
+<pre><code>auto lo
+iface lo inet loopback
+allow-hotplug eth0
+iface eth0 inet dhcp
+</code></pre>
+
+<p>When you are finished save (<code>escape</code> then <code>:wq</code>) and reboot through the terminal:</p>
+
+<pre><code>$ sudo reboot
+</code></pre>
+
+<blockquote>
+  <p>Set up the network configuration (as an ad-hoc wifi network by pasting in the following configuration file into <code>/etc/network/interfaces</code>:
+  Later on we will add:
+  allow-hotplug wlan0
+  auto wlan0
+  iface wlan0 inet static
+    address 192.168.1.55
+    netmask 255.255.255.0
+    wireless-channel 1
+    wireless-essid telemetry
+    wireless-mode ad-hoc</p>
+</blockquote>
+
+<h2>3. Software Installation</h2>
+
+<p>Many of the following instructions are carried out in the terminal. These are indicated with a <code>$</code> symbol to let you know that everything <strong>after but not including</strong> the dollar sign should be entered into the terminal. </p>
+
+<h3>3.2. Install updates</h3>
+
+<p>Firstly update the software by typing the following two commands (which may take some time)</p>
+
+<pre><code>$ sudo apt-get update
+$ sudo apt-get upgrade
+</code></pre>
+
+<p>Then install essential items for building and installing.  (These may already be installed and up to date)</p>
+
+<pre><code>$ sudo apt-get install build-essential git-core vim  
+$ sudo apt-get install python-pip python-dev
+$ sudo apt-get install arduino rpi-update ca-certificates ntpdate
+</code></pre>
+
+<p>We can then update the time zone</p>
+
+<pre><code>$ sudo ntpdate -u ntp.ubuntu.com
+</code></pre>
+
+<h4>3.2.1 Update the RaspberryPi Firmware</h4>
+
+<p>To get the latest firmware run</p>
+
+<pre><code>$ sudo UPDATE_SELF=0 rpi-update
+</code></pre>
+
+<h3>3.3.Install Required Software for Blitz</h3>
+
+<h4>3.3.1. Redis</h4>
+
+<p>Redis is used to store logged data on the server</p>
+
+<pre><code>$ wget http://download.redis.io/redis-stable.tar.gz
+$ tar xvzf redis-stable.tar.gz
+$ cd redis-stable
+$ make
+$ cd src
+$ sudo cp redis-server /usr/local/bin
+$ sudo cp redis-cli /usr/local/bin
+$ cd ..
+$ cd ..
+$ rm redis-stable.tar.gz
+</code></pre>
+
+<p>To start Redis on application start using an init script, do the following:</p>
+
+<pre><code>$ cd redis-stable
+$ sudo mkdir /etc/redis
+$ sudo mkdir /var/redis
+$ sudo cp utils/redis_init_script /etc/init.d/redis_6379
+$ sudo cp redis.conf /etc/redis/6379.conf
+$ sudo mkdir /var/redis/6379
+$ sudo vim /etc/redis/6379.conf
+</code></pre>
+
+<p>In the configuration file set the following options:</p>
+
+<ul>
+<li><code>daemonize</code>  to <code>yes</code></li>
+<li><code>pidfile</code> to <code>/var/run/redis_6379.pid</code></li>
+<li><code>loglevel</code> to <code>notice</code></li>
+<li><code>dir</code> to <code>/var/redis/6379</code></li>
+</ul>
+
+<p>Save and then in the console set up the init.d file to run on startup</p>
+
+<pre><code>$ sudo update-rc.d redis_6379 defaults
+</code></pre>
+
+<h4>3.3.2. ZeroMQ</h4>
+
+<p>ZeroMQ is used for client/server communications over a network</p>
+
+<pre><code>$ sudo apt-get install libzmq-dev
+</code></pre>
+
+<h3>3.4. Install Blitz Software</h3>
+
+<p>The blitz software is the actual data acquisition system. It is is simply a Python script so we can clone the latest software update from the Blitz github repository. We save this into our home directory as follows:</p>
+
+<pre><code>$ cd ~/
+$ git clone https://github.com/will-hart/blitz.git       
+</code></pre>
+
+<h4>3.5. Python Dependencies</h4>
+
+<p>We can use <code>pip</code> to install our requirements (which are listed in the <code>requirements_server.txt</code> file:</p>
+
+<pre><code>$ cd blitz
+$ sudo pip install –r requirements_server.txt
+</code></pre>
+
+<h3>3.6. Set the server to autorun on boot</h3>
+
+<p>Then we want to ensure that the server runs on boot. We will use <code>upstart</code> to build a script. To install <code>upstart</code>:</p>
+
+<pre><code>$ sudo apt-get install upstart
+</code></pre>
+
+<p>You will need to type in a sentence to get this to install as it replaces <code>sysvinit</code> which can potentially cause the device to stop working
+if things go wrong.  As soon as installation finshes:</p>
+
+<pre><code>$ sudo halt
+</code></pre>
+
+<p>Wait until it shuts down, remove the power and wait a few seconds before powering up again. Next lets create the script which starts the blitz server (and restarts it on a crash):</p>
+
+<pre><code>$ sudo vim /etc/init/blitz.conf
+</code></pre>
+
+<p>When the file opens, add the following script:</p>
+
+<pre><code>description "Runs the Blitz Server on startup"
+author "William Hart"
+
+start on runlevel [2345]
+stop on runlevel [016]
+chdir /home/pi/
+exec python /home/pi/blitz/start_server.py
+respawn
+</code></pre>
+
+<p>This script runs the python script for starting the server and restarts it if the script exits. To get the script running type</p>
+
+<pre><code>$ sudo service blitz start
+</code></pre>
+
+<h3>3.7. Remove Non-essential Software</h3>
+
+<p>You can optionally remove software that is not required to free up some disk space:</p>
+
+<pre><code>$ sudo apt-get autoremove scratch dillo wolfram-engine
+</code></pre>
+
+<h2>4. Configure for “headless” operation</h2>
+
+<h2>5. Save a backup image</h2>
+
+            </div>
+            <div class="pure-u-3-24">&nbsp;</div>
+        </div>
+        
+        
+        
+
+        <div class="footer l-box is-center">
+            
+            Blitz DAQ was made by <a href="http://www.williamhart.info">William Hart</a> and is open source (AGPLv3+) software
+            
+        </div>
+    </body>
+<html>
