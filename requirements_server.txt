@@ -4,3 +4,4 @@ pyzmq==13.1.0
 pyserial==2.6
 redis==2.7.2
 sqlalchemy==0.9.3
+six==1.6.1
