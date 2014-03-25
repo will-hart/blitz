@@ -12,6 +12,14 @@ from blitz.plugins import Plugin
 from blitz.utilities import blitz_timestamp
 
 
+class InvalidMessageException(Exception):
+    """
+    An exception which is raised when an invalid message is received and the
+    board manager is unable to parse the variables
+    """
+    pass
+
+
 class BoardManager(object):
     """
     A BoardManager registers expansion boards and handles parsing
@@ -90,7 +98,11 @@ class BoardManager(object):
             return []
 
         # use the board to parse the message
-        board.parse_message(message)
+        try:
+            board.parse_message(message)
+        except InvalidMessageException:
+            return []
+
         result = board.get_variables()
 
         # get session metadata
@@ -188,10 +200,11 @@ class BaseExpansionBoard(Plugin):
 
         # parse the message
         if len(raw_message) < MESSAGE_BYTE_LENGTH:
-            raise Exception(
+            self.logger.warning(
                 "Unable to parse message [%s]- expected 28 bytes, found %s" % (
                     raw_message, len(raw_message))
             )
+            raise InvalidMessageException("Unable to parse message of unexpected length")
 
         self.__message = BitArray(hex=raw_message)
 
