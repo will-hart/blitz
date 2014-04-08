@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="description" content="A manual page for the Blitz Data Acquisition System">
 
-        <title>The Data Acquisition Server | Blitz Manual</title>
+        <title>Get Started | Blitz Manual</title>
 
         <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.4.2/pure.css">
       
@@ -51,11 +51,45 @@
         <div class="pure-g-r top-pad">
             <div class="pure-u-3-24">&nbsp;</div>
             <div class="pure-u-18-24">
-                <h1>The Data Acquisition (DAQ) Server</h1>
+                <h1>Getting started</h1>
 
-<h1>RaspberryPi</h1>
+<h2>System layout</h2>
 
-<p>The data acquisition server can be run on a RaspberryPi.  <a href="/server/raspberry-pi-setup.html">Detailed instructions are available</a> for configuring the RaspberryPi from a default installation. </p>
+<p>The Blitz DAQ system is structured into several different components which all make up the flexible data logging system. These are described in the image below:</p>
+
+<p><img src="../images/data_logger_layout_v2.png" alt="Blitz DAQ system layout" /></p>
+
+<ol>
+<li><strong>Expansion boards</strong> provide low level access and control of sensors and actuators. These are typically based on Arduino software and <a href="../expansions">described in more detail here</a>.</li>
+<li>The <strong>server</strong> controls expansion boards, sampling data from them and saving it so that it can be viewed and accessed by the user. It is <a href="../client">described in more detail here</a>.</li>
+<li>The <strong>client</strong> is the software that the user has to interact with the server, either viewing data, starting and stopping acquisition or performing other key tasks. It is <a href="../server">described in more detail here</a>.</li>
+</ol>
+
+<p>The Blitz DAQ can be configured in a number of ways depending on the desired logging behaviour as shown below. (This configuration is shown using an external sensor known as a "NetScanner" device)  </p>
+
+<p><img src="../images/AttendedUnattendedLoggingLayout.png" alt="Blitz DAQ system layout" /></p>
+
+<p>The two configurations are</p>
+
+<ol>
+<li>An <strong><a href="attended.html">attended</a></strong> configuration, where both the server and client are run on a computer</li>
+<li>An <strong><a href="unattended.html">unattended</a></strong> configuration, where the client and server are on different devices (and the server may be on something like a Raspberry Pi)</li>
+</ol>
+
+<h2>Further Instructions</h2>
+
+<p>The following guides are available to help you get up and running using blitz</p>
+
+<ol>
+<li><a href="requirements.html">Requirements</a></li>
+<li>Modes of data acquisition:
+<ol>
+<li><a href="attended.html">Attended</a>    </li>
+<li><a href="unattended.html">Unattended</a></li>
+</ol></li>
+<li><a href="installation.html">Installation</a></li>
+<li><a href="running.html">Running</a></li>
+</ol>
 
             </div>
             <div class="pure-u-3-24">&nbsp;</div>

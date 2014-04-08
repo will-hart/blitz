@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>transforms &mdash; Blitz Logger Internal Documentation 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/solar.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Blitz Logger Internal Documentation 0.1 documentation" href="index.html" />
+    <link rel="up" title="blitz.data" href="blitz_data.html" />
+    <link rel="next" title="blitz.communications" href="blitz_communications.html" />
+    <link rel="prev" title="models" href="blitz_data_models.html" /><link href='http://fonts.googleapis.com/css?family=Source+Code+Pro|Open+Sans:300italic,400italic,700italic,400,300,700' rel='stylesheet' type='text/css'>
+<link href="_static/solarized-dark.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="blitz_communications.html" title="blitz.communications"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="blitz_data_models.html" title="models"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Blitz Logger Internal Documentation 0.1 documentation</a> &raquo;</li>
+          <li><a href="blitz_data.html" accesskey="U">blitz.data</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="blitz_data_models.html"
+                        title="previous chapter">models</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="blitz_communications.html"
+                        title="next chapter">blitz.communications</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/blitz_data_transforms.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-blitz.data.transforms">
+<span id="transforms"></span><h1>transforms<a class="headerlink" href="#module-blitz.data.transforms" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="blitz.data.transforms.MovingAverageDataTransform">
+<em class="property">class </em><tt class="descclassname">blitz.data.transforms.</tt><tt class="descname">MovingAverageDataTransform</tt><big>(</big><em>periods</em><big>)</big><a class="reference internal" href="_modules/blitz/data/transforms.html#MovingAverageDataTransform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.transforms.MovingAverageDataTransform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates an n-period moving average transform over the y-axis data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>periods</strong> &#8211; the number of periods to perform the moving average over</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="blitz.data.transforms.MovingAverageDataTransform.apply">
+<tt class="descname">apply</tt><big>(</big><em>container</em><big>)</big><a class="reference internal" href="_modules/blitz/data/transforms.html#MovingAverageDataTransform.apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.transforms.MovingAverageDataTransform.apply" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applies a moving average filters using numpy</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>container</strong> &#8211; the data container to operate over</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="blitz.data.transforms.MultiplierDataTransform">
+<em class="property">class </em><tt class="descclassname">blitz.data.transforms.</tt><tt class="descname">MultiplierDataTransform</tt><big>(</big><em>multiplier=1</em><big>)</big><a class="reference internal" href="_modules/blitz/data/transforms.html#MultiplierDataTransform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.transforms.MultiplierDataTransform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applies a simple multiplier which takes a value and multiplies
+each y-value by this amount</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>multiplier</strong> &#8211; the value to multiply y-values by (default 1)</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="blitz.data.transforms.MultiplierDataTransform.apply">
+<tt class="descname">apply</tt><big>(</big><em>container</em><big>)</big><a class="reference internal" href="_modules/blitz/data/transforms.html#MultiplierDataTransform.apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.transforms.MultiplierDataTransform.apply" title="Permalink to this definition">¶</a></dt>
+<dd><p>Multiplies each y value in the container by the multiplier set in <cite>__init__</cite></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>container</strong> &#8211; the data container to operate over</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="blitz.data.transforms.TranslateDataTransform">
+<em class="property">class </em><tt class="descclassname">blitz.data.transforms.</tt><tt class="descname">TranslateDataTransform</tt><big>(</big><em>shift_amount=0</em>, <em>shift_axis='y'</em><big>)</big><a class="reference internal" href="_modules/blitz/data/transforms.html#TranslateDataTransform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.transforms.TranslateDataTransform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Translates data on the y-axis based on the amount provided in <cite>shift_amount</cite></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>shift_amount</strong> &#8211; the amount to shift data by on the y-axis</li>
+<li><strong>shift_axis</strong> &#8211; the axis to translate on (defaults to <cite>y</cite>, can also supply <cite>x</cite>)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">If <cite>shift_axis</cite> is neither <cite>x</cite> nor <cite>y</cite>, then the translation will apply to the &#8216;y&#8217; axis</p>
+</div>
+<dl class="method">
+<dt id="blitz.data.transforms.TranslateDataTransform.apply">
+<tt class="descname">apply</tt><big>(</big><em>container</em><big>)</big><a class="reference internal" href="_modules/blitz/data/transforms.html#TranslateDataTransform.apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.transforms.TranslateDataTransform.apply" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applies an axis translation to the data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>container</strong> &#8211; the data container to operate over</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="blitz_communications.html" title="blitz.communications"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="blitz_data_models.html" title="models"
+             >previous</a> |</li>
+        <li><a href="index.html">Blitz Logger Internal Documentation 0.1 documentation</a> &raquo;</li>
+          <li><a href="blitz_data.html" >blitz.data</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, William Hart.
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.2.Theme by <a href="http://github.com/vkvn">vkvn</a>
+    </div>
+  </body>
+</html>

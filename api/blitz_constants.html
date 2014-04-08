@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>blitz.constants &mdash; Blitz Logger Internal Documentation 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/solar.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Blitz Logger Internal Documentation 0.1 documentation" href="index.html" />
+    <link rel="next" title="blitz.data" href="blitz_data.html" />
+    <link rel="prev" title="Blitz Logger - Internal Documentation" href="index.html" /><link href='http://fonts.googleapis.com/css?family=Source+Code+Pro|Open+Sans:300italic,400italic,700italic,400,300,700' rel='stylesheet' type='text/css'>
+<link href="_static/solarized-dark.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="blitz_data.html" title="blitz.data"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Blitz Logger - Internal Documentation"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Blitz Logger Internal Documentation 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">blitz.constants</a><ul>
+<li><a class="reference internal" href="#module-blitz.constants">CommunicationCodes</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Blitz Logger - Internal Documentation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="blitz_data.html"
+                        title="next chapter">blitz.data</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/blitz_constants.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="blitz-constants">
+<h1>blitz.constants<a class="headerlink" href="#blitz-constants" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-blitz.constants">
+<span id="communicationcodes"></span><h2>CommunicationCodes<a class="headerlink" href="#module-blitz.constants" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="blitz.constants.CommunicationCodes">
+<em class="property">class </em><tt class="descclassname">blitz.constants.</tt><tt class="descname">CommunicationCodes</tt><a class="reference internal" href="_modules/blitz/constants.html#CommunicationCodes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.constants.CommunicationCodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Provides &#8220;static&#8221; communication codes for Tcp Communication.  Usage is:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">blitz.constants</span> <span class="kn">import</span> <span class="n">CommunicationCodes</span>
+<span class="n">tcp</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">Acknowledge</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="classmethod">
+<dt id="blitz.constants.CommunicationCodes.composite">
+<em class="property">classmethod </em><tt class="descname">composite</tt><big>(</big><em>base_code</em>, <em>code_id</em><big>)</big><a class="reference internal" href="_modules/blitz/constants.html#CommunicationCodes.composite"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.constants.CommunicationCodes.composite" title="Permalink to this definition">¶</a></dt>
+<dd><p>A class method which builds a communication code of more than one part
+such as a download or error command.</p>
+<p>Usage:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">composite</span><span class="p">(</span><span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">Download</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="go">&quot;DOWNLOAD 1&quot;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="blitz_data.html" title="blitz.data"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Blitz Logger - Internal Documentation"
+             >previous</a> |</li>
+        <li><a href="index.html">Blitz Logger Internal Documentation 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, William Hart.
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.2.Theme by <a href="http://github.com/vkvn">vkvn</a>
+    </div>
+  </body>
+</html>

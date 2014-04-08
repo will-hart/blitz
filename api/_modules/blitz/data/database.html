@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>blitz.data.database &mdash; Blitz Logger Internal Documentation 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/solar.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="Blitz Logger Internal Documentation 0.1 documentation" href="../../../index.html" />
+    <link rel="up" title="blitz.data" href="../data.html" /><link href='http://fonts.googleapis.com/css?family=Source+Code+Pro|Open+Sans:300italic,400italic,700italic,400,300,700' rel='stylesheet' type='text/css'>
+<link href="../../../_static/solarized-dark.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Blitz Logger Internal Documentation 0.1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../data.html" accesskey="U">blitz.data</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for blitz.data.database</h1><div class="highlight"><pre>
+<span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;Will Hart&#39;</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">sqlalchemy</span> <span class="kn">as</span> <span class="nn">sql</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">func</span> <span class="k">as</span> <span class="n">sql_func</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">sessionmaker</span>
+<span class="kn">import</span> <span class="nn">redis</span>
+
+<span class="kn">from</span> <span class="nn">blitz.data.models</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">blitz.data.fixtures</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">blitz.communications.signals</span> <span class="kn">as</span> <span class="nn">sigs</span>
+<span class="kn">from</span> <span class="nn">blitz.utilities</span> <span class="kn">import</span> <span class="n">blitz_timestamp</span>
+
+
+<div class="viewcode-block" id="DatabaseClient"><a class="viewcode-back" href="../../../blitz_data_database.html#blitz.data.database.DatabaseClient">[docs]</a><span class="k">class</span> <span class="nc">DatabaseClient</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Provides database operations for the client using SqlAlchemy</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_database</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">_baseClass</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="s">&quot;:memory:&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Instantiates a connection and creates an in memory database by default.</span>
+
+<span class="sd">        :param verbose: if True, SqlAlchemy will emit verbose debug messages (default False)</span>
+<span class="sd">        :param path: the path to the database file (default &quot;:memory:&quot;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c"># allow loading from memory for testing</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_database</span> <span class="o">=</span> <span class="n">sql</span><span class="o">.</span><span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;sqlite:///&#39;</span> <span class="o">+</span> <span class="n">path</span><span class="p">,</span> <span class="n">echo</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_session</span> <span class="o">=</span> <span class="n">sessionmaker</span><span class="p">(</span><span class="n">bind</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_database</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;DatabaseClient __init__&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_tables</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;DatabaseClient created tables&quot;</span><span class="p">)</span>
+
+        <span class="c"># connect up the session_list_update signal</span>
+        <span class="n">sigs</span><span class="o">.</span><span class="n">client_session_list_updated</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">update_session_list</span><span class="p">)</span>
+
+<div class="viewcode-block" id="DatabaseClient.create_tables"><a class="viewcode-back" href="../../../blitz_data_database.html#blitz.data.database.DatabaseClient.create_tables">[docs]</a>    <span class="k">def</span> <span class="nf">create_tables</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">force_drop</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Uses the supplied engine and models to create the required table structure</span>
+
+<span class="sd">        :param force_drop: forces the existing tables to be dropped and recreated if True (default False)</span>
+<span class="sd">        :return: nothing</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c">#SQL_BASE is defined in blitz.data.models</span>
+        <span class="k">if</span> <span class="n">force_drop</span><span class="p">:</span>
+            <span class="n">SQL_BASE</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">drop_all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_database</span><span class="p">)</span>
+        <span class="n">SQL_BASE</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">create_all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_database</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="DatabaseClient.add"><a class="viewcode-back" href="../../../blitz_data_database.html#blitz.data.database.DatabaseClient.add">[docs]</a>    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds a single item to the database</span>
+
+<span class="sd">        :param item: The item to add to the database</span>
+<span class="sd">        :returns: The item that was added</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_many</span><span class="p">([</span><span class="n">item</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="DatabaseClient.add_many"><a class="viewcode-back" href="../../../blitz_data_database.html#blitz.data.database.DatabaseClient.add_many">[docs]</a>    <span class="k">def</span> <span class="nf">add_many</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">items</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds the given items to the database with the passed attributes</span>
+
+<span class="sd">        :param items: A list of Model instances to be added</span>
+<span class="sd">        :returns: The list of items that was added (should now be populated with IDs)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sess</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
+            <span class="n">sess</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+        <span class="n">sess</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">items</span>
+</div>
+<div class="viewcode-block" id="DatabaseClient.get"><a class="viewcode-back" href="../../../blitz_data_database.html#blitz.data.database.DatabaseClient.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">query</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gets a single item from the database (the first that matches the query dict)</span>
+
+<span class="sd">        :param model: the model to query</span>
+<span class="sd">        :param query: the dict of &quot;field: value&quot; pairs to filter on</span>
+<span class="sd">        :return: A single model matching the query string</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">query</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="DatabaseClient.get_by_id"><a class="viewcode-back" href="../../../blitz_data_database.html#blitz.data.database.DatabaseClient.get_by_id">[docs]</a>    <span class="k">def</span> <span class="nf">get_by_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">model_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gets an object by ID</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="p">{</span><span class="s">&quot;id&quot;</span><span class="p">:</span> <span class="n">model_id</span><span class="p">})</span>
+</div>
+<div class="viewcode-block" id="DatabaseClient.all"><a class="viewcode-back" href="../../../blitz_data_database.html#blitz.data.database.DatabaseClient.all">[docs]</a>    <span class="k">def</span> <span class="nf">all</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns all the records for a given model type</span>
+
+<span class="sd">        :param model: The model to return all records for</span>
+<span class="sd">        :return: A list of all records for a given model</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">sess</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">sess</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">model</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="DatabaseClient.find"><a class="viewcode-back" href="../../../blitz_data_database.html#blitz.data.database.DatabaseClient.find">[docs]</a>    <span class="k">def</span> <span class="nf">find</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">query</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns ALL items which match the given query</span>
+
+<span class="sd">        :param model: The model to query on</span>
+<span class="sd">        :param query: the dictionary of &quot;field: value&quot; pairs to filter on</span>
+<span class="sd">        :return: a list of all matching records</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sess</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">sess</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">model</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="o">**</span><span class="n">query</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="DatabaseClient.update_session_availability"><a class="viewcode-back" href="../../../blitz_data_database.html#blitz.data.database.DatabaseClient.update_session_availability">[docs]</a>    <span class="k">def</span> <span class="nf">update_session_availability</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Updates a session information after a download to determine if it is available for viewing.</span>
+
+<span class="sd">        :param session_id: the ref_id of the session being checked</span>
+<span class="sd">        :returns: nothing</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sess</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="p">()</span>
+        <span class="n">session</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Session</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="s">&#39;ref_id&#39;</span><span class="p">:</span> <span class="n">session_id</span><span class="p">})</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">sql_func</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">Reading</span><span class="o">.</span><span class="n">sessionId</span><span class="p">))</span>\
+            <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Reading</span><span class="o">.</span><span class="n">sessionId</span> <span class="o">==</span> <span class="n">session_id</span><span class="p">)</span><span class="o">.</span><span class="n">scalar</span><span class="p">()</span>
+
+        <span class="c"># check all lines were received and set &quot;available&quot; accordingly</span>
+        <span class="n">session</span><span class="o">.</span><span class="n">available</span> <span class="o">=</span> <span class="n">count</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="n">sess</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="DatabaseClient.get_session_variables"><a class="viewcode-back" href="../../../blitz_data_database.html#blitz.data.database.DatabaseClient.get_session_variables">[docs]</a>    <span class="k">def</span> <span class="nf">get_session_variables</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gets the variables associated with a given session</span>
+<span class="sd">        :param session_id: the ref_id of the session to get variables for.</span>
+<span class="sd">        :returns: a list of Reading objects</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">qry</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="p">()</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Category</span><span class="p">,</span> <span class="n">Reading</span><span class="p">)</span><span class="o">.</span> \
+            <span class="nb">filter</span><span class="p">(</span><span class="n">Category</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">Reading</span><span class="o">.</span><span class="n">categoryId</span><span class="p">)</span><span class="o">.</span> \
+            <span class="nb">filter</span><span class="p">(</span><span class="n">Reading</span><span class="o">.</span><span class="n">sessionId</span> <span class="o">==</span> <span class="n">session_id</span><span class="p">)</span><span class="o">.</span> \
+            <span class="n">order_by</span><span class="p">(</span><span class="n">Reading</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="o">.</span> \
+            <span class="nb">all</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">qry</span><span class="p">:</span>
+            <span class="n">res</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="DatabaseClient.get_cache_variables"><a class="viewcode-back" href="../../../blitz_data_database.html#blitz.data.database.DatabaseClient.get_cache_variables">[docs]</a>    <span class="k">def</span> <span class="nf">get_cache_variables</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gets the variables associated with the cache</span>
+
+<span class="sd">        :returns: a list of Cache objects</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">qry</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="p">()</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Category</span><span class="p">,</span> <span class="n">Cache</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Category</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">Cache</span><span class="o">.</span><span class="n">categoryId</span><span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">Cache</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">qry</span><span class="p">:</span>
+            <span class="n">res</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="DatabaseClient.get_session_readings"><a class="viewcode-back" href="../../../blitz_data_database.html#blitz.data.database.DatabaseClient.get_session_readings">[docs]</a>    <span class="k">def</span> <span class="nf">get_session_readings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gets a list of readings for a particular session</span>
+
+<span class="sd">        :param session_id: the ref_id of the session to get variables for.</span>
+<span class="sd">        :returns: a list of Reading objects for the session ID</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sess</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">sess</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Reading</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Reading</span><span class="o">.</span><span class="n">sessionId</span> <span class="o">==</span> <span class="n">session_id</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="DatabaseClient.get_cache"><a class="viewcode-back" href="../../../blitz_data_database.html#blitz.data.database.DatabaseClient.get_cache">[docs]</a>    <span class="k">def</span> <span class="nf">get_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">since</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gets cached variables. If a &quot;since&quot; argument is applied, it only</span>
+<span class="sd">        returns values that have been read since this time.  If no since</span>
+<span class="sd">        value is applied then it returns the most recent.  All queries are</span>
+<span class="sd">        limited to 50 values per variable</span>
+
+<span class="sd">        :param since: a UNIX timestamp to retrieve values since</span>
+<span class="sd">        :returns: A list (variable) of lists (values)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">res</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">sess</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="p">()</span>
+
+        <span class="c"># get the categories in the cache</span>
+        <span class="n">cache_vars</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Cache</span><span class="p">)</span><span class="o">.</span><span class="n">group_by</span><span class="p">(</span><span class="n">Cache</span><span class="o">.</span><span class="n">categoryId</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+
+        <span class="c"># loop and build the variables</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">cache_vars</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">since</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">qry</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Cache</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Cache</span><span class="o">.</span><span class="n">categoryId</span> <span class="o">==</span> <span class="n">v</span><span class="o">.</span><span class="n">categoryId</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                    <span class="n">Cache</span><span class="o">.</span><span class="n">timeLogged</span> <span class="o">&gt;=</span> <span class="n">since</span><span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">Cache</span><span class="o">.</span><span class="n">timeLogged</span><span class="o">.</span><span class="n">desc</span><span class="p">())</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">qry</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Cache</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Cache</span><span class="o">.</span><span class="n">categoryId</span> <span class="o">==</span> <span class="n">v</span><span class="o">.</span><span class="n">categoryId</span><span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">Cache</span><span class="o">.</span><span class="n">timeLogged</span><span class="o">.</span><span class="n">desc</span><span class="p">())</span>
+
+            <span class="n">res</span> <span class="o">+=</span> <span class="n">qry</span><span class="p">[:</span><span class="mi">50</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">res</span>
+</div>
+<div class="viewcode-block" id="DatabaseClient.update_session_list"><a class="viewcode-back" href="../../../blitz_data_database.html#blitz.data.database.DatabaseClient.update_session_list">[docs]</a>    <span class="k">def</span> <span class="nf">update_session_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sessions_list</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Session list comes in [session_id, start_timestamp, end_timstamp] format</span>
+<span class="sd">        This replaces the existing session list</span>
+
+<span class="sd">        :param sessions_list: a list of lists of session information [id, timeStarted, timeStopped, numberOfReadings]</span>
+<span class="sd">        :returns: nothing</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Updating session list&quot;</span><span class="p">)</span>
+
+        <span class="n">sess</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="p">()</span>
+        <span class="n">sess</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Session</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+        <span class="n">sess</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+        <span class="n">sessions</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">session</span> <span class="ow">in</span> <span class="n">sessions_list</span><span class="p">:</span>
+
+            <span class="n">count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="p">()</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">sql</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">Reading</span><span class="o">.</span><span class="n">sessionId</span> <span class="o">==</span> <span class="n">session</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span><span class="o">.</span><span class="n">scalar</span><span class="p">()</span>
+            <span class="n">blitz_session</span> <span class="o">=</span> <span class="n">Session</span><span class="p">()</span>
+            <span class="n">blitz_session</span><span class="o">.</span><span class="n">ref_id</span> <span class="o">=</span> <span class="n">session</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">blitz_session</span><span class="o">.</span><span class="n">timeStarted</span> <span class="o">=</span> <span class="n">session</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">blitz_session</span><span class="o">.</span><span class="n">timeStopped</span> <span class="o">=</span> <span class="n">session</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">blitz_session</span><span class="o">.</span><span class="n">numberOfReadings</span> <span class="o">=</span> <span class="n">session</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+            <span class="n">blitz_session</span><span class="o">.</span><span class="n">available</span> <span class="o">=</span> <span class="n">count</span> <span class="o">&gt;</span> <span class="mi">0</span>
+            <span class="n">sessions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">blitz_session</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_many</span><span class="p">(</span><span class="n">sessions</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="DatabaseClient.load_fixtures"><a class="viewcode-back" href="../../../blitz_data_database.html#blitz.data.database.DatabaseClient.load_fixtures">[docs]</a>    <span class="k">def</span> <span class="nf">load_fixtures</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">testing</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Loads fixtures from blitz.data.fixtures</span>
+
+<span class="sd">        :param testing: if True all fixtures are added, otherwise just configuration</span>
+<span class="sd">        :returns: nothing</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">config</span> <span class="ow">in</span> <span class="n">CONFIG_FIXTURES</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_config</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s">&#39;key&#39;</span><span class="p">],</span> <span class="n">config</span><span class="p">[</span><span class="s">&#39;value&#39;</span><span class="p">],</span> <span class="bp">False</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">testing</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_many</span><span class="p">(</span><span class="n">generate_objects</span><span class="p">(</span><span class="n">Category</span><span class="p">,</span> <span class="n">CATEGORY_FIXTURES</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_many</span><span class="p">(</span><span class="n">generate_objects</span><span class="p">(</span><span class="n">Cache</span><span class="p">,</span> <span class="n">CACHE_FIXTURES</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_many</span><span class="p">(</span><span class="n">generate_objects</span><span class="p">(</span><span class="n">Reading</span><span class="p">,</span> <span class="n">READING_FIXTURES</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_many</span><span class="p">(</span><span class="n">generate_objects</span><span class="p">(</span><span class="n">Session</span><span class="p">,</span> <span class="n">SESSION_FIXTURES</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="DatabaseClient.get_config"><a class="viewcode-back" href="../../../blitz_data_database.html#blitz.data.database.DatabaseClient.get_config">[docs]</a>    <span class="k">def</span> <span class="nf">get_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gets a config value from the database from the given key</span>
+
+<span class="sd">        :param key: the config key to retrieve</span>
+<span class="sd">        :returns: the Config item matching the given key</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Config</span><span class="p">,</span> <span class="p">{</span><span class="s">&quot;key&quot;</span><span class="p">:</span> <span class="n">key</span><span class="p">})</span>
+</div>
+<div class="viewcode-block" id="DatabaseClient.set_config"><a class="viewcode-back" href="../../../blitz_data_database.html#blitz.data.database.DatabaseClient.set_config">[docs]</a>    <span class="k">def</span> <span class="nf">set_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">do_update</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets a config value in the database, adding or updating as required</span>
+
+<span class="sd">        :param key: the config key to set</span>
+<span class="sd">        :param value: the config value to set for the given key</span>
+<span class="sd">        :returns: nothing</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_config</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Config</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">do_update</span><span class="p">:</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="p">()</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="DatabaseClient.get_or_create_category"><a class="viewcode-back" href="../../../blitz_data_database.html#blitz.data.database.DatabaseClient.get_or_create_category">[docs]</a>    <span class="k">def</span> <span class="nf">get_or_create_category</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gets the id of a category, or if none is found, create it</span>
+<span class="sd">        and return the ID of the created object</span>
+
+<span class="sd">        :param key: the category name to get or create</span>
+<span class="sd">        :returns: the id of the Category that was retrieved or added</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">category</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Category</span><span class="p">,</span> <span class="p">{</span><span class="s">&quot;variableName&quot;</span><span class="p">:</span> <span class="n">key</span><span class="p">})</span>
+        <span class="k">if</span> <span class="n">category</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">category</span><span class="o">.</span><span class="n">id</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">new_category</span> <span class="o">=</span> <span class="n">Category</span><span class="p">(</span><span class="n">variableName</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">new_category</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">new_category</span><span class="o">.</span><span class="n">id</span>
+</div>
+<div class="viewcode-block" id="DatabaseClient.log_error"><a class="viewcode-back" href="../../../blitz_data_database.html#blitz.data.database.DatabaseClient.log_error">[docs]</a>    <span class="k">def</span> <span class="nf">log_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">severity</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Log an error to the database - this will be sent to the client</span>
+
+<span class="sd">        :param description: the description of the error</span>
+<span class="sd">        :param severity: the severity of the error (defaults to 1)</span>
+<span class="sd">        :returns: the Notification that was added</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">notification</span> <span class="o">=</span> <span class="n">Notification</span><span class="p">(</span>
+            <span class="n">timeLogged</span><span class="o">=</span><span class="n">blitz_timestamp</span><span class="p">(),</span>
+            <span class="n">severity</span><span class="o">=</span><span class="n">severity</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="n">description</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">notification</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">notification</span>
+</div>
+<div class="viewcode-block" id="DatabaseClient.clear_errors"><a class="viewcode-back" href="../../../blitz_data_database.html#blitz.data.database.DatabaseClient.clear_errors">[docs]</a>    <span class="k">def</span> <span class="nf">clear_errors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Removes all errors from the database</span>
+
+<span class="sd">        :returns: nothing</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sess</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="p">()</span>
+        <span class="n">sess</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Notification</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+        <span class="n">sess</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="DatabaseClient.handle_error"><a class="viewcode-back" href="../../../blitz_data_database.html#blitz.data.database.DatabaseClient.handle_error">[docs]</a>    <span class="k">def</span> <span class="nf">handle_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">err_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Removes a single error from the database</span>
+
+<span class="sd">        :returns: nothing</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sess</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="p">()</span>
+        <span class="n">sess</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Notification</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Notification</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">err_id</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+        <span class="n">sess</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="DatabaseClient.add_reading"><a class="viewcode-back" href="../../../blitz_data_database.html#blitz.data.database.DatabaseClient.add_reading">[docs]</a>    <span class="k">def</span> <span class="nf">add_reading</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session_id</span><span class="p">,</span> <span class="n">time_logged</span><span class="p">,</span> <span class="n">category_id</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Quick helper to add a reading record to the database</span>
+
+<span class="sd">        :param session_id: the ID of the session to create the reading for</span>
+<span class="sd">        :param time_logged: the timestamp the reading was logged</span>
+<span class="sd">        :param category_id: the ID of the category this reading should be added to</span>
+<span class="sd">        :param value: the value of the reading</span>
+<span class="sd">        :returns: the Reading that was generated</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">reading</span> <span class="o">=</span> <span class="n">Reading</span><span class="p">(</span>
+            <span class="n">sessionId</span><span class="o">=</span><span class="n">session_id</span><span class="p">,</span>
+            <span class="n">timeLogged</span><span class="o">=</span><span class="n">time_logged</span><span class="p">,</span>
+            <span class="n">categoryId</span><span class="o">=</span><span class="n">category_id</span><span class="p">,</span>
+            <span class="n">value</span><span class="o">=</span><span class="n">value</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">reading</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">reading</span>
+</div>
+<div class="viewcode-block" id="DatabaseClient.add_cache"><a class="viewcode-back" href="../../../blitz_data_database.html#blitz.data.database.DatabaseClient.add_cache">[docs]</a>    <span class="k">def</span> <span class="nf">add_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_logged</span><span class="p">,</span> <span class="n">category_id</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Quick helper to add a cache record to the database</span>
+
+<span class="sd">        :param time_logged: the timestamp the reading was logged</span>
+<span class="sd">        :param category_id: the ID of the category this reading should be added to</span>
+<span class="sd">        :param value: the value of the reading</span>
+<span class="sd">        :returns: the Reading that was generated</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cache</span> <span class="o">=</span> <span class="n">Cache</span><span class="p">(</span>
+            <span class="n">timeLogged</span><span class="o">=</span><span class="n">time_logged</span><span class="p">,</span>
+            <span class="n">categoryId</span><span class="o">=</span><span class="n">category_id</span><span class="p">,</span>
+            <span class="n">value</span><span class="o">=</span><span class="n">value</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">cache</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cache</span>
+</div>
+<div class="viewcode-block" id="DatabaseClient.clear_cache"><a class="viewcode-back" href="../../../blitz_data_database.html#blitz.data.database.DatabaseClient.clear_cache">[docs]</a>    <span class="k">def</span> <span class="nf">clear_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Clears all variables from the cache</span>
+
+<span class="sd">        :returns: the Reading that was generated</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sess</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="p">()</span>
+        <span class="n">sess</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Cache</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+        <span class="n">sess</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="DatabaseClient.clear_session_data"><a class="viewcode-back" href="../../../blitz_data_database.html#blitz.data.database.DatabaseClient.clear_session_data">[docs]</a>    <span class="k">def</span> <span class="nf">clear_session_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Clears historic session data for the given session (ref) id</span>
+
+<span class="sd">        :param session_id: the id of the session to clear data for</span>
+<span class="sd">        :returns: the Reading that was generated</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sess</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="p">()</span>
+        <span class="n">sess</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Reading</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Reading</span><span class="o">.</span><span class="n">sessionId</span> <span class="o">==</span> <span class="n">session_id</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+        <span class="n">sess</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+        <span class="c"># now update the session availability to reflect the cleared data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_session_availability</span><span class="p">(</span><span class="n">session_id</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="DatabaseServer"><a class="viewcode-back" href="../../../blitz_data_database.html#blitz.data.database.DatabaseServer">[docs]</a><span class="k">class</span> <span class="nc">DatabaseServer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The redis database server - retains several documents:</span>
+
+<span class="sd">    - **session**  the id of the current session</span>
+<span class="sd">    - **session_N_start**  the timestamp when the logging session N began</span>
+<span class="sd">    - **session_N_end**  the timestamp when logging session N ended</span>
+<span class="sd">    - **sessions**  a list of session in the database</span>
+<span class="sd">    - **session_N**  a queue of raw session data for session_id N</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">__data</span> <span class="o">=</span> <span class="n">redis</span><span class="o">.</span><span class="n">StrictRedis</span><span class="p">()</span>
+    <span class="n">session_id</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialises a new instance of a DatabaseServer</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;DatabaseServer __init__&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_session_id</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__last_session_length</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+<div class="viewcode-block" id="DatabaseServer.start_session"><a class="viewcode-back" href="../../../blitz_data_database.html#blitz.data.database.DatabaseServer.start_session">[docs]</a>    <span class="k">def</span> <span class="nf">start_session</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Starts a new session, creating the required session_N variables</span>
+
+<span class="sd">        :returns: the ID of the newly created session</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__data</span><span class="o">.</span><span class="n">incr</span><span class="p">(</span><span class="s">&quot;session_id&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_session_id</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__data</span><span class="o">.</span><span class="n">lpush</span><span class="p">(</span><span class="s">&quot;sessions&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">session_id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__data</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s">&quot;session_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session_id</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;_start&quot;</span><span class="p">,</span> <span class="n">blitz_timestamp</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__last_session_length</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_session_id</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="DatabaseServer.stop_session"><a class="viewcode-back" href="../../../blitz_data_database.html#blitz.data.database.DatabaseServer.stop_session">[docs]</a>    <span class="k">def</span> <span class="nf">stop_session</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Stops the current session</span>
+
+<span class="sd">        :returns: nothing</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__data</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s">&quot;session_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session_id</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;_end&quot;</span><span class="p">,</span> <span class="n">blitz_timestamp</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session_id</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__last_session_length</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+</div>
+    <span class="k">def</span> <span class="nf">__get_session_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">sess_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;session_id&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">sess_id</span><span class="p">)</span> <span class="k">if</span> <span class="n">sess_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span>
+
+<div class="viewcode-block" id="DatabaseServer.get_ten_from_session"><a class="viewcode-back" href="../../../blitz_data_database.html#blitz.data.database.DatabaseServer.get_ten_from_session">[docs]</a>    <span class="k">def</span> <span class="nf">get_ten_from_session</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gets the last ten readings from the logging session</span>
+
+<span class="sd">        :returns: the list of raw serial messages</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">session_str</span> <span class="o">=</span> <span class="s">&quot;session_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session_id</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__data</span><span class="o">.</span><span class="n">lrange</span><span class="p">(</span><span class="n">session_str</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">9</span><span class="p">)</span>  <span class="c"># numbers are inclusive</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">result</span>
+</div>
+<div class="viewcode-block" id="DatabaseServer.queue"><a class="viewcode-back" href="../../../blitz_data_database.html#blitz.data.database.DatabaseServer.queue">[docs]</a>    <span class="k">def</span> <span class="nf">queue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Queues a new message against the current session. If no session is being run then it</span>
+<span class="sd">        logs a warning and does nothing</span>
+
+<span class="sd">        :param message: the message to push onto the session data</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+         <span class="c"># only log against current session</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">session_id</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;Attempted to save a logged variable with no session running: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">message</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="n">session_str</span> <span class="o">=</span> <span class="s">&quot;session_</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">session_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__data</span><span class="o">.</span><span class="n">lpush</span><span class="p">(</span><span class="n">session_str</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">message</span>
+</div>
+<div class="viewcode-block" id="DatabaseServer.get_all_from_session"><a class="viewcode-back" href="../../../blitz_data_database.html#blitz.data.database.DatabaseServer.get_all_from_session">[docs]</a>    <span class="k">def</span> <span class="nf">get_all_from_session</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gets all messages logged during the given session ID</span>
+
+<span class="sd">        :param session_id: the ID of the session to return information for</span>
+<span class="sd">        :returns: the readings from the session</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">session_str</span> <span class="o">=</span> <span class="s">&quot;session_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">session_id</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__data</span><span class="o">.</span><span class="n">lrange</span><span class="p">(</span><span class="n">session_str</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">result</span>
+</div>
+<div class="viewcode-block" id="DatabaseServer.get_latest_from_session"><a class="viewcode-back" href="../../../blitz_data_database.html#blitz.data.database.DatabaseServer.get_latest_from_session">[docs]</a>    <span class="k">def</span> <span class="nf">get_latest_from_session</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gets the most recent logged variable from the database and returns it as</span>
+<span class="sd">        a raw message string.</span>
+
+<span class="sd">        :param session_id: The id of the session to return the top variable from</span>
+
+<span class="sd">        :returns: A string containing the last raw serial message received from a board in this session</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">session_str</span> <span class="o">=</span> <span class="s">&quot;session_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">session_id</span><span class="p">)</span>
+
+        <span class="c"># Work out if we have taken any new readings since the last status update</span>
+        <span class="n">num_readings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__data</span><span class="o">.</span><span class="n">llen</span><span class="p">(</span><span class="n">session_str</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">num_readings</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">__last_session_length</span><span class="p">:</span>
+            <span class="c"># do not return a reading more than once</span>
+            <span class="k">return</span> <span class="s">&quot;&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__last_session_length</span> <span class="o">=</span> <span class="n">num_readings</span>
+
+        <span class="c"># get and return the last message from the database</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__data</span><span class="o">.</span><span class="n">lrange</span><span class="p">(</span><span class="n">session_str</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s">&quot;&quot;</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="DatabaseServer.delete_session"><a class="viewcode-back" href="../../../blitz_data_database.html#blitz.data.database.DatabaseServer.delete_session">[docs]</a>    <span class="k">def</span> <span class="nf">delete_session</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Deletes a session and all associated data from the database. The session number</span>
+<span class="sd">        will not be reused</span>
+
+<span class="sd">        :parma session_id: the session ID to delete</span>
+<span class="sd">        :returns: nothing</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">session_str</span> <span class="o">=</span> <span class="s">&quot;session_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">session_id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__data</span><span class="o">.</span><span class="n">lrem</span><span class="p">(</span><span class="s">&quot;sessions&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">session_id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__data</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">session_str</span> <span class="o">+</span> <span class="s">&quot;_start&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__data</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">session_str</span> <span class="o">+</span> <span class="s">&quot;_end&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__data</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">session_str</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="DatabaseServer.available_sessions"><a class="viewcode-back" href="../../../blitz_data_database.html#blitz.data.database.DatabaseServer.available_sessions">[docs]</a>    <span class="k">def</span> <span class="nf">available_sessions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gets all the available session from the database as a list</span>
+
+<span class="sd">        :returns: a list of available sessions or an empty list if there are none</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__data</span><span class="o">.</span><span class="n">lrange</span><span class="p">(</span><span class="s">&quot;sessions&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">result</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">result</span>
+</div>
+<div class="viewcode-block" id="DatabaseServer.flush"><a class="viewcode-back" href="../../../blitz_data_database.html#blitz.data.database.DatabaseServer.flush">[docs]</a>    <span class="k">def</span> <span class="nf">flush</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Cleans out the database</span>
+
+<span class="sd">        .. warning::</span>
+<span class="sd">            USE WITH CAUTION - this will irrevocably destroy all logged session data</span>
+
+<span class="sd">        :returns: nothing</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__data</span><span class="o">.</span><span class="n">flushdb</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="DatabaseServer.build_client_session_list"><a class="viewcode-back" href="../../../blitz_data_database.html#blitz.data.database.DatabaseServer.build_client_session_list">[docs]</a>    <span class="k">def</span> <span class="nf">build_client_session_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Builds a list of session information in the format::</span>
+
+<span class="sd">            [</span>
+<span class="sd">                [ID, start timestamp, end timestamp, number of readings]</span>
+<span class="sd">                ...</span>
+<span class="sd">            ]</span>
+
+<span class="sd">        :returns: the list of sessions</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sessions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">available_sessions</span><span class="p">()</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">session</span> <span class="ow">in</span> <span class="n">sessions</span><span class="p">:</span>
+            <span class="n">session_start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;session_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">session</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;_start&quot;</span><span class="p">)</span>
+            <span class="n">session_end</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;session_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">session</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;_end&quot;</span><span class="p">)</span>
+            <span class="n">session_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__data</span><span class="o">.</span><span class="n">llen</span><span class="p">(</span><span class="s">&quot;session_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">session</span><span class="p">))</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="n">session_start</span><span class="p">,</span> <span class="n">session_end</span><span class="p">,</span> <span class="n">session_count</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">result</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Blitz Logger Internal Documentation 0.1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../data.html" >blitz.data</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, William Hart.
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.2.Theme by <a href="http://github.com/vkvn">vkvn</a>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>server_states &mdash; Blitz Logger Internal Documentation 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/solar.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Blitz Logger Internal Documentation 0.1 documentation" href="index.html" />
+    <link rel="up" title="blitz.communications" href="blitz_communications.html" />
+    <link rel="next" title="blitz.web" href="blitz_web.html" />
+    <link rel="prev" title="signals" href="blitz_communications_signals.html" /><link href='http://fonts.googleapis.com/css?family=Source+Code+Pro|Open+Sans:300italic,400italic,700italic,400,300,700' rel='stylesheet' type='text/css'>
+<link href="_static/solarized-dark.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="blitz_web.html" title="blitz.web"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="blitz_communications_signals.html" title="signals"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Blitz Logger Internal Documentation 0.1 documentation</a> &raquo;</li>
+          <li><a href="blitz_communications.html" accesskey="U">blitz.communications</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">server_states</a><ul>
+<li><a class="reference internal" href="#tcpcommunicationexception">TcpCommunicationException</a></li>
+<li><a class="reference internal" href="#tcpbase">TcpBase</a></li>
+<li><a class="reference internal" href="#tcpstateaction">TcpStateAction</a></li>
+<li><a class="reference internal" href="#tcpstatemachine">TcpStateMachine</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="blitz_communications_signals.html"
+                        title="previous chapter">signals</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="blitz_web.html"
+                        title="next chapter">blitz.web</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/blitz_communications_tcp.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="server-states">
+<h1>server_states<a class="headerlink" href="#server-states" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="tcpcommunicationexception">
+<h2>TcpCommunicationException<a class="headerlink" href="#tcpcommunicationexception" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="blitz.communications.tcp.TcpCommunicationException">
+<em class="property">class </em><tt class="descclassname">blitz.communications.tcp.</tt><tt class="descname">TcpCommunicationException</tt><a class="reference internal" href="_modules/blitz/communications/tcp.html#TcpCommunicationException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.tcp.TcpCommunicationException" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="tcpbase">
+<h2>TcpBase<a class="headerlink" href="#tcpbase" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="blitz.communications.tcp.TcpBase">
+<em class="property">class </em><tt class="descclassname">blitz.communications.tcp.</tt><tt class="descname">TcpBase</tt><big>(</big><em>host='localhost'</em>, <em>port=None</em><big>)</big><a class="reference internal" href="_modules/blitz/communications/tcp.html#TcpBase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.tcp.TcpBase" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="tcpstateaction">
+<h2>TcpStateAction<a class="headerlink" href="#tcpstateaction" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="blitz.communications.tcp.TcpStateAction">
+<em class="property">class </em><tt class="descclassname">blitz.communications.tcp.</tt><tt class="descname">TcpStateAction</tt><big>(</big><em>command_type</em>, <em>command</em><big>)</big><a class="reference internal" href="_modules/blitz/communications/tcp.html#TcpStateAction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.tcp.TcpStateAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Manages a TCP action which is queued with the state machine.</p>
+<p>The TcpSTateMachine provides convenience methods for creating and queueing instances</p>
+<dl class="method">
+<dt id="blitz.communications.tcp.TcpStateAction.is_send">
+<tt class="descname">is_send</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/blitz/communications/tcp.html#TcpStateAction.is_send"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.tcp.TcpStateAction.is_send" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns true if this is a send command</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="tcpstatemachine">
+<h2>TcpStateMachine<a class="headerlink" href="#tcpstatemachine" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="blitz.communications.tcp.TcpStateMachine">
+<em class="property">class </em><tt class="descclassname">blitz.communications.tcp.</tt><tt class="descname">TcpStateMachine</tt><big>(</big><em>tcp</em>, <em>stop_event</em>, <em>initial_state</em><big>)</big><a class="reference internal" href="_modules/blitz/communications/tcp.html#TcpStateMachine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.tcp.TcpStateMachine" title="Permalink to this definition">¶</a></dt>
+<dd><p>Manages TCP state and ensures the messages are processed in a thread safe manner, one at a time</p>
+<dl class="method">
+<dt id="blitz.communications.tcp.TcpStateMachine.queue_receive">
+<tt class="descname">queue_receive</tt><big>(</big><em>command</em><big>)</big><a class="reference internal" href="_modules/blitz/communications/tcp.html#TcpStateMachine.queue_receive"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.tcp.TcpStateMachine.queue_receive" title="Permalink to this definition">¶</a></dt>
+<dd><p>Queues a receive message</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.communications.tcp.TcpStateMachine.queue_send">
+<tt class="descname">queue_send</tt><big>(</big><em>command</em><big>)</big><a class="reference internal" href="_modules/blitz/communications/tcp.html#TcpStateMachine.queue_send"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.tcp.TcpStateMachine.queue_send" title="Permalink to this definition">¶</a></dt>
+<dd><p>Queues a send message</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="blitz_web.html" title="blitz.web"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="blitz_communications_signals.html" title="signals"
+             >previous</a> |</li>
+        <li><a href="index.html">Blitz Logger Internal Documentation 0.1 documentation</a> &raquo;</li>
+          <li><a href="blitz_communications.html" >blitz.communications</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, William Hart.
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.2.Theme by <a href="http://github.com/vkvn">vkvn</a>
+    </div>
+  </body>
+</html>

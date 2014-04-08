@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>blitz.communications.signals &mdash; Blitz Logger Internal Documentation 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/solar.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="Blitz Logger Internal Documentation 0.1 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /><link href='http://fonts.googleapis.com/css?family=Source+Code+Pro|Open+Sans:300italic,400italic,700italic,400,300,700' rel='stylesheet' type='text/css'>
+<link href="../../../_static/solarized-dark.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Blitz Logger Internal Documentation 0.1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for blitz.communications.signals</h1><div class="highlight"><pre>
+<span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;Will Hart&#39;</span>
+
+<span class="kn">from</span> <span class="nn">blinker</span> <span class="kn">import</span> <span class="n">signal</span>
+
+<span class="c">#: Fired when the client has requested a connection to the data logger</span>
+<span class="c">#:</span>
+<span class="c">#: Subscribers (subscribed in &gt;&gt; subscribed to):</span>
+<span class="c">#:  - BaseApplicationClient.__init__ &gt;&gt; BaseApplicationClient.connect_to_logger()</span>
+<span class="c">#:</span>
+<span class="c">#: Sent by:</span>
+<span class="c">#:  - ConnectHandler.get()</span>
+<span class="n">logger_connecting</span> <span class="o">=</span> <span class="n">signal</span><span class="p">(</span><span class="s">&#39;logger_connected&#39;</span><span class="p">)</span>
+
+<span class="c">#: Fired when the client receives a line of cached data</span>
+<span class="c">#:</span>
+<span class="c">#: Subscribers (subscribed in &gt;&gt; subscribed to):</span>
+<span class="c">#:  - :mod:`ApplicationClient`.__init__ &gt;&gt; ApplicationClient.cache_line_received</span>
+<span class="c">#:</span>
+<span class="c">#: Sent by:</span>
+<span class="c">#:  - :mod:`ClientLoggingState`.receive_message</span>
+<span class="n">cache_line_received</span> <span class="o">=</span> <span class="n">signal</span><span class="p">(</span><span class="s">&#39;cache_line_received&#39;</span><span class="p">)</span>
+
+<span class="c">#: Fired when the expansion board receives a data row for processing</span>
+<span class="c">#: during a download.  Allows pre-processing of data</span>
+<span class="c">#:</span>
+<span class="c">#: Subscribers (subscribed in &gt;&gt; subscribed to):</span>
+<span class="c">#:  - :mod:`BoardManager`.__init__ &gt;&gt; BoardManager.parse_session_message</span>
+<span class="c">#:</span>
+<span class="c">#: Sent by:</span>
+<span class="c">#:  - :mod:`BaseExpansionBoard`.parse_message</span>
+<span class="c">#:  - :mod:`ClientDownloadingState`.receive_message</span>
+<span class="n">data_line_received</span> <span class="o">=</span> <span class="n">signal</span><span class="p">(</span><span class="s">&#39;data_line_received&#39;</span><span class="p">)</span>
+
+<span class="c">#: Fired when a board has finished processing a data line</span>
+<span class="c">#:</span>
+<span class="c">#: Sent by:</span>
+<span class="c">#:  - :mod:`BaseExpansionBoard`.parse_message</span>
+<span class="n">data_line_processed</span> <span class="o">=</span> <span class="n">signal</span><span class="p">(</span><span class="s">&#39;data_line_processed&#39;</span><span class="p">)</span>
+
+<span class="c">#: Fired when expansion boards should be registered with the board manager</span>
+<span class="c">#:</span>
+<span class="c">#: Subscribers (subscribed in &gt;&gt; subscribed to):</span>
+<span class="c">#:  - [Expansion Boards].register_signals &gt;&gt; BaseExpansionBoard.register_board</span>
+<span class="c">#:</span>
+<span class="c">#: Sent by:</span>
+<span class="c">#:  - :mod:`BaseExpansionBoard`.__init__</span>
+<span class="n">registering_boards</span> <span class="o">=</span> <span class="n">signal</span><span class="p">(</span><span class="s">&#39;registering_boards&#39;</span><span class="p">)</span>
+
+<span class="c">#: Fired when plugins are loaded</span>
+<span class="c">#:</span>
+<span class="c">#: Sent by:</span>
+<span class="c">#:  - :mod:`PluginMount`.register_plugin</span>
+<span class="n">plugin_loaded</span> <span class="o">=</span> <span class="n">signal</span><span class="p">(</span><span class="s">&#39;plugin_loaded&#39;</span><span class="p">)</span>
+
+<span class="c">#: Fired when logging starts on the server</span>
+<span class="c">#:</span>
+<span class="c">#: Subscribers (subscribed in &gt;&gt; subscribed to):</span>
+<span class="c">#:  - :mod:`SerialManager`.__init__ &gt;&gt; SerialManager.start</span>
+<span class="c">#:</span>
+<span class="c">#: Sent by:</span>
+<span class="c">#:  - :mod:`ServerLoggingState`.enter_state</span>
+<span class="n">logging_started</span> <span class="o">=</span> <span class="n">signal</span><span class="p">(</span><span class="s">&#39;logging_started&#39;</span><span class="p">)</span>
+
+<span class="c">#: Fired when logging stops on the server</span>
+<span class="c">#:</span>
+<span class="c">#: Subscribers (subscribed in &gt;&gt; subscribed to):</span>
+<span class="c">#:  - :mod:`SerialManager`.__init__ &gt;&gt; SerialManager.stop</span>
+<span class="c">#:</span>
+<span class="c">#: Sent by:</span>
+<span class="c">#:  - :mod:`ServerLoggingState`.receive_message</span>
+<span class="n">logging_stopped</span> <span class="o">=</span> <span class="n">signal</span><span class="p">(</span><span class="s">&#39;logging_stopped&#39;</span><span class="p">)</span>
+
+<span class="c">#: Fired when the client requests a status update from the server</span>
+<span class="c">#:</span>
+<span class="c">#: Subscribers (subscribed in &gt;&gt; subscribed to):</span>
+<span class="c">#:  - ApplicationServer.__init__ &gt;&gt; ApplicationServer.serve_client_status</span>
+<span class="c">#:</span>
+<span class="c">#: Sent by:</span>
+<span class="c">#:  - :mod:`ServerLoggingState`.receive_message</span>
+<span class="n">server_status_request</span> <span class="o">=</span> <span class="n">signal</span><span class="p">(</span><span class="s">&#39;server_status_request&#39;</span><span class="p">)</span>
+
+<span class="c">#: Fired when the client has requested a status list update, TcpServer as argument</span>
+<span class="c">#:</span>
+<span class="c">#: Subscribers (subscribed in &gt;&gt; subscribed to):</span>
+<span class="c">#:  - :mod:`ApplicationServer`.__init__ &gt;&gt; ApplicationServer.update_session_list</span>
+<span class="c">#:  - :mod:`ApplicationClient`.__init__ &gt;&gt; ApplicationClient.request_session_list</span>
+<span class="c">#:</span>
+<span class="c">#: Sent by:</span>
+<span class="c">#:  - :mod:`ServerIdleState`.receive_message</span>
+<span class="c">#:  - :mod:`MainBlitzWindow`.get_session_list</span>
+<span class="n">client_requested_session_list</span> <span class="o">=</span> <span class="n">signal</span><span class="p">(</span><span class="s">&#39;client_requested_session_list&#39;</span><span class="p">)</span>
+
+<span class="c">#: Fired when the client has a completed session list received from the server</span>
+<span class="c">#:</span>
+<span class="c">#: Subscribers (subscribed in &gt;&gt; subscribed to):</span>
+<span class="c">#:  - :mod:`DatabaseClient`.__init__ &gt;&gt; DatabaseClient.update_session_list</span>
+<span class="c">#:</span>
+<span class="c">#: Sent by:</span>
+<span class="c">#:  - :mod:`ClientSessionListState`.go_to_state</span>
+<span class="n">client_session_list_updated</span> <span class="o">=</span> <span class="n">signal</span><span class="p">(</span><span class="s">&#39;client_session_list_updated&#39;</span><span class="p">)</span>
+
+<span class="c">#: Fired to let subscribers know a message is ready to be received</span>
+<span class="c">#: from the reply queue.  Normally should only be subscribed to by the Application</span>
+<span class="c">#:</span>
+<span class="c">#: Sent by:</span>
+<span class="c">#:  - :mod:`TcpBase`.run_server</span>
+<span class="c">#:  - :mod:`TcpBase`.run_client</span>
+<span class="n">tcp_message_received</span> <span class="o">=</span> <span class="n">signal</span><span class="p">(</span><span class="s">&#39;tcp_message_received&#39;</span><span class="p">)</span>
+
+<span class="c">#: Fired when a client requests a download of a particular session</span>
+<span class="c">#:</span>
+<span class="c">#: Subscribers (subscribed in &gt;&gt; subscribed to):</span>
+<span class="c">#:  - :mod:`ApplicationServer`.__init__ &gt;&gt; ApplicationServer.serve_client_download</span>
+<span class="c">#:  - :mod:`ApplicationClient`.__init__ &gt;&gt; ApplicationClient.send_download_request</span>
+<span class="c">#:</span>
+<span class="c">#: Sent by:</span>
+<span class="c">#:  - :mod:`ServerDownloadingState`.enter_state</span>
+<span class="c">#:  - :mod:`DownloadHandler`.get</span>
+<span class="c">#:  - :mod:`blitz.ui.BlitzSessionWindow`.download_session</span>
+<span class="n">client_requested_download</span> <span class="o">=</span> <span class="n">signal</span><span class="p">(</span><span class="s">&#39;client_requested_download&#39;</span><span class="p">)</span>
+
+<span class="c">#: Fired when a command was received from the desktop software for an expansion board</span>
+<span class="c">#:</span>
+<span class="c">#: Subscribers (subscribed in &gt;&gt; subscribed to):</span>
+<span class="c">#:  - :mod:`SerialManager`.__init__ &gt;&gt; BoardManager.handle_board_command</span>
+<span class="c">#:  - :mod:`ApplicationClient`.__init__ &gt;&gt; ApplicationClient.send_command</span>
+<span class="c">#:</span>
+<span class="c">#: Sent by:</span>
+<span class="c">#:  - :mod:`ServerBaseState`.process_standard_messages</span>
+<span class="c">#:  - :mod:`CalibrationDialog`.step</span>
+<span class="n">board_command_received</span> <span class="o">=</span> <span class="n">signal</span><span class="p">(</span><span class="s">&#39;board_command_received&#39;</span><span class="p">)</span>
+
+<span class="c">#: Fired when the client wants to find out which boards are connected</span>
+<span class="c">#:</span>
+<span class="c">#: Subscribers (subscribed in &gt;&gt; subscribed to):</span>
+<span class="c">#:  - :mod:`ApplicationServer`.__init__ &gt;&gt; ApplicationClient.send_connected_boards</span>
+<span class="c">#:  - :mod:`ApplicationClient`.__init__ &gt;&gt; ApplicationClient.send_boards_command</span>
+<span class="c">#: Sent by:</span>
+<span class="c">#:  - :mod:`ServerIdleState`.receive_message</span>
+<span class="c">#:  - :mod:`MainBlitzWindow`.send_board_list</span>
+<span class="n">board_list_requested</span> <span class="o">=</span> <span class="n">signal</span><span class="p">(</span><span class="s">&#39;board_list_requested&#39;</span><span class="p">)</span>
+
+<span class="c">#: Fired when the client wants to find out which boards are connected</span>
+<span class="c">#:</span>
+<span class="c">#: Subscribers (subscribed in &gt;&gt; subscribed to):</span>
+<span class="c">#:  - :mod:`ApplicationClient`.__init__ &gt;&gt; ApplicationClient.process_boards_command</span>
+<span class="c">#:</span>
+<span class="c">#: Sent by:</span>
+<span class="c">#:  - :mod:`ClientIdleState`.receive_message</span>
+<span class="n">board_list_received</span> <span class="o">=</span> <span class="n">signal</span><span class="p">(</span><span class="s">&#39;board_list_received&#39;</span><span class="p">)</span>
+
+<span class="c">#: Fired when the client wants to find out which boards are connected</span>
+<span class="c">#:</span>
+<span class="c">#: Subscribers (subscribed in &gt;&gt; subscribed to):</span>
+<span class="c">#:  - `GUISignalEmitter`.__init__</span>
+<span class="c">#:</span>
+<span class="c">#: Sent by:</span>
+<span class="c">#:  - :mod:`ApplicationClient`.process_boards_command</span>
+<span class="n">board_list_processed</span> <span class="o">=</span> <span class="n">signal</span><span class="p">(</span><span class="s">&#39;board_list_processed&#39;</span><span class="p">)</span>
+
+<span class="c">#: Fired when an error was received by the client from the data logger</span>
+<span class="c">#:</span>
+<span class="c">#: Subscribers (subscribed in &gt;&gt; subscribed to):</span>
+<span class="c">#:  - `GUISignalEmitter`.__init__</span>
+<span class="c">#:</span>
+<span class="c">#: Sent by:</span>
+<span class="c">#:  - :mod:`ClientIdleState`.receive_message</span>
+<span class="n">logger_error_received</span> <span class="o">=</span> <span class="n">signal</span><span class="p">(</span><span class="s">&#39;logger_error_received&#39;</span><span class="p">)</span>
+
+<span class="c">#: Fired when the client wishes to force the board to be RESET to fix an error</span>
+<span class="c">#:</span>
+<span class="c">#: Subscribers (subscribed in &gt;&gt; subscribed to):</span>
+<span class="c">#:  - `ApplicationClient`.__init__ &gt;&gt; ApplicationClient.force_board_reset</span>
+<span class="c">#:</span>
+<span class="c">#: Sent by:</span>
+<span class="c">#:  - `BlitzMainWindow`.force_board_reset</span>
+<span class="n">force_board_reset</span> <span class="o">=</span> <span class="n">signal</span><span class="p">(</span><span class="s">&#39;force_board_reset&#39;</span><span class="p">)</span>
+
+<span class="c">#: Fired when the client loses the TCP connection (after three attempts)</span>
+<span class="c">#:</span>
+<span class="c">#: Subscribers (subscribed in &gt;&gt; subscribed to):</span>
+<span class="c">#:  - `GUISignalEmitter`.__init__</span>
+<span class="c">#:</span>
+<span class="c">#: Sent by:</span>
+<span class="c">#:  - :mod:`TcpBase`.run_client</span>
+<span class="n">lost_tcp_connection</span> <span class="o">=</span> <span class="n">signal</span><span class="p">(</span><span class="s">&#39;lost_tcp_connection&#39;</span><span class="p">)</span>
+
+<span class="c">#: Fired when an asynchronous process starts to allow clients to update the UI</span>
+<span class="c">#:</span>
+<span class="c">#: Subscribers (subscribed in &gt;&gt; subscribed to):</span>
+<span class="c">#:  - `GUISignalEmitter`.__init__</span>
+<span class="c">#:</span>
+<span class="c">#: Sent by:</span>
+<span class="c">#:  - :mod:`TcpBase`.run_client</span>
+<span class="n">process_started</span> <span class="o">=</span> <span class="n">signal</span><span class="p">(</span><span class="s">&#39;process_started&#39;</span><span class="p">)</span>
+
+<span class="c">#: Fired when an asynchronous process finishes to allow clients to update the UI</span>
+<span class="c">#:</span>
+<span class="c">#: Subscribers (subscribed in &gt;&gt; subscribed to):</span>
+<span class="c">#:  - `GUISignalEmitter`.__init__</span>
+<span class="c">#:</span>
+<span class="c">#: Sent by:</span>
+<span class="c">#:  - :mod:`TcpBase`.run_client</span>
+<span class="n">process_finished</span> <span class="o">=</span> <span class="n">signal</span><span class="p">(</span><span class="s">&#39;process_finished&#39;</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Blitz Logger Internal Documentation 0.1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, William Hart.
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.2.Theme by <a href="http://github.com/vkvn">vkvn</a>
+    </div>
+  </body>
+</html>

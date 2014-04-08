@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="A manual page for the Blitz Data Acquisition System">
+
+        <title>Configuration | Blitz Manual</title>
+
+        <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.4.2/pure.css">
+      
+        <!--[if lte IE 8]>
+            <link rel="stylesheet" href="/static/css/main-grid-old-ie.css">
+        <![endif]-->
+        <!--[if gt IE 8]><!-->
+            <link rel="stylesheet" href="../static/css/main-grid.css">
+        <!--<![endif]-->
+        
+        <!--[if lte IE 8]>
+            <link rel="stylesheet" href="/static/css/layouts/splash-old-ie.css">
+        <![endif]-->
+        <!--[if gt IE 8]><!-->
+            <link rel="stylesheet" href="../static/css/layouts/splash.css">
+        <!--<![endif]-->
+      
+        <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
+        <link rel="stylesheet" href="../static/css/base.css">
+        
+        <link rel="shortcut icon" href="../static/favicon.ico">
+
+    </head>
+
+    <body>
+    
+        <div class="header">
+            <div class="home-menu pure-menu pure-menu-open pure-menu-horizontal pure-menu-fixed">
+                <a class="pure-menu-heading" href="/">Blitz Manual</a>
+
+                <ul>
+                    <li><a href="../getting_started/">Getting Started</a></li>
+                    <li><a href="../server/">Server</a></li>
+                    <li><a href="../client/">Client</a></li>
+                    <li><a href="../expansions/">Expansions</a></li>
+                    <li><a href="../protocol/">Protocol</a></li>
+                    <li><a href="../api/">API</a></li>
+                </ul>
+            </div>
+        </div>
+
+        
+        <div class="pure-g-r top-pad">
+            <div class="pure-u-3-24">&nbsp;</div>
+            <div class="pure-u-18-24">
+                <h1>Configuring Blitz</h1>
+
+<blockquote>
+  <p><strong>NOTE</strong> the configuration information in this document is valid as of software version 0.2.2</p>
+</blockquote>
+
+<p>Blitz uses <a href="http://en.wikipedia.org/wiki/JSON">JSON</a> configuration files to set up server and client. A sample configuration file looks like:</p>
+
+<pre><code>{
+    "server_port": 8999, 
+    "database_path": "C:\\Code\\blitz\\app.db", 
+    "server_ip": "192.168.1.8", 
+    "debug": false, 
+    "database_port": 6379, 
+    "use_netscanner": false
+}
+</code></pre>
+
+<p>You can see that there are a list of configuration options with values.  Each line takes the following form:</p>
+
+<pre><code>    "confiuration_name": "configuration_value",
+</code></pre>
+
+<p>You can enter any such pairs into the configuration file, which is located at </p>
+
+<pre><code>    \your_path_to_blitz\blitz\config.json
+</code></pre>
+
+<blockquote>
+  <p>Only <code>configuration_name</code>s that Blitz recognises will be considered, however each of the client and server expects certain names to be present. If these names are not present then defaults will be used and saved to the file.</p>
+</blockquote>
+
+<h2>Server configuration</h2>
+
+<p>The server expects the following minimum configuration names:</p>
+
+<ul>
+<li><strong>server_port</strong> - the TCP port the server uses for communicating with the client. <em>Default 8999</em>.</li>
+<li><strong>database_port</strong> - the port used for your Redis server. <em>Default 6379</em>.</li>
+<li><strong>debug</strong> - whether additional debugging information should be logged to file. <em>Current default true (until version 1.0)</em></li>
+</ul>
+
+<h2>Client configuration</h2>
+
+<p>The client expects the following minimum configuration names:</p>
+
+<ul>
+<li><strong>server_ip</strong> - the IP address the client should connect to for communicating with the server. <em>Default 127.0.0.1, for attended logging</em>.</li>
+<li><strong>server_port</strong> - the TCP port the server uses for communicating with the client. <em>Default 8999</em>.</li>
+<li><strong>database_path</strong> - the full path to the client database (SQLite). Should include the file name e.g. <code>app.db</code>. <em>Default <code>the_blitz_path\data\app.db</code></em></li>
+<li><strong>debug</strong> - whether additional debugging information should be logged to file. <em>Current default true (until version 1.0)</em></li>
+</ul>
+
+<hr />
+
+<blockquote>
+  <p><strong>What next?</strong> <br />
+  - <a href="installation.html">Go back to the installation instructions</a> <br />
+  - <a href="running.html">Learn how to run Blitz</a>. <br />
+  - <a href="../server/raspberry-pi-setup.html">Learn about Raspberry Pi servers</a></p>
+</blockquote>
+
+            </div>
+            <div class="pure-u-3-24">&nbsp;</div>
+        </div>
+        
+        
+        
+
+        <div class="footer l-box is-center">
+            
+            Blitz DAQ was made by <a href="http://www.williamhart.info">William Hart</a> and is open source (AGPLv3+) software
+            
+        </div>
+    </body>
+<html>

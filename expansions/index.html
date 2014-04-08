@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="A manual page for the Blitz Data Acquisition System">
+
+        <title>Expansion Boards | Blitz Manual</title>
+
+        <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.4.2/pure.css">
+      
+        <!--[if lte IE 8]>
+            <link rel="stylesheet" href="/static/css/main-grid-old-ie.css">
+        <![endif]-->
+        <!--[if gt IE 8]><!-->
+            <link rel="stylesheet" href="../static/css/main-grid.css">
+        <!--<![endif]-->
+        
+        <!--[if lte IE 8]>
+            <link rel="stylesheet" href="/static/css/layouts/splash-old-ie.css">
+        <![endif]-->
+        <!--[if gt IE 8]><!-->
+            <link rel="stylesheet" href="../static/css/layouts/splash.css">
+        <!--<![endif]-->
+      
+        <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
+        <link rel="stylesheet" href="../static/css/base.css">
+        
+        <link rel="shortcut icon" href="../static/favicon.ico">
+
+    </head>
+
+    <body>
+    
+        <div class="header">
+            <div class="home-menu pure-menu pure-menu-open pure-menu-horizontal pure-menu-fixed">
+                <a class="pure-menu-heading" href="/">Blitz Manual</a>
+
+                <ul>
+                    <li><a href="../getting_started/">Getting Started</a></li>
+                    <li><a href="../server/">Server</a></li>
+                    <li><a href="../client/">Client</a></li>
+                    <li><a href="../expansions/">Expansions</a></li>
+                    <li><a href="../protocol/">Protocol</a></li>
+                    <li><a href="../api/">API</a></li>
+                </ul>
+            </div>
+        </div>
+
+        
+        <div class="pure-g-r top-pad">
+            <div class="pure-u-3-24">&nbsp;</div>
+            <div class="pure-u-18-24">
+                <h1>Expansion Boards</h1>
+
+<p>Expansion Boards are responsible for interacting with the external physical environment, buffering sensor data and controlling actuators. A number of standard Expansion Boards are bundled with Blitz, however it is also possible to <a href="custom_expansion_boards">write your own</a> in Python. </p>
+
+<p>Expansion Boards may be anything that conforms to the Blitz Expansion Board specification. Typically for testing Expansion Boards have been based on Arduino boards, particularly the Arduino Due given its high processing power.  A C++ Arduino library called <a href="https://www.github.com/will-hart/BlitzExpansion">BlitzExpansion</a> is available to make implementing expansion boards simpler.</p>
+
+<h2>Provided Expansion Boards</h2>
+
+<p><a name='board_list'></a></p>
+
+<ul>
+<li><a href="#board_id_zero">#0</a> Expansion Board Mock (testing only)</li>
+<li><a href="#board_id_three">#3</a> RaspberryPi GPIO Board (under development)</li>
+<li><a href="#board_id_eight">#8</a> Blitz Basic Expansion Board</li>
+<li><a href="#board_id_nine">#9</a> Blitz Motor Expansion Board</li>
+<li><a href="#board_id_ten">#10</a> NetScanner Board One</li>
+<li><a href="#board_id_eleven">#11</a> NetScanner Board Two</li>
+</ul>
+
+<h3>ID:0 Expansion Board Mock</h3>
+
+<p><a name="board_id_zero"></a></p>
+
+<p>An expansion board used for testing purposes. Returns </p>
+
+<ul>
+<li><strong>type</strong>, the ID number for the message type</li>
+<li><strong>full_payload</strong>, the raw data payload received in hexadecimal</li>
+<li><strong>flag_one</strong> the first digital flag</li>
+<li><strong>flag_two</strong> the second digital flag</li>
+<li><strong>flag_three</strong> the third digital flag</li>
+<li><strong>flag_four</strong> the fourth digital flag </li>
+<li><strong>flag_five</strong> the fifth digital flag</li>
+<li><strong>variable_a</strong> a sixteen bit integer from bits 0 to 15</li>
+<li><strong>variable_b</strong> a sixteen bit ingeger from bits 16 to 31</li>
+</ul>
+
+<p><a href='#board_list'>Back to List</a></p>
+
+<h3>ID:3 RaspberryPi GPIO Board (under development)</h3>
+
+<p><a name="board_id_three"></a></p>
+
+<blockquote>
+  <p>This board is under development. It will allow direct access of Raspberry Pi GPIO pins. Note that there are limitations to this approach and it should not be used for time critical data acquisition of high sample rate data acquisition.</p>
+</blockquote>
+
+<p><a href='#board_list'>Back to List</a></p>
+
+<h3>ID:8 Blitz Basic Expansion Board</h3>
+
+<p><a name="board_id_eight"></a></p>
+
+<p>The Blitz Basic Expansion Board is the simplest and most basic board to implement. It is used for logging up to five digital and five analogue channels. The variables available are:</p>
+
+<blockquote>
+  <p>Note the digital channels are available from version 0.2.2 onwards</p>
+</blockquote>
+
+<ul>
+<li><strong>digital_one</strong> the first digital flag</li>
+<li><strong>digital_two</strong> the second digital flag</li>
+<li><strong>digital_three</strong> the third digital flag</li>
+<li><strong>digital_four</strong> the fourth digital flag </li>
+<li><strong>digital_five</strong> the fifth digital flag</li>
+<li><strong>adc<em>channel</em>one</strong> a twelve bit integer from bits 0 to 11 inclusive</li>
+<li><strong>adc<em>channel</em>two</strong> an twelve bit integer from bits 12 to 23 inclusive</li>
+<li><strong>adc<em>channel</em>three</strong> a twelve bit integer from bits 24 to 35 inclusive</li>
+<li><strong>adc<em>channel</em>four</strong> a twelve bit integer from bits 36 to 47 inclusive</li>
+<li><strong>adc<em>channel</em>five</strong> a twelve bit integer from bits 48 to 59 inclusive</li>
+</ul>
+
+<p>The exact data reported on each channel, and the corresponding ADC and digital pins is up to the firmware implementation of the Basic Expansion Board. An example implementation for Arduino is <a href="https://github.com/will-hart/BlitzExpansion/blob/master/examples/Full_Expansion_Board_With_Instructions/Full_Expansion_Board_With_Instructions.ino">available here</a>.</p>
+
+<p><a href='#board_list'>Back to List</a></p>
+
+<h3>ID:9 Blitz Motor Expansion Board</h3>
+
+<p><a name="board_id_nine"></a></p>
+
+<p>The Blitz Motor Expansion Board allows control of motors from the client software. The exact motor behaviour is unspecified. No example firmware is currently available, however it is likely one will be added to the <a href="https://github.com/will-hart/BlitzExpansion/tree/master/examples">BlitzExpansion examples</a> at a later date.</p>
+
+<p>The variables available are:</p>
+
+<ul>
+<li><strong>raw_adc</strong>, the raw value of the motor's position or velocity sensor</li>
+<li><strong>motor_value</strong>, the motor's current position or velocity value, converted from the <code>raw_adc</code> value</li>
+<li><strong>set<em>point</strong>, the current set point for the motor controller, usually in terms of the motor</em>value.</li>
+</ul>
+
+<p><a href='#board_list'>Back to List</a></p>
+
+<h3>ID:10 NetScanner Board One</h3>
+
+<p><a name="board_id_ten"></a></p>
+
+<blockquote>
+  <p>The NetScanner Expansion Boards are present for historic reasons. They will not be useful to most users and may be removed from the repository at a later date, or converted into a more generic ethernet control board.</p>
+</blockquote>
+
+<p>Boards #10 and #11 are for connecting to and controlling to NetScanner 9IFC and NetScanner 9116 pressure sensing devices via an ethernet connection. They are most likely irrelevant for most users.
+<a href='#board_list'>Back to List</a></p>
+
+<h3>ID:11 NetScanner Board Two</h3>
+
+<p><a name="board_id_eleven"></a></p>
+
+<p>See the description for board #10 above.
+<a href='#board_list'>Back to List</a></p>
+
+<h2>Customised Expansion Boards</h2>
+
+<p><a name='custom_expansion_boards'></a></p>
+
+<p>Expansion Boards can be implemented with a few additional lines of Python code. For instance the following is the code for the "Blitz Basic" expansion board which contains a payload with five 12-bit integers:</p>
+
+<div class="codehilite"><pre><code><span class="k">class</span> <span class="nc">BlitzBasicExpansionBoard</span><span class="p">(</span><span class="n">BaseExpansionBoard</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A basic expansion board with three 10bit ADCs</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s">&quot;Blitz Basic Expansion Board&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;load the correct description for the board&quot;&quot;&quot;</span>
+        <span class="n">BaseExpansionBoard</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">description</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">do_not_register</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="mi">8</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">description</span>
+
+    <span class="k">def</span> <span class="nf">register_signals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Connect to the board loading signal&quot;&quot;&quot;</span>
+        <span class="n">registering_boards</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">register_board</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_variables</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">&quot;adc_channel_one&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span>
+            <span class="s">&quot;adc_channel_two&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span>
+            <span class="s">&quot;adc_channel_three&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number</span><span class="p">(</span><span class="mi">24</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span>
+            <span class="s">&quot;adc_channel_four&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number</span><span class="p">(</span><span class="mi">36</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span>
+            <span class="s">&quot;adc_channel_five&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number</span><span class="p">(</span><span class="mi">48</span><span class="p">,</span> <span class="mi">12</span><span class="p">)</span>
+        <span class="p">}</span>
+</code></pre></div>
+
+<p>This is the minimal implementation required. The class <em>must</em> inherit from <code>BaseExpansionBoard</code>. </p>
+
+<p>The function <code>__init__</code> allows the board to be identified and described. The ID should be unique, and not one of the IDs described below. The <code>do_not_register</code> variable allows expansion boards to be skipped during loading.</p>
+
+<p>The <code>get_variables</code> function must return a dictionary of <code>"variable": "value"</code> pairs. It uses functionality provided by the <code>BaseExpansionBoard</code> class. Refer to the <a href="../api/blitz_communications_boards.html#baseexpansionboard">API documentation</a> for more information.</p>
+
+            </div>
+            <div class="pure-u-3-24">&nbsp;</div>
+        </div>
+        
+        
+        
+
+        <div class="footer l-box is-center">
+            
+            Blitz DAQ was made by <a href="http://www.williamhart.info">William Hart</a> and is open source (AGPLv3+) software
+            
+        </div>
+    </body>
+<html>

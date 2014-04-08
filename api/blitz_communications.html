@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>blitz.communications &mdash; Blitz Logger Internal Documentation 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/solar.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Blitz Logger Internal Documentation 0.1 documentation" href="index.html" />
+    <link rel="next" title="boards" href="blitz_communications_boards.html" />
+    <link rel="prev" title="transforms" href="blitz_data_transforms.html" /><link href='http://fonts.googleapis.com/css?family=Source+Code+Pro|Open+Sans:300italic,400italic,700italic,400,300,700' rel='stylesheet' type='text/css'>
+<link href="_static/solarized-dark.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="blitz_communications_boards.html" title="boards"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="blitz_data_transforms.html" title="transforms"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Blitz Logger Internal Documentation 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="blitz_data_transforms.html"
+                        title="previous chapter">transforms</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="blitz_communications_boards.html"
+                        title="next chapter">boards</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/blitz_communications.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-blitz.communications">
+<span id="blitz-communications"></span><h1>blitz.communications<a class="headerlink" href="#module-blitz.communications" title="Permalink to this headline">¶</a></h1>
+<p>The Communications module provides a variety of IO operations for TCP, serial, I2C for both the client and server applications.</p>
+<blockquote>
+<div><ul class="simple">
+<li><tt class="xref py py-mod docutils literal"><span class="pre">blitz.communications.boards</span></tt> provides BoardManager and ExpansionBoard classes for decoding serial messages on the client</li>
+<li><a class="reference internal" href="blitz_communications_client_states.html#module-blitz.communications.client_states" title="blitz.communications.client_states"><tt class="xref py py-mod docutils literal"><span class="pre">blitz.communications.client_states</span></tt></a> provides the states for the client TcpStateMachine</li>
+<li><tt class="xref py py-mod docutils literal"><span class="pre">blitz.communications.rs232</span></tt> provides a SerialManager for managing connections with expansion boards from the server</li>
+<li><a class="reference internal" href="blitz_communications_server_states.html#module-blitz.communications.server_states" title="blitz.communications.server_states"><tt class="xref py py-mod docutils literal"><span class="pre">blitz.communications.server_states</span></tt></a> provides the states for the server TcpStateMachine</li>
+<li><a class="reference internal" href="blitz_communications_signals.html#module-blitz.communications.signals" title="blitz.communications.signals"><tt class="xref py py-mod docutils literal"><span class="pre">blitz.communications.signals</span></tt></a> provides signals that are transmitted between modules</li>
+<li><tt class="xref py py-mod docutils literal"><span class="pre">blitz.communications.tcp</span></tt> provides TCP communication classes and a StateMachine for comms between PC and logger</li>
+</ul>
+</div></blockquote>
+<hr class="docutils" />
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="blitz_communications_boards.html">boards</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="blitz_communications_boards.html#boardmanager">BoardManager</a></li>
+<li class="toctree-l2"><a class="reference internal" href="blitz_communications_boards.html#baseexpansionboard">BaseExpansionBoard</a></li>
+<li class="toctree-l2"><a class="reference internal" href="blitz_communications_boards.html#blitzbasicexpansionboard">BlitzBasicExpansionBoard</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="blitz_communications_client_states.html">client_states</a></li>
+<li class="toctree-l1"><a class="reference internal" href="blitz_communications_rs232.html">rs232</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="blitz_communications_rs232.html#serialmanager">SerialManager</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="blitz_communications_server_states.html">server_states</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="blitz_communications_server_states.html#id1">server_states</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="blitz_communications_signals.html">signals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="blitz_communications_tcp.html">server_states</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="blitz_communications_tcp.html#tcpcommunicationexception">TcpCommunicationException</a></li>
+<li class="toctree-l2"><a class="reference internal" href="blitz_communications_tcp.html#tcpbase">TcpBase</a></li>
+<li class="toctree-l2"><a class="reference internal" href="blitz_communications_tcp.html#tcpstateaction">TcpStateAction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="blitz_communications_tcp.html#tcpstatemachine">TcpStateMachine</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="blitz_communications_boards.html" title="boards"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="blitz_data_transforms.html" title="transforms"
+             >previous</a> |</li>
+        <li><a href="index.html">Blitz Logger Internal Documentation 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, William Hart.
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.2.Theme by <a href="http://github.com/vkvn">vkvn</a>
+    </div>
+  </body>
+</html>

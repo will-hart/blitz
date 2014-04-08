@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="description" content="A manual page for the Blitz Data Acquisition System">
 
-        <title>The Data Acquisition Server | Blitz Manual</title>
+        <title>Requirements | Blitz Manual</title>
 
         <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.4.2/pure.css">
       
@@ -51,11 +51,37 @@
         <div class="pure-g-r top-pad">
             <div class="pure-u-3-24">&nbsp;</div>
             <div class="pure-u-18-24">
-                <h1>The Data Acquisition (DAQ) Server</h1>
+                <h1>Blitz DAQ Requirements</h1>
 
-<h1>RaspberryPi</h1>
+<p>There are two major components that are required to get Blitz up and running - the "<a href="../client">client</a>" and the "<a href="../server">server</a>".  Separate documentation
+is available for each of these components by following the links given.</p>
 
-<p>The data acquisition server can be run on a RaspberryPi.  <a href="/server/raspberry-pi-setup.html">Detailed instructions are available</a> for configuring the RaspberryPi from a default installation. </p>
+<p>The system requirements (excluding Python packages) are as follows:</p>
+
+<h2>General</h2>
+
+<ul>
+<li>Python 2.7</li>
+</ul>
+
+<h2>Client</h2>
+
+<p>None</p>
+
+<h2>Server</h2>
+
+<ul>
+<li><a href="redis.io">Redis</a></li>
+</ul>
+
+<hr />
+
+<blockquote>
+  <p><strong>What next?</strong> <br />
+  - <a href="attended.html">Learn about the Attended configuration</a> <br />
+  - <a href="unattended.html">Learn about the Unattended configuration</a> <br />
+  - <a href="installation.html">Learn how to install Blitz</a>    </p>
+</blockquote>
 
             </div>
             <div class="pure-u-3-24">&nbsp;</div>

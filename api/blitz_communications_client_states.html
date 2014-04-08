@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>client_states &mdash; Blitz Logger Internal Documentation 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/solar.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Blitz Logger Internal Documentation 0.1 documentation" href="index.html" />
+    <link rel="up" title="blitz.communications" href="blitz_communications.html" />
+    <link rel="next" title="rs232" href="blitz_communications_rs232.html" />
+    <link rel="prev" title="boards" href="blitz_communications_boards.html" /><link href='http://fonts.googleapis.com/css?family=Source+Code+Pro|Open+Sans:300italic,400italic,700italic,400,300,700' rel='stylesheet' type='text/css'>
+<link href="_static/solarized-dark.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="blitz_communications_rs232.html" title="rs232"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="blitz_communications_boards.html" title="boards"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Blitz Logger Internal Documentation 0.1 documentation</a> &raquo;</li>
+          <li><a href="blitz_communications.html" accesskey="U">blitz.communications</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="blitz_communications_boards.html"
+                        title="previous chapter">boards</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="blitz_communications_rs232.html"
+                        title="next chapter">rs232</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/blitz_communications_client_states.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-blitz.communications.client_states">
+<span id="client-states"></span><h1>client_states<a class="headerlink" href="#module-blitz.communications.client_states" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="blitz.communications.client_states.BaseState">
+<em class="property">class </em><tt class="descclassname">blitz.communications.client_states.</tt><tt class="descname">BaseState</tt><a class="reference internal" href="_modules/blitz/communications/client_states.html#BaseState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.client_states.BaseState" title="Permalink to this definition">¶</a></dt>
+<dd><p>A base state diagram which provides a few methods - this should not be directly instantiated.</p>
+<p>All methods return a BaseState derived object which should handle future message processing</p>
+<dl class="method">
+<dt id="blitz.communications.client_states.BaseState.enter_state">
+<tt class="descname">enter_state</tt><big>(</big><em>tcp</em>, <em>state</em>, <em>args=None</em><big>)</big><a class="reference internal" href="_modules/blitz/communications/client_states.html#BaseState.enter_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.client_states.BaseState.enter_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when entering the state</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.communications.client_states.BaseState.go_to_state">
+<tt class="descname">go_to_state</tt><big>(</big><em>tcp</em>, <em>state</em>, <em>args=None</em><big>)</big><a class="reference internal" href="_modules/blitz/communications/client_states.html#BaseState.go_to_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.client_states.BaseState.go_to_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transition to a new state and call enter_state on it</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the new state</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.communications.client_states.BaseState.receive_message">
+<tt class="descname">receive_message</tt><big>(</big><em>tcp</em>, <em>msg</em><big>)</big><a class="reference internal" href="_modules/blitz/communications/client_states.html#BaseState.receive_message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.client_states.BaseState.receive_message" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when a message needs processing</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.communications.client_states.BaseState.send_message">
+<tt class="descname">send_message</tt><big>(</big><em>tcp</em>, <em>msg</em><big>)</big><a class="reference internal" href="_modules/blitz/communications/client_states.html#BaseState.send_message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.client_states.BaseState.send_message" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send the passed message over TCP and return the current state</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="blitz.communications.client_states.ClientDownloadingState">
+<em class="property">class </em><tt class="descclassname">blitz.communications.client_states.</tt><tt class="descname">ClientDownloadingState</tt><a class="reference internal" href="_modules/blitz/communications/client_states.html#ClientDownloadingState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.client_states.ClientDownloadingState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles the client in logging state - sends periodic status updates</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="blitz.communications.client_states.ClientIdleState">
+<em class="property">class </em><tt class="descclassname">blitz.communications.client_states.</tt><tt class="descname">ClientIdleState</tt><a class="reference internal" href="_modules/blitz/communications/client_states.html#ClientIdleState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.client_states.ClientIdleState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles the client idling, waiting for further commands</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="blitz.communications.client_states.ClientInitState">
+<em class="property">class </em><tt class="descclassname">blitz.communications.client_states.</tt><tt class="descname">ClientInitState</tt><a class="reference internal" href="_modules/blitz/communications/client_states.html#ClientInitState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.client_states.ClientInitState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles the client starting up - sends a &#8220;logging&#8221; query
+to the logger and waits for the response</p>
+<dl class="method">
+<dt id="blitz.communications.client_states.ClientInitState.enter_state">
+<tt class="descname">enter_state</tt><big>(</big><em>tcp</em>, <em>state</em>, <em>args=None</em><big>)</big><a class="reference internal" href="_modules/blitz/communications/client_states.html#ClientInitState.enter_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.client_states.ClientInitState.enter_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send a logging query to the logger</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="blitz.communications.client_states.ClientLoggingState">
+<em class="property">class </em><tt class="descclassname">blitz.communications.client_states.</tt><tt class="descname">ClientLoggingState</tt><a class="reference internal" href="_modules/blitz/communications/client_states.html#ClientLoggingState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.client_states.ClientLoggingState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles the client in logging state - sends periodic status updates</p>
+<dl class="method">
+<dt id="blitz.communications.client_states.ClientLoggingState.enter_state">
+<tt class="descname">enter_state</tt><big>(</big><em>tcp</em>, <em>state</em>, <em>args=None</em><big>)</big><a class="reference internal" href="_modules/blitz/communications/client_states.html#ClientLoggingState.enter_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.client_states.ClientLoggingState.enter_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>sets up a timer which periodically polls the data logger for updates</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.communications.client_states.ClientLoggingState.request_update">
+<tt class="descname">request_update</tt><big>(</big><em>stop_event</em>, <em>tcp</em><big>)</big><a class="reference internal" href="_modules/blitz/communications/client_states.html#ClientLoggingState.request_update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.client_states.ClientLoggingState.request_update" title="Permalink to this definition">¶</a></dt>
+<dd><p>called on timer tick to request an update from the TCP server</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="blitz.communications.client_states.ClientStartingState">
+<em class="property">class </em><tt class="descclassname">blitz.communications.client_states.</tt><tt class="descname">ClientStartingState</tt><a class="reference internal" href="_modules/blitz/communications/client_states.html#ClientStartingState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.client_states.ClientStartingState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles logging starting - waits for ACK from server</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="blitz.communications.client_states.ClientStoppingState">
+<em class="property">class </em><tt class="descclassname">blitz.communications.client_states.</tt><tt class="descname">ClientStoppingState</tt><a class="reference internal" href="_modules/blitz/communications/client_states.html#ClientStoppingState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.client_states.ClientStoppingState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles waiting for acknowledgement from a client before entering IDLE state</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="blitz_communications_rs232.html" title="rs232"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="blitz_communications_boards.html" title="boards"
+             >previous</a> |</li>
+        <li><a href="index.html">Blitz Logger Internal Documentation 0.1 documentation</a> &raquo;</li>
+          <li><a href="blitz_communications.html" >blitz.communications</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, William Hart.
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.2.Theme by <a href="http://github.com/vkvn">vkvn</a>
+    </div>
+  </body>
+</html>

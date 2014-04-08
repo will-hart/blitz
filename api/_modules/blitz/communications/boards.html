@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>blitz.communications.boards &mdash; Blitz Logger Internal Documentation 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/solar.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="Blitz Logger Internal Documentation 0.1 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /><link href='http://fonts.googleapis.com/css?family=Source+Code+Pro|Open+Sans:300italic,400italic,700italic,400,300,700' rel='stylesheet' type='text/css'>
+<link href="../../../_static/solarized-dark.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Blitz Logger Internal Documentation 0.1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for blitz.communications.boards</h1><div class="highlight"><pre>
+<span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;Will Hart&#39;</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="kn">from</span> <span class="nn">bitstring</span> <span class="kn">import</span> <span class="n">BitArray</span>
+
+<span class="kn">from</span> <span class="nn">blitz.constants</span> <span class="kn">import</span> <span class="n">BOARD_MESSAGE_MAPPING</span><span class="p">,</span> <span class="n">PAYLOAD_LENGTH</span><span class="p">,</span> <span class="n">MESSAGE_BYTE_LENGTH</span>
+<span class="kn">from</span> <span class="nn">blitz.data.models</span> <span class="kn">import</span> <span class="n">Reading</span>
+<span class="kn">from</span> <span class="nn">blitz.communications.signals</span> <span class="kn">import</span> <span class="n">data_line_received</span><span class="p">,</span> <span class="n">data_line_processed</span><span class="p">,</span> <span class="n">registering_boards</span>
+<span class="kn">from</span> <span class="nn">blitz.communications.rs232</span> <span class="kn">import</span> <span class="n">SerialManager</span>
+<span class="kn">from</span> <span class="nn">blitz.plugins</span> <span class="kn">import</span> <span class="n">Plugin</span>
+<span class="kn">from</span> <span class="nn">blitz.utilities</span> <span class="kn">import</span> <span class="n">blitz_timestamp</span>
+
+
+<div class="viewcode-block" id="BoardManager"><a class="viewcode-back" href="../../../blitz_communications_boards.html#blitz.communications.boards.BoardManager">[docs]</a><span class="k">class</span> <span class="nc">BoardManager</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A BoardManager registers expansion boards and handles parsing</span>
+<span class="sd">    of raw messages and insertion into the database</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">database</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Register boards by ID</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c"># save a reference to the database</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">database</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">boards</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c"># send the signal to register boards</span>
+        <span class="n">registering_boards</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="c"># connect the data line received message</span>
+        <span class="n">data_line_received</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parse_session_message</span><span class="p">)</span>
+
+<div class="viewcode-block" id="BoardManager.register_board"><a class="viewcode-back" href="../../../blitz_communications_boards.html#blitz.communications.boards.BoardManager.register_board">[docs]</a>    <span class="k">def</span> <span class="nf">register_board</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">board_id</span><span class="p">,</span> <span class="n">board</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Register a board against the given ID, throwing an error if</span>
+<span class="sd">        the board is already registered</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">board_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">boards</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Error registering duplicate board [</span><span class="si">%s</span><span class="s">: </span><span class="si">%s</span><span class="s">]&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">board_id</span><span class="p">,</span> <span class="n">board</span><span class="o">.</span><span class="n">description</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;Attempted to register a board against an existing ID: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">board_id</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Registered expansion board [</span><span class="si">%s</span><span class="s">: </span><span class="si">%s</span><span class="s">]&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">board_id</span><span class="p">,</span> <span class="n">board</span><span class="o">.</span><span class="n">description</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">boards</span><span class="p">[</span><span class="n">board_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">board</span>
+</div>
+<div class="viewcode-block" id="BoardManager.parse_session_message"><a class="viewcode-back" href="../../../blitz_communications_boards.html#blitz.communications.boards.BoardManager.parse_session_message">[docs]</a>    <span class="k">def</span> <span class="nf">parse_session_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message_tuple</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Passes the received message to the board manager message parser with the appropriate session id</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">messages</span><span class="p">,</span> <span class="n">session_id</span> <span class="o">=</span> <span class="n">message_tuple</span>
+        <span class="n">decoded_vars</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">msg</span> <span class="ow">in</span> <span class="n">messages</span><span class="p">:</span>
+            <span class="n">decoded_vars</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_message</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">session_id</span><span class="o">=</span><span class="n">session_id</span><span class="p">)</span>
+
+        <span class="c"># perform a single database transaction</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">add_many</span><span class="p">(</span><span class="n">decoded_vars</span><span class="p">)</span>
+
+        <span class="c"># work out if the session is fully downloaded</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">update_session_availability</span><span class="p">(</span><span class="n">session_id</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="BoardManager.parse_message"><a class="viewcode-back" href="../../../blitz_communications_boards.html#blitz.communications.boards.BoardManager.parse_message">[docs]</a>    <span class="k">def</span> <span class="nf">parse_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">session_id</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">board_id</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gets a variable dictionary from a board and save to database</span>
+<span class="sd">        :param message: The raw message to parse</span>
+<span class="sd">        :param session_id: The session ID of the message (ignore if getting cached variables)</span>
+<span class="sd">        :param board_id: The id of the board to parse the message</span>
+<span class="sd">        :returns: a list of variables added to the cache or data store</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">readings</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">board_id</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">board_id</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">message</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">],</span> <span class="mi">16</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;Unable to parse message... skipping - {0}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
+            <span class="k">return</span> <span class="p">[]</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">board</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">boards</span><span class="p">[</span><span class="n">board_id</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;Ignoring message (</span><span class="si">%s</span><span class="s">) for unknown board id - </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">board_id</span><span class="p">))</span>
+            <span class="k">return</span> <span class="p">[]</span>
+
+        <span class="c"># use the board to parse the message</span>
+        <span class="n">board</span><span class="o">.</span><span class="n">parse_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">board</span><span class="o">.</span><span class="n">get_variables</span><span class="p">()</span>
+
+        <span class="c"># get session metadata</span>
+        <span class="n">time_logged</span> <span class="o">=</span> <span class="n">board</span><span class="p">[</span><span class="s">&quot;timestamp&quot;</span><span class="p">]</span>
+
+        <span class="c"># write the variables to the database</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">category_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">get_or_create_category</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">session_id</span><span class="p">:</span>
+                <span class="c"># adding a reading</span>
+                <span class="n">readings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="n">Reading</span><span class="p">(</span><span class="n">sessionId</span><span class="o">=</span><span class="n">session_id</span><span class="p">,</span> <span class="n">timeLogged</span><span class="o">=</span><span class="n">time_logged</span><span class="p">,</span> <span class="n">categoryId</span><span class="o">=</span><span class="n">category_id</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="n">key</span><span class="p">]))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c"># adding to cache</span>
+                <span class="n">cached_item</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">add_cache</span><span class="p">(</span><span class="n">time_logged</span><span class="p">,</span> <span class="n">category_id</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">cached_item</span><span class="o">.</span><span class="n">value</span><span class="p">:</span>
+                    <span class="n">readings</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                        <span class="s">&#39;categoryName&#39;</span><span class="p">:</span> <span class="n">key</span><span class="p">,</span>
+                        <span class="s">&#39;categoryId&#39;</span><span class="p">:</span> <span class="n">cached_item</span><span class="o">.</span><span class="n">categoryId</span><span class="p">,</span>
+                        <span class="s">&#39;timeLogged&#39;</span><span class="p">:</span> <span class="n">cached_item</span><span class="o">.</span><span class="n">timeLogged</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">,</span>
+                        <span class="s">&#39;value&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">cached_item</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+                    <span class="p">})</span>
+
+        <span class="k">return</span> <span class="n">readings</span>
+</div>
+<div class="viewcode-block" id="BoardManager.get_board_descriptions"><a class="viewcode-back" href="../../../blitz_communications_boards.html#blitz.communications.boards.BoardManager.get_board_descriptions">[docs]</a>    <span class="k">def</span> <span class="nf">get_board_descriptions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">boards</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gets the descriptions of the boards given in a list</span>
+
+<span class="sd">        :param boards: a list of board ID strings</span>
+<span class="sd">        :returns: A list of tuples. each tuple containing `(ID, DESCRIPTION)`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">boards</span><span class="p">:</span>
+            <span class="nb">id</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span>
+            <span class="n">id_str</span> <span class="o">=</span> <span class="s">&quot;{0} ({1})&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">id_str</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">boards</span><span class="p">[</span><span class="nb">id</span><span class="p">]</span><span class="o">.</span><span class="n">description</span><span class="p">)</span> <span class="k">if</span> <span class="nb">id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">boards</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">else</span> <span class="p">(</span><span class="n">id_str</span><span class="p">,</span> <span class="s">&quot;Unknown&quot;</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">result</span>
+
+</div></div>
+<div class="viewcode-block" id="BaseExpansionBoard"><a class="viewcode-back" href="../../../blitz_communications_boards.html#blitz.communications.boards.BaseExpansionBoard">[docs]</a><span class="k">class</span> <span class="nc">BaseExpansionBoard</span><span class="p">(</span><span class="n">Plugin</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A class that all client side expansion boards MUST inherit.  In addition,</span>
+<span class="sd">    boards which are derived from BaseExpansionBoard must call the constructor</span>
+<span class="sd">    of this class in their derived class using &quot;super&quot;</span>
+
+<span class="sd">    This provides basic functionality such as parsing of raw logger messages</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+    <span class="n">do_not_register</span> <span class="o">=</span> <span class="bp">True</span>  <span class="c"># prevent registration of this board in the plugins list</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s">&quot;Base Expansion Board&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialises the Expansion Board</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">Plugin</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">description</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">description</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__message</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__attributes</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__mapping</span> <span class="o">=</span> <span class="n">BOARD_MESSAGE_MAPPING</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_payload_array</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Override get item to provide access to attributes&quot;&quot;&quot;</span>
+
+        <span class="c"># handle board descriptive attributes</span>
+        <span class="c"># this is not necessary but provides a common interface</span>
+        <span class="k">if</span> <span class="n">item</span> <span class="o">==</span> <span class="s">&quot;id&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span>
+        <span class="k">elif</span> <span class="n">item</span> <span class="o">==</span> <span class="s">&quot;description&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">description</span>
+
+        <span class="c"># otherwise return an item from the __attributes dictionary</span>
+        <span class="k">if</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__attributes</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__attributes</span><span class="p">[</span><span class="n">item</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s">&quot;Attempted to get variable from the board which doesn&#39;t exist: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">item</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Override set item to provide access to attributes&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__attributes</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+<div class="viewcode-block" id="BaseExpansionBoard.parse_message"><a class="viewcode-back" href="../../../blitz_communications_boards.html#blitz.communications.boards.BaseExpansionBoard.parse_message">[docs]</a>    <span class="k">def</span> <span class="nf">parse_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">raw_message</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Takes a raw binary message received from an expansion board and breaks</span>
+<span class="sd">        it up into parts as described in section 4 of TS0002.</span>
+
+<span class="sd">        This method SHOULD NOT be overridden in derived classes.  Derived classes</span>
+<span class="sd">        should implement the get_variables function</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c"># parse the message</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">raw_message</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">MESSAGE_BYTE_LENGTH</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
+                <span class="s">&quot;Unable to parse message [</span><span class="si">%s</span><span class="s">]- expected 28 bytes, found </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">raw_message</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">raw_message</span><span class="p">))</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__message</span> <span class="o">=</span> <span class="n">BitArray</span><span class="p">(</span><span class="nb">hex</span><span class="o">=</span><span class="n">raw_message</span><span class="p">)</span>
+
+        <span class="c"># parse all the variables to match the mapping</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mapping</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">if</span> <span class="s">&quot;end&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mapping</span><span class="p">[</span><span class="n">key</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mapping</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s">&quot;end&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__message</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__mapping</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s">&quot;start&quot;</span><span class="p">]:]</span><span class="o">.</span><span class="n">uint</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__message</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__mapping</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s">&quot;start&quot;</span><span class="p">]:</span><span class="bp">self</span><span class="o">.</span><span class="n">__mapping</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s">&quot;end&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">uint</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__message</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__mapping</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s">&quot;start&quot;</span><span class="p">]]</span>
+
+        <span class="c"># get the payload into a bit_array.</span>
+        <span class="c"># the first 48 bitsare the meta data, ignore these</span>
+        <span class="bp">self</span><span class="p">[</span><span class="s">&#39;payload&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__message</span><span class="p">[</span><span class="mi">48</span><span class="p">:]</span>
+
+        <span class="c"># create a flags array</span>
+        <span class="bp">self</span><span class="p">[</span><span class="s">&#39;flags&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="bp">self</span><span class="p">[</span><span class="s">&quot;flag1&quot;</span><span class="p">],</span>
+            <span class="bp">self</span><span class="p">[</span><span class="s">&quot;flag2&quot;</span><span class="p">],</span>
+            <span class="bp">self</span><span class="p">[</span><span class="s">&quot;flag3&quot;</span><span class="p">],</span>
+            <span class="bp">self</span><span class="p">[</span><span class="s">&quot;flag4&quot;</span><span class="p">],</span>
+            <span class="bp">self</span><span class="p">[</span><span class="s">&quot;flag5&quot;</span><span class="p">],</span>
+        <span class="p">]</span>
+
+        <span class="c"># raise the finished event</span>
+        <span class="n">data_line_processed</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="BaseExpansionBoard.register_board"><a class="viewcode-back" href="../../../blitz_communications_boards.html#blitz.communications.boards.BaseExpansionBoard.register_board">[docs]</a>    <span class="k">def</span> <span class="nf">register_board</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">manager</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Registers this board (by ID) with the board manager.  This method SHOULD NOT</span>
+<span class="sd">        be overridden by derived classes</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">manager</span><span class="o">.</span><span class="n">register_board</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="BaseExpansionBoard.get_number"><a class="viewcode-back" href="../../../blitz_communications_boards.html#blitz.communications.boards.BaseExpansionBoard.get_number">[docs]</a>    <span class="k">def</span> <span class="nf">get_number</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_bit</span><span class="p">,</span> <span class="n">length</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get a number from the payload, breaking out bits between &#39;start_bit&#39; and &#39;length&#39;.</span>
+<span class="sd">        Note that the bits are 0 indexed - e.g. the first bit is bit #0, the second is #1, etc.</span>
+<span class="sd">        This method SHOULD NOT be overridden by derived classes</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">start_bit</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="n">length</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span><span class="o">.</span><span class="n">uint</span>
+</div>
+<div class="viewcode-block" id="BaseExpansionBoard.get_flag"><a class="viewcode-back" href="../../../blitz_communications_boards.html#blitz.communications.boards.BaseExpansionBoard.get_flag">[docs]</a>    <span class="k">def</span> <span class="nf">get_flag</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flag_number</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the flag defined at the given bit number.</span>
+<span class="sd">        This method SHOULD NOT be overridden by derived classes</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">flag_number</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="s">&#39;flags&#39;</span><span class="p">])</span> <span class="ow">or</span> <span class="n">flag_number</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;Invalid flag number </span><span class="si">%s</span><span class="s">, should be between 0 and 4 (inclusive)&quot;</span> <span class="o">%</span> <span class="n">flag_number</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="s">&#39;flags&#39;</span><span class="p">][</span><span class="n">flag_number</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="BaseExpansionBoard.get_raw_payload"><a class="viewcode-back" href="../../../blitz_communications_boards.html#blitz.communications.boards.BaseExpansionBoard.get_raw_payload">[docs]</a>    <span class="k">def</span> <span class="nf">get_raw_payload</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the raw payload (an unsigned, big endian, 32 bit number)</span>
+<span class="sd">        This method SHOULD NOT be overridden by derived classes</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="s">&#39;payload&#39;</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="BaseExpansionBoard.get_variables"><a class="viewcode-back" href="../../../blitz_communications_boards.html#blitz.communications.boards.BaseExpansionBoard.get_variables">[docs]</a>    <span class="k">def</span> <span class="nf">get_variables</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Queries the split up binary data generated by self.parse_message and</span>
+<span class="sd">        creates a dictionary of &quot;variable&quot;: &quot;value&quot; pairs.</span>
+<span class="sd">        This method MUST be overridden by derived classes</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{}</span>
+</div>
+<div class="viewcode-block" id="BaseExpansionBoard.send_command"><a class="viewcode-back" href="../../../blitz_communications_boards.html#blitz.communications.boards.BaseExpansionBoard.send_command">[docs]</a>    <span class="k">def</span> <span class="nf">send_command</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sends a command using the preferred method of the board.  Can be overridden in inherited classes</span>
+<span class="sd">        to provide behaviour other than the default RS232 transmission</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">SerialManager</span><span class="o">.</span><span class="n">Instance</span><span class="p">()</span><span class="o">.</span><span class="n">send_command_with_ack</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;Board unable to process command (</span><span class="si">%s</span><span class="s">) received response (</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">result</span><span class="p">))</span>
+
+</div></div>
+<div class="viewcode-block" id="BlitzBasicExpansionBoard"><a class="viewcode-back" href="../../../blitz_communications_boards.html#blitz.communications.boards.BlitzBasicExpansionBoard">[docs]</a><span class="k">class</span> <span class="nc">BlitzBasicExpansionBoard</span><span class="p">(</span><span class="n">BaseExpansionBoard</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A basic expansion board with three 10bit ADCs</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s">&quot;Blitz Basic Expansion Board&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;load the correct description for the board&quot;&quot;&quot;</span>
+        <span class="n">BaseExpansionBoard</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">description</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">do_not_register</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="mi">8</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">description</span>
+
+<div class="viewcode-block" id="BlitzBasicExpansionBoard.register_signals"><a class="viewcode-back" href="../../../blitz_communications_boards.html#blitz.communications.boards.BlitzBasicExpansionBoard.register_signals">[docs]</a>    <span class="k">def</span> <span class="nf">register_signals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Connect to the board loading signal&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="s">&quot;Board [</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">] now listening for registering_boards signal&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="p">[</span><span class="s">&#39;description&#39;</span><span class="p">]))</span>
+        <span class="n">registering_boards</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">register_board</span><span class="p">)</span>
+</div>
+    <span class="k">def</span> <span class="nf">get_variables</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">&quot;adc_channel_one&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span>
+            <span class="s">&quot;adc_channel_two&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span>
+            <span class="s">&quot;adc_channel_three&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number</span><span class="p">(</span><span class="mi">24</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span>
+            <span class="s">&quot;adc_channel_four&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number</span><span class="p">(</span><span class="mi">36</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span>
+            <span class="s">&quot;adc_channel_five&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number</span><span class="p">(</span><span class="mi">48</span><span class="p">,</span> <span class="mi">12</span><span class="p">)</span>
+        <span class="p">}</span>
+
+</div>
+<span class="k">class</span> <span class="nc">MotorExpansionBoard</span><span class="p">(</span><span class="n">BaseExpansionBoard</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A simple expansion board which allows setting a motor position or speed</span>
+<span class="sd">    and returns three values as 16 bit integers:</span>
+
+<span class="sd">     1. the current ADC value</span>
+<span class="sd">     2. the current measured position / speed</span>
+<span class="sd">     3. the set position / speed</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s">&quot;Motor Expansion Board&quot;</span><span class="p">):</span>
+        <span class="n">BaseExpansionBoard</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">description</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">do_not_register</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="mi">9</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">description</span>
+
+    <span class="k">def</span> <span class="nf">register_signals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Connect to the board loading signal&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="s">&quot;Board [</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">] now listening for registering_boards signal&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="p">[</span><span class="s">&#39;description&#39;</span><span class="p">]))</span>
+        <span class="n">registering_boards</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">register_board</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_variables</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c">#print self._payload_array.hex</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">&quot;raw_adc&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">16</span><span class="p">),</span>
+            <span class="s">&quot;motor_value&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">),</span>
+            <span class="s">&quot;set_point&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span>
+        <span class="p">}</span>
+
+
+<span class="k">class</span> <span class="nc">NetScannerEthernetBoard</span><span class="p">(</span><span class="n">BaseExpansionBoard</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An ethernet based expansion board for communicating with two NetScanner 9116 devices</span>
+<span class="sd">    connected to a NetScanner 9IFC.  The protocol is available from the NetScanner manuals</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s">&quot;NetScanner Ethernet Interface Board&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;load the correct description for the board&quot;&quot;&quot;</span>
+        <span class="n">BaseExpansionBoard</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">description</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">do_not_register</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="mi">10</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">description</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">channel_offset</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="nf">register_signals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># signal to register the board</span>
+        <span class="n">registering_boards</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">register_board</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="s">&quot;Board [</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">] now listening for registering_boards signal&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="p">[</span><span class="s">&#39;description&#39;</span><span class="p">]))</span>
+
+    <span class="k">def</span> <span class="nf">get_variables</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_min</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">var_vals</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_number</span><span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">))</span> <span class="o">/</span> <span class="mf">1.0e6</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">16</span><span class="p">)]</span>
+        <span class="n">channels</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;Channel_{0}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">channel_offset</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">17</span><span class="p">)]</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">channels</span><span class="p">,</span> <span class="n">var_vals</span><span class="p">))</span>
+
+
+<span class="k">class</span> <span class="nc">NetScannerEthernetBoardTwo</span><span class="p">(</span><span class="n">NetScannerEthernetBoard</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    In lieu of extended messages on the ehternet board, provide a second board for channels 17-32</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s">&quot;NetScanner Ethernet Interface Board Two&quot;</span><span class="p">):</span>
+        <span class="n">NetScannerEthernetBoard</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">description</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">channel_offset</span> <span class="o">=</span> <span class="mi">16</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="mi">11</span>
+
+    <span class="k">def</span> <span class="nf">get_variables</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_min</span><span class="o">=</span><span class="mi">17</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">NetScannerEthernetBoardTwo</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get_variables</span><span class="p">(</span><span class="n">channel_min</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">ExpansionBoardMock</span><span class="p">(</span><span class="n">BaseExpansionBoard</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Test the parsing abilities of expansion boards</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">identify_board</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="p">[</span><span class="s">&#39;description&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;Expansion Board Mock For Testing&quot;</span>
+
+    <span class="k">def</span> <span class="nf">get_variables</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">&quot;flag_one&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_flag</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span>
+            <span class="s">&quot;flag_two&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_flag</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
+            <span class="s">&quot;flag_three&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_flag</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span>
+            <span class="s">&quot;flag_four&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_flag</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span>
+            <span class="s">&quot;flag_five&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_flag</span><span class="p">(</span><span class="mi">4</span><span class="p">),</span>
+
+            <span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">],</span>
+
+            <span class="s">&quot;full_payload&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_raw_payload</span><span class="p">(),</span>
+
+            <span class="s">&quot;variable_a&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">16</span><span class="p">),</span>
+            <span class="s">&quot;variable_b&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span>
+        <span class="p">}</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Blitz Logger Internal Documentation 0.1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, William Hart.
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.2.Theme by <a href="http://github.com/vkvn">vkvn</a>
+    </div>
+  </body>
+</html>

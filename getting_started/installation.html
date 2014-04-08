@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="A manual page for the Blitz Data Acquisition System">
+
+        <title>Installation | Blitz Manual</title>
+
+        <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.4.2/pure.css">
+      
+        <!--[if lte IE 8]>
+            <link rel="stylesheet" href="/static/css/main-grid-old-ie.css">
+        <![endif]-->
+        <!--[if gt IE 8]><!-->
+            <link rel="stylesheet" href="../static/css/main-grid.css">
+        <!--<![endif]-->
+        
+        <!--[if lte IE 8]>
+            <link rel="stylesheet" href="/static/css/layouts/splash-old-ie.css">
+        <![endif]-->
+        <!--[if gt IE 8]><!-->
+            <link rel="stylesheet" href="../static/css/layouts/splash.css">
+        <!--<![endif]-->
+      
+        <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
+        <link rel="stylesheet" href="../static/css/base.css">
+        
+        <link rel="shortcut icon" href="../static/favicon.ico">
+
+    </head>
+
+    <body>
+    
+        <div class="header">
+            <div class="home-menu pure-menu pure-menu-open pure-menu-horizontal pure-menu-fixed">
+                <a class="pure-menu-heading" href="/">Blitz Manual</a>
+
+                <ul>
+                    <li><a href="../getting_started/">Getting Started</a></li>
+                    <li><a href="../server/">Server</a></li>
+                    <li><a href="../client/">Client</a></li>
+                    <li><a href="../expansions/">Expansions</a></li>
+                    <li><a href="../protocol/">Protocol</a></li>
+                    <li><a href="../api/">API</a></li>
+                </ul>
+            </div>
+        </div>
+
+        
+        <div class="pure-g-r top-pad">
+            <div class="pure-u-3-24">&nbsp;</div>
+            <div class="pure-u-18-24">
+                <h1>Installing Blitz</h1>
+
+<blockquote>
+  <p><strong>NOTE 1</strong> The software was developed on a Windows 7 PC and the desktop client has only been tested on Windows 7. It is built using cross platform libraries so should be easy to install and run on Mac or Windows as well</p>
+  
+  <p><strong>NOTE 2</strong> This guide assumes you already have Python installed on your system.  If you don't, visit <a href="http://python.org/">http://python.org/</a> and follow the directions there.  Only Python 2.7.x has been tested.</p>
+  
+  <p><strong>NOTE 3</strong> There is currently no "one-click" installer for Blitz, although one is planned in the future. You will need to have some level of comfort using the command line to proceed.</p>
+</blockquote>
+
+<p>There are two key steps in installation:</p>
+
+<ol>
+<li>Download the software</li>
+<li>Install the dependencies</li>
+</ol>
+
+<h2>1) Download the software</h2>
+
+<p>The best way to download the software is to use the git repository.  You can either get the <code>master</code> branch, which is the latest stable release, or try the <code>develop</code> branch which is less stable but may include additional features, bug fixes (or bugs). To get the latest stable version and install it to the folder <code>c:/code/blitz</code> you have two options:</p>
+
+<h3>Using git</h3>
+
+<p>Type the following commands (or the Linux / Mac equivalent) into your command prompt or terminal:</p>
+
+<p>~~~
+$ cd c:/code
+$ git clone https://github.com/will-hart/blitz.git
+$ cd blitz
+~~~</p>
+
+<h3>Downloading a zip file from github</h3>
+
+<p>To install manually, you can follow these steps:</p>
+
+<ol>
+<li>Visit <a href="https://github.com/will-hart/blitz/releases">https://github.com/will-hart/blitz/releases</a> and download the latest release in zip format.</li>
+<li>Unzip the contents of the archive to <code>c:/code/blitz</code> (or your preferred directory)</li>
+</ol>
+
+<h2>2) Installing the dependencies</h2>
+
+<p>The dependencies required are separated by "client" and "server" dependencies. Most of them are Python related however on the server Redis must be installed. The details are given below:</p>
+
+<h3>Redis (server only)</h3>
+
+<p>To run the data acquisition server you will need to have redis installed. For Linux based systems you can generally do this with your package manager:</p>
+
+<p>~~~
+$ sudo apt-get install redis
+~~~</p>
+
+<p>If you are on Windows then things are a bit trickier, but Microsoft have provided some redis binaries through a github repository. Download either the 32bit or 64bit version from <a href="https://github.com/MSOpenTech/redis/tree/2.6/bin/release">https://github.com/MSOpenTech/redis/tree/2.6/bin/release</a>, and unzip into a directory somewhere on your PC - <code>c:/code/redis</code> is a good place to start. To download click on the correct zip file on the redis page and when that loads click the "raw" button.</p>
+
+<h3>Python packages (client and server)</h3>
+
+<p>A number of Python packages are required to run Blitz in either client or server mode. The only supported way of doing this is through the Python <code>pip</code> package manager. </p>
+
+<p>The requirements can be viewed in the <code>server_requirements.txt</code> and <code>client_requirements.txt</code> files in the blitz directory.  To install the client dependencies navigate to <code>c:/code/blitz</code> (or the directory where you installed the software) in your command terminal and type:</p>
+
+<p>~~~
+$ pip install -r client_requirements.txt
+~~~  </p>
+
+<p>To install the server requirements navigate to the same directory and type</p>
+
+<p>~~~
+$ pip install -r server_requirements.txt
+~~~  </p>
+
+<hr />
+
+<blockquote>
+  <p><strong>What next?</strong> <br />
+  - <a href="requirements.html">Revisit the requirements</a> <br />
+  - <a href="configuration.html">Learn how to configure Blitz</a>. <br />
+  - <a href="../server/raspberry-pi-setup.html">Learn about Raspberry Pi servers</a></p>
+</blockquote>
+
+            </div>
+            <div class="pure-u-3-24">&nbsp;</div>
+        </div>
+        
+        
+        
+
+        <div class="footer l-box is-center">
+            
+            Blitz DAQ was made by <a href="http://www.williamhart.info">William Hart</a> and is open source (AGPLv3+) software
+            
+        </div>
+    </body>
+<html>

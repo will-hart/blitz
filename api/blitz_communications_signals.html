@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>signals &mdash; Blitz Logger Internal Documentation 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/solar.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Blitz Logger Internal Documentation 0.1 documentation" href="index.html" />
+    <link rel="up" title="blitz.communications" href="blitz_communications.html" />
+    <link rel="next" title="server_states" href="blitz_communications_tcp.html" />
+    <link rel="prev" title="server_states" href="blitz_communications_server_states.html" /><link href='http://fonts.googleapis.com/css?family=Source+Code+Pro|Open+Sans:300italic,400italic,700italic,400,300,700' rel='stylesheet' type='text/css'>
+<link href="_static/solarized-dark.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="blitz_communications_tcp.html" title="server_states"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="blitz_communications_server_states.html" title="server_states"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Blitz Logger Internal Documentation 0.1 documentation</a> &raquo;</li>
+          <li><a href="blitz_communications.html" accesskey="U">blitz.communications</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="blitz_communications_server_states.html"
+                        title="previous chapter">server_states</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="blitz_communications_tcp.html"
+                        title="next chapter">server_states</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/blitz_communications_signals.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-blitz.communications.signals">
+<span id="signals"></span><h1>signals<a class="headerlink" href="#module-blitz.communications.signals" title="Permalink to this headline">¶</a></h1>
+<dl class="data">
+<dt id="blitz.communications.signals.board_command_received">
+<tt class="descclassname">blitz.communications.signals.</tt><tt class="descname">board_command_received</tt><em class="property"> = &lt;blinker.base.NamedSignal object at 0x03A40DF0; 'board_command_received'&gt;</em><a class="headerlink" href="#blitz.communications.signals.board_command_received" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fired when a command was received from the desktop software for an expansion board</p>
+<dl class="docutils">
+<dt>Subscribers (subscribed in &gt;&gt; subscribed to):</dt>
+<dd><ul class="first last simple">
+<li><tt class="xref py py-mod docutils literal"><span class="pre">SerialManager</span></tt>.__init__ &gt;&gt; BoardManager.handle_board_command</li>
+<li><tt class="xref py py-mod docutils literal"><span class="pre">ApplicationClient</span></tt>.__init__ &gt;&gt; ApplicationClient.send_command</li>
+</ul>
+</dd>
+<dt>Sent by:</dt>
+<dd><ul class="first last simple">
+<li><tt class="xref py py-mod docutils literal"><span class="pre">ServerBaseState</span></tt>.process_standard_messages</li>
+<li><tt class="xref py py-mod docutils literal"><span class="pre">CalibrationDialog</span></tt>.step</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="data">
+<dt id="blitz.communications.signals.board_list_processed">
+<tt class="descclassname">blitz.communications.signals.</tt><tt class="descname">board_list_processed</tt><em class="property"> = &lt;blinker.base.NamedSignal object at 0x03A40E50; 'board_list_processed'&gt;</em><a class="headerlink" href="#blitz.communications.signals.board_list_processed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fired when the client wants to find out which boards are connected</p>
+<dl class="docutils">
+<dt>Subscribers (subscribed in &gt;&gt; subscribed to):</dt>
+<dd><ul class="first last simple">
+<li><cite>GUISignalEmitter</cite>.__init__</li>
+</ul>
+</dd>
+<dt>Sent by:</dt>
+<dd><ul class="first last simple">
+<li><tt class="xref py py-mod docutils literal"><span class="pre">ApplicationClient</span></tt>.process_boards_command</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="data">
+<dt id="blitz.communications.signals.board_list_received">
+<tt class="descclassname">blitz.communications.signals.</tt><tt class="descname">board_list_received</tt><em class="property"> = &lt;blinker.base.NamedSignal object at 0x03A40E30; 'board_list_received'&gt;</em><a class="headerlink" href="#blitz.communications.signals.board_list_received" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fired when the client wants to find out which boards are connected</p>
+<dl class="docutils">
+<dt>Subscribers (subscribed in &gt;&gt; subscribed to):</dt>
+<dd><ul class="first last simple">
+<li><tt class="xref py py-mod docutils literal"><span class="pre">ApplicationClient</span></tt>.__init__ &gt;&gt; ApplicationClient.process_boards_command</li>
+</ul>
+</dd>
+<dt>Sent by:</dt>
+<dd><ul class="first last simple">
+<li><tt class="xref py py-mod docutils literal"><span class="pre">ClientIdleState</span></tt>.receive_message</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="data">
+<dt id="blitz.communications.signals.board_list_requested">
+<tt class="descclassname">blitz.communications.signals.</tt><tt class="descname">board_list_requested</tt><em class="property"> = &lt;blinker.base.NamedSignal object at 0x03A40E10; 'board_list_requested'&gt;</em><a class="headerlink" href="#blitz.communications.signals.board_list_requested" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fired when the client wants to find out which boards are connected</p>
+<dl class="docutils">
+<dt>Subscribers (subscribed in &gt;&gt; subscribed to):</dt>
+<dd><ul class="first last simple">
+<li><tt class="xref py py-mod docutils literal"><span class="pre">ApplicationServer</span></tt>.__init__ &gt;&gt; ApplicationClient.send_connected_boards</li>
+<li><tt class="xref py py-mod docutils literal"><span class="pre">ApplicationClient</span></tt>.__init__ &gt;&gt; ApplicationClient.send_boards_command</li>
+</ul>
+</dd>
+<dt>Sent by:</dt>
+<dd><ul class="first last simple">
+<li><tt class="xref py py-mod docutils literal"><span class="pre">ServerIdleState</span></tt>.receive_message</li>
+<li><tt class="xref py py-mod docutils literal"><span class="pre">MainBlitzWindow</span></tt>.send_board_list</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="data">
+<dt id="blitz.communications.signals.cache_line_received">
+<tt class="descclassname">blitz.communications.signals.</tt><tt class="descname">cache_line_received</tt><em class="property"> = &lt;blinker.base.NamedSignal object at 0x03A40270; 'cache_line_received'&gt;</em><a class="headerlink" href="#blitz.communications.signals.cache_line_received" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fired when the client receives a line of cached data</p>
+<dl class="docutils">
+<dt>Subscribers (subscribed in &gt;&gt; subscribed to):</dt>
+<dd><ul class="first last simple">
+<li><tt class="xref py py-mod docutils literal"><span class="pre">ApplicationClient</span></tt>.__init__ &gt;&gt; ApplicationClient.cache_line_received</li>
+</ul>
+</dd>
+<dt>Sent by:</dt>
+<dd><ul class="first last simple">
+<li><tt class="xref py py-mod docutils literal"><span class="pre">ClientLoggingState</span></tt>.receive_message</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="data">
+<dt id="blitz.communications.signals.client_requested_download">
+<tt class="descclassname">blitz.communications.signals.</tt><tt class="descname">client_requested_download</tt><em class="property"> = &lt;blinker.base.NamedSignal object at 0x03A40DD0; 'client_requested_download'&gt;</em><a class="headerlink" href="#blitz.communications.signals.client_requested_download" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fired when a client requests a download of a particular session</p>
+<dl class="docutils">
+<dt>Subscribers (subscribed in &gt;&gt; subscribed to):</dt>
+<dd><ul class="first last simple">
+<li><tt class="xref py py-mod docutils literal"><span class="pre">ApplicationServer</span></tt>.__init__ &gt;&gt; ApplicationServer.serve_client_download</li>
+<li><tt class="xref py py-mod docutils literal"><span class="pre">ApplicationClient</span></tt>.__init__ &gt;&gt; ApplicationClient.send_download_request</li>
+</ul>
+</dd>
+<dt>Sent by:</dt>
+<dd><ul class="first last simple">
+<li><tt class="xref py py-mod docutils literal"><span class="pre">ServerDownloadingState</span></tt>.enter_state</li>
+<li><tt class="xref py py-mod docutils literal"><span class="pre">DownloadHandler</span></tt>.get</li>
+<li><tt class="xref py py-mod docutils literal"><span class="pre">blitz.ui.BlitzSessionWindow</span></tt>.download_session</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="data">
+<dt id="blitz.communications.signals.client_requested_session_list">
+<tt class="descclassname">blitz.communications.signals.</tt><tt class="descname">client_requested_session_list</tt><em class="property"> = &lt;blinker.base.NamedSignal object at 0x03A40D70; 'client_requested_session_list'&gt;</em><a class="headerlink" href="#blitz.communications.signals.client_requested_session_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fired when the client has requested a status list update, TcpServer as argument</p>
+<dl class="docutils">
+<dt>Subscribers (subscribed in &gt;&gt; subscribed to):</dt>
+<dd><ul class="first last simple">
+<li><tt class="xref py py-mod docutils literal"><span class="pre">ApplicationServer</span></tt>.__init__ &gt;&gt; ApplicationServer.update_session_list</li>
+<li><tt class="xref py py-mod docutils literal"><span class="pre">ApplicationClient</span></tt>.__init__ &gt;&gt; ApplicationClient.request_session_list</li>
+</ul>
+</dd>
+<dt>Sent by:</dt>
+<dd><ul class="first last simple">
+<li><tt class="xref py py-mod docutils literal"><span class="pre">ServerIdleState</span></tt>.receive_message</li>
+<li><tt class="xref py py-mod docutils literal"><span class="pre">MainBlitzWindow</span></tt>.get_session_list</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="data">
+<dt id="blitz.communications.signals.client_session_list_updated">
+<tt class="descclassname">blitz.communications.signals.</tt><tt class="descname">client_session_list_updated</tt><em class="property"> = &lt;blinker.base.NamedSignal object at 0x03A40D90; 'client_session_list_updated'&gt;</em><a class="headerlink" href="#blitz.communications.signals.client_session_list_updated" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fired when the client has a completed session list received from the server</p>
+<dl class="docutils">
+<dt>Subscribers (subscribed in &gt;&gt; subscribed to):</dt>
+<dd><ul class="first last simple">
+<li><tt class="xref py py-mod docutils literal"><span class="pre">DatabaseClient</span></tt>.__init__ &gt;&gt; DatabaseClient.update_session_list</li>
+</ul>
+</dd>
+<dt>Sent by:</dt>
+<dd><ul class="first last simple">
+<li><tt class="xref py py-mod docutils literal"><span class="pre">ClientSessionListState</span></tt>.go_to_state</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="data">
+<dt id="blitz.communications.signals.data_line_processed">
+<tt class="descclassname">blitz.communications.signals.</tt><tt class="descname">data_line_processed</tt><em class="property"> = &lt;blinker.base.NamedSignal object at 0x03A405F0; 'data_line_processed'&gt;</em><a class="headerlink" href="#blitz.communications.signals.data_line_processed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fired when a board has finished processing a data line</p>
+<dl class="docutils">
+<dt>Sent by:</dt>
+<dd><ul class="first last simple">
+<li><tt class="xref py py-mod docutils literal"><span class="pre">BaseExpansionBoard</span></tt>.parse_message</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="data">
+<dt id="blitz.communications.signals.data_line_received">
+<tt class="descclassname">blitz.communications.signals.</tt><tt class="descname">data_line_received</tt><em class="property"> = &lt;blinker.base.NamedSignal object at 0x03A40550; 'data_line_received'&gt;</em><a class="headerlink" href="#blitz.communications.signals.data_line_received" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fired when the expansion board receives a data row for processing
+during a download.  Allows pre-processing of data</p>
+<dl class="docutils">
+<dt>Subscribers (subscribed in &gt;&gt; subscribed to):</dt>
+<dd><ul class="first last simple">
+<li><tt class="xref py py-mod docutils literal"><span class="pre">BoardManager</span></tt>.__init__ &gt;&gt; BoardManager.parse_session_message</li>
+</ul>
+</dd>
+<dt>Sent by:</dt>
+<dd><ul class="first last simple">
+<li><tt class="xref py py-mod docutils literal"><span class="pre">BaseExpansionBoard</span></tt>.parse_message</li>
+<li><tt class="xref py py-mod docutils literal"><span class="pre">ClientDownloadingState</span></tt>.receive_message</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="data">
+<dt id="blitz.communications.signals.force_board_reset">
+<tt class="descclassname">blitz.communications.signals.</tt><tt class="descname">force_board_reset</tt><em class="property"> = &lt;blinker.base.NamedSignal object at 0x03A40E90; 'force_board_reset'&gt;</em><a class="headerlink" href="#blitz.communications.signals.force_board_reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fired when the client wishes to force the board to be RESET to fix an error</p>
+<dl class="docutils">
+<dt>Subscribers (subscribed in &gt;&gt; subscribed to):</dt>
+<dd><ul class="first last simple">
+<li><cite>ApplicationClient</cite>.__init__ &gt;&gt; ApplicationClient.force_board_reset</li>
+</ul>
+</dd>
+<dt>Sent by:</dt>
+<dd><ul class="first last simple">
+<li><cite>BlitzMainWindow</cite>.force_board_reset</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="data">
+<dt id="blitz.communications.signals.logger_connecting">
+<tt class="descclassname">blitz.communications.signals.</tt><tt class="descname">logger_connecting</tt><em class="property"> = &lt;blinker.base.NamedSignal object at 0x03A40230; 'logger_connected'&gt;</em><a class="headerlink" href="#blitz.communications.signals.logger_connecting" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fired when the client has requested a connection to the data logger</p>
+<dl class="docutils">
+<dt>Subscribers (subscribed in &gt;&gt; subscribed to):</dt>
+<dd><ul class="first last simple">
+<li>BaseApplicationClient.__init__ &gt;&gt; BaseApplicationClient.connect_to_logger()</li>
+</ul>
+</dd>
+<dt>Sent by:</dt>
+<dd><ul class="first last simple">
+<li>ConnectHandler.get()</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="data">
+<dt id="blitz.communications.signals.logger_error_received">
+<tt class="descclassname">blitz.communications.signals.</tt><tt class="descname">logger_error_received</tt><em class="property"> = &lt;blinker.base.NamedSignal object at 0x03A40E70; 'logger_error_received'&gt;</em><a class="headerlink" href="#blitz.communications.signals.logger_error_received" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fired when an error was received by the client from the data logger</p>
+<dl class="docutils">
+<dt>Subscribers (subscribed in &gt;&gt; subscribed to):</dt>
+<dd><ul class="first last simple">
+<li><cite>GUISignalEmitter</cite>.__init__</li>
+</ul>
+</dd>
+<dt>Sent by:</dt>
+<dd><ul class="first last simple">
+<li><tt class="xref py py-mod docutils literal"><span class="pre">ClientIdleState</span></tt>.receive_message</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="data">
+<dt id="blitz.communications.signals.logging_started">
+<tt class="descclassname">blitz.communications.signals.</tt><tt class="descname">logging_started</tt><em class="property"> = &lt;blinker.base.NamedSignal object at 0x03A40730; 'logging_started'&gt;</em><a class="headerlink" href="#blitz.communications.signals.logging_started" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fired when logging starts on the server</p>
+<dl class="docutils">
+<dt>Subscribers (subscribed in &gt;&gt; subscribed to):</dt>
+<dd><ul class="first last simple">
+<li><tt class="xref py py-mod docutils literal"><span class="pre">SerialManager</span></tt>.__init__ &gt;&gt; SerialManager.start</li>
+</ul>
+</dd>
+<dt>Sent by:</dt>
+<dd><ul class="first last simple">
+<li><tt class="xref py py-mod docutils literal"><span class="pre">ServerLoggingState</span></tt>.enter_state</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="data">
+<dt id="blitz.communications.signals.logging_stopped">
+<tt class="descclassname">blitz.communications.signals.</tt><tt class="descname">logging_stopped</tt><em class="property"> = &lt;blinker.base.NamedSignal object at 0x03A408B0; 'logging_stopped'&gt;</em><a class="headerlink" href="#blitz.communications.signals.logging_stopped" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fired when logging stops on the server</p>
+<dl class="docutils">
+<dt>Subscribers (subscribed in &gt;&gt; subscribed to):</dt>
+<dd><ul class="first last simple">
+<li><tt class="xref py py-mod docutils literal"><span class="pre">SerialManager</span></tt>.__init__ &gt;&gt; SerialManager.stop</li>
+</ul>
+</dd>
+<dt>Sent by:</dt>
+<dd><ul class="first last simple">
+<li><tt class="xref py py-mod docutils literal"><span class="pre">ServerLoggingState</span></tt>.receive_message</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="data">
+<dt id="blitz.communications.signals.lost_tcp_connection">
+<tt class="descclassname">blitz.communications.signals.</tt><tt class="descname">lost_tcp_connection</tt><em class="property"> = &lt;blinker.base.NamedSignal object at 0x03A40EB0; 'lost_tcp_connection'&gt;</em><a class="headerlink" href="#blitz.communications.signals.lost_tcp_connection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fired when the client loses the TCP connection (after three attempts)</p>
+<dl class="docutils">
+<dt>Subscribers (subscribed in &gt;&gt; subscribed to):</dt>
+<dd><ul class="first last simple">
+<li><cite>GUISignalEmitter</cite>.__init__</li>
+</ul>
+</dd>
+<dt>Sent by:</dt>
+<dd><ul class="first last simple">
+<li><tt class="xref py py-mod docutils literal"><span class="pre">TcpBase</span></tt>.run_client</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="data">
+<dt id="blitz.communications.signals.plugin_loaded">
+<tt class="descclassname">blitz.communications.signals.</tt><tt class="descname">plugin_loaded</tt><em class="property"> = &lt;blinker.base.NamedSignal object at 0x03A406D0; 'plugin_loaded'&gt;</em><a class="headerlink" href="#blitz.communications.signals.plugin_loaded" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fired when plugins are loaded</p>
+<dl class="docutils">
+<dt>Sent by:</dt>
+<dd><ul class="first last simple">
+<li><tt class="xref py py-mod docutils literal"><span class="pre">PluginMount</span></tt>.register_plugin</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="data">
+<dt id="blitz.communications.signals.process_finished">
+<tt class="descclassname">blitz.communications.signals.</tt><tt class="descname">process_finished</tt><em class="property"> = &lt;blinker.base.NamedSignal object at 0x03A40EF0; 'process_finished'&gt;</em><a class="headerlink" href="#blitz.communications.signals.process_finished" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fired when an asynchronous process finishes to allow clients to update the UI</p>
+<dl class="docutils">
+<dt>Subscribers (subscribed in &gt;&gt; subscribed to):</dt>
+<dd><ul class="first last simple">
+<li><cite>GUISignalEmitter</cite>.__init__</li>
+</ul>
+</dd>
+<dt>Sent by:</dt>
+<dd><ul class="first last simple">
+<li><tt class="xref py py-mod docutils literal"><span class="pre">TcpBase</span></tt>.run_client</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="data">
+<dt id="blitz.communications.signals.process_started">
+<tt class="descclassname">blitz.communications.signals.</tt><tt class="descname">process_started</tt><em class="property"> = &lt;blinker.base.NamedSignal object at 0x03A40ED0; 'process_started'&gt;</em><a class="headerlink" href="#blitz.communications.signals.process_started" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fired when an asynchronous process starts to allow clients to update the UI</p>
+<dl class="docutils">
+<dt>Subscribers (subscribed in &gt;&gt; subscribed to):</dt>
+<dd><ul class="first last simple">
+<li><cite>GUISignalEmitter</cite>.__init__</li>
+</ul>
+</dd>
+<dt>Sent by:</dt>
+<dd><ul class="first last simple">
+<li><tt class="xref py py-mod docutils literal"><span class="pre">TcpBase</span></tt>.run_client</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="data">
+<dt id="blitz.communications.signals.registering_boards">
+<tt class="descclassname">blitz.communications.signals.</tt><tt class="descname">registering_boards</tt><em class="property"> = &lt;blinker.base.NamedSignal object at 0x03A405B0; 'registering_boards'&gt;</em><a class="headerlink" href="#blitz.communications.signals.registering_boards" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fired when expansion boards should be registered with the board manager</p>
+<dl class="docutils">
+<dt>Subscribers (subscribed in &gt;&gt; subscribed to):</dt>
+<dd><ul class="first last simple">
+<li>[Expansion Boards].register_signals &gt;&gt; BaseExpansionBoard.register_board</li>
+</ul>
+</dd>
+<dt>Sent by:</dt>
+<dd><ul class="first last simple">
+<li><tt class="xref py py-mod docutils literal"><span class="pre">BaseExpansionBoard</span></tt>.__init__</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="data">
+<dt id="blitz.communications.signals.server_status_request">
+<tt class="descclassname">blitz.communications.signals.</tt><tt class="descname">server_status_request</tt><em class="property"> = &lt;blinker.base.NamedSignal object at 0x03A40D50; 'server_status_request'&gt;</em><a class="headerlink" href="#blitz.communications.signals.server_status_request" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fired when the client requests a status update from the server</p>
+<dl class="docutils">
+<dt>Subscribers (subscribed in &gt;&gt; subscribed to):</dt>
+<dd><ul class="first last simple">
+<li>ApplicationServer.__init__ &gt;&gt; ApplicationServer.serve_client_status</li>
+</ul>
+</dd>
+<dt>Sent by:</dt>
+<dd><ul class="first last simple">
+<li><tt class="xref py py-mod docutils literal"><span class="pre">ServerLoggingState</span></tt>.receive_message</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="data">
+<dt id="blitz.communications.signals.tcp_message_received">
+<tt class="descclassname">blitz.communications.signals.</tt><tt class="descname">tcp_message_received</tt><em class="property"> = &lt;blinker.base.NamedSignal object at 0x03A40DB0; 'tcp_message_received'&gt;</em><a class="headerlink" href="#blitz.communications.signals.tcp_message_received" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fired to let subscribers know a message is ready to be received
+from the reply queue.  Normally should only be subscribed to by the Application</p>
+<dl class="docutils">
+<dt>Sent by:</dt>
+<dd><ul class="first last simple">
+<li><tt class="xref py py-mod docutils literal"><span class="pre">TcpBase</span></tt>.run_server</li>
+<li><tt class="xref py py-mod docutils literal"><span class="pre">TcpBase</span></tt>.run_client</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="blitz_communications_tcp.html" title="server_states"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="blitz_communications_server_states.html" title="server_states"
+             >previous</a> |</li>
+        <li><a href="index.html">Blitz Logger Internal Documentation 0.1 documentation</a> &raquo;</li>
+          <li><a href="blitz_communications.html" >blitz.communications</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, William Hart.
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.2.Theme by <a href="http://github.com/vkvn">vkvn</a>
+    </div>
+  </body>
+</html>

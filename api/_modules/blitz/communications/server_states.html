@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>blitz.communications.server_states &mdash; Blitz Logger Internal Documentation 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/solar.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="Blitz Logger Internal Documentation 0.1 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /><link href='http://fonts.googleapis.com/css?family=Source+Code+Pro|Open+Sans:300italic,400italic,700italic,400,300,700' rel='stylesheet' type='text/css'>
+<link href="../../../_static/solarized-dark.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Blitz Logger Internal Documentation 0.1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for blitz.communications.server_states</h1><div class="highlight"><pre>
+<span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;Will Hart&#39;</span>
+
+<span class="kn">from</span> <span class="nn">blitz.constants</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">blitz.communications.client_states</span> <span class="kn">import</span> <span class="n">BaseState</span>
+<span class="kn">import</span> <span class="nn">blitz.communications.signals</span> <span class="kn">as</span> <span class="nn">sigs</span>
+
+
+<div class="viewcode-block" id="validate_command"><a class="viewcode-back" href="../../../blitz_communications_server_states.html#blitz.communications.server_states.validate_command">[docs]</a><span class="k">def</span> <span class="nf">validate_command</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">commands</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Helper function which checks to see if a message is in the list of valid commands</span>
+<span class="sd">    and sends an appropriate response over the TCP network</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">msg</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">commands</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">composite</span><span class="p">(</span><span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">Error</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">composite</span><span class="p">(</span><span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">Error</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="ServerBaseState"><a class="viewcode-back" href="../../../blitz_communications_server_states.html#blitz.communications.server_states.ServerBaseState">[docs]</a><span class="k">class</span> <span class="nc">ServerBaseState</span><span class="p">(</span><span class="n">BaseState</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A server base state which also implements commands that can be</span>
+<span class="sd">    received in all states such as BOARD commands</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="ServerBaseState.process_standard_messages"><a class="viewcode-back" href="../../../blitz_communications_server_states.html#blitz.communications.server_states.ServerBaseState.process_standard_messages">[docs]</a>    <span class="k">def</span> <span class="nf">process_standard_messages</span><span class="p">(</span><span class="n">tcp</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Processes standard messages that can be handled in any state</span>
+
+<span class="sd">        :returns: True if the message was handled here, False if it was not</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">msg</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span> <span class="o">==</span> <span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">Board</span> <span class="o">+</span> <span class="s">&quot; &quot;</span><span class="p">:</span>
+            <span class="n">sigs</span><span class="o">.</span><span class="n">board_command_received</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">msg</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot; &quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:])</span>
+            <span class="n">tcp</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">Acknowledge</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">True</span>
+
+        <span class="k">return</span> <span class="bp">False</span>  <span class="c"># message was not handled</span>
+
+</div></div>
+<span class="k">class</span> <span class="nc">ServerIdleState</span><span class="p">(</span><span class="n">ServerBaseState</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">enter_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tcp</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;[TCP] Calling ServerIdleState.enter_state: &quot;</span> <span class="o">+</span> <span class="n">state</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="nf">receive_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tcp</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Handle the various requests from the client including to start and stop logging</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;[TCP] Calling ServerIdleState.receive_message: &quot;</span> <span class="o">+</span> <span class="n">msg</span><span class="p">)</span>
+        <span class="c"># check if it is a command which causes a change of state</span>
+        <span class="k">if</span> <span class="n">msg</span> <span class="o">==</span> <span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">Start</span><span class="p">:</span>
+            <span class="n">tcp</span><span class="o">.</span><span class="n">do_send</span><span class="p">(</span><span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">Acknowledge</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">go_to_state</span><span class="p">(</span><span class="n">tcp</span><span class="p">,</span> <span class="n">ServerLoggingState</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">msg</span> <span class="o">==</span> <span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">GetSessions</span><span class="p">:</span>
+            <span class="n">sigs</span><span class="o">.</span><span class="n">client_requested_session_list</span><span class="o">.</span><span class="n">send</span><span class="p">()</span>
+            <span class="k">return</span> <span class="bp">self</span>
+        <span class="k">elif</span> <span class="n">msg</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">8</span><span class="p">]</span> <span class="o">==</span> <span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">Download</span><span class="p">:</span>
+            <span class="n">msg_parts</span> <span class="o">=</span> <span class="n">msg</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot; &quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">msg_parts</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">tcp</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">Negative</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">self</span>
+
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">go_to_state</span><span class="p">(</span><span class="n">tcp</span><span class="p">,</span> <span class="n">ServerDownloadingState</span><span class="p">,</span> <span class="n">msg_parts</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="n">msg</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span> <span class="o">==</span> <span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">Reset</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span>
+        <span class="k">elif</span> <span class="n">msg</span> <span class="o">==</span> <span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">Stop</span> <span class="ow">or</span> <span class="n">msg</span> <span class="o">==</span> <span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">Update</span><span class="p">:</span>
+            <span class="c"># huh? We are not logging!?</span>
+            <span class="n">tcp</span><span class="o">.</span><span class="n">do_send</span><span class="p">(</span><span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">NoSession</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">msg</span> <span class="o">==</span> <span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">IsLogging</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Responding with NACK, server not currently logging&quot;</span><span class="p">)</span>
+            <span class="n">tcp</span><span class="o">.</span><span class="n">do_send</span><span class="p">(</span><span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">Negative</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">msg</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span> <span class="o">==</span> <span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">Boards</span><span class="p">:</span>
+            <span class="n">sigs</span><span class="o">.</span><span class="n">board_list_requested</span><span class="o">.</span><span class="n">send</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">process_standard_messages</span><span class="p">(</span><span class="n">tcp</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+            <span class="n">tcp</span><span class="o">.</span><span class="n">do_send</span><span class="p">(</span><span class="n">validate_command</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">VALID_SERVER_COMMANDS</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;IDLE&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span>
+
+
+<span class="k">class</span> <span class="nc">ServerLoggingState</span><span class="p">(</span><span class="n">ServerBaseState</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">enter_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tcp</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;[TCP] Calling ServerLoggingState.enter_state: &quot;</span> <span class="o">+</span> <span class="n">state</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+        <span class="n">sigs</span><span class="o">.</span><span class="n">logging_started</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">tcp</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="nf">receive_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tcp</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;[TCP] Calling ServerLoggingState.receive_message: &quot;</span> <span class="o">+</span> <span class="n">msg</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">msg</span> <span class="o">==</span> <span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">Stop</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;[TCP] [SIGNAL] Stop logging&quot;</span><span class="p">)</span>
+            <span class="n">tcp</span><span class="o">.</span><span class="n">do_send</span><span class="p">(</span><span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">Acknowledge</span><span class="p">)</span>
+            <span class="n">sigs</span><span class="o">.</span><span class="n">logging_stopped</span><span class="o">.</span><span class="n">send</span><span class="p">()</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">go_to_state</span><span class="p">(</span><span class="n">tcp</span><span class="p">,</span> <span class="n">ServerIdleState</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">msg</span> <span class="o">==</span> <span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">Update</span><span class="p">:</span>
+            <span class="n">sigs</span><span class="o">.</span><span class="n">server_status_request</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">tcp</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">msg</span> <span class="o">==</span> <span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">Start</span><span class="p">:</span>
+            <span class="n">tcp</span><span class="o">.</span><span class="n">do_send</span><span class="p">(</span><span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">InSession</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">msg</span> <span class="o">==</span> <span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">IsLogging</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Responding with ACK, server is currently logging&quot;</span><span class="p">)</span>
+            <span class="n">tcp</span><span class="o">.</span><span class="n">do_send</span><span class="p">(</span><span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">Acknowledge</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">msg</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span> <span class="o">==</span> <span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">Reset</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">go_to_state</span><span class="p">(</span><span class="n">tcp</span><span class="p">,</span> <span class="n">ServerIdleState</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">process_standard_messages</span><span class="p">(</span><span class="n">tcp</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+            <span class="n">tcp</span><span class="o">.</span><span class="n">do_send</span><span class="p">(</span><span class="n">validate_command</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">VALID_SERVER_COMMANDS</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;LOGGING&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span>
+
+
+<span class="k">class</span> <span class="nc">ServerDownloadingState</span><span class="p">(</span><span class="n">ServerBaseState</span><span class="p">):</span>
+
+    <span class="n">session_data</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">send_index</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="nf">enter_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tcp</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">session_id</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;[TCP] Calling ServerDownloadingState.enter_state&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">send_index</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session_data</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">sigs</span><span class="o">.</span><span class="n">client_requested_download</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">session_id</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="nf">send_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tcp</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;[TCP] Calling ServerDownloadingState.send_message&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">msg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="c"># this is the first send request, send the first 100 lines</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">send_index</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">session_data</span> <span class="o">=</span> <span class="n">msg</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session_data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c"># no data to send</span>
+            <span class="n">tcp</span><span class="o">.</span><span class="n">do_send</span><span class="p">(</span><span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">Negative</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">go_to_state</span><span class="p">(</span><span class="n">tcp</span><span class="p">,</span> <span class="n">ServerIdleState</span><span class="p">)</span>
+
+        <span class="c"># send the next block of messages, appending the correct command code</span>
+        <span class="c">#  &gt;&gt; ACK for more to come</span>
+        <span class="c">#  &gt;&gt; NACK for transmission complete</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session_data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">send_index</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">send_index</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">send_index</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session_data</span><span class="p">):</span>
+            <span class="n">lines</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">+</span> <span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">Negative</span>
+            <span class="n">tcp</span><span class="o">.</span><span class="n">do_send</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">session_data</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">send_index</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">go_to_state</span><span class="p">(</span><span class="n">tcp</span><span class="p">,</span> <span class="n">ServerIdleState</span><span class="p">)</span>
+
+        <span class="n">lines</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">+</span> <span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">Acknowledge</span>
+        <span class="n">tcp</span><span class="o">.</span><span class="n">do_send</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="nf">receive_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tcp</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;[TCP] Calling ServerDownloadingState.receive_message&quot;</span><span class="p">)</span>
+
+        <span class="c"># ACK signifies part message received and server should continue sending.</span>
+        <span class="c"># All other messages are in error</span>
+        <span class="k">if</span> <span class="n">msg</span> <span class="o">==</span> <span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">Acknowledge</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;[TCP] Sending next download part&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">tcp</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">msg</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span> <span class="o">==</span> <span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">Reset</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">go_to_state</span><span class="p">(</span><span class="n">tcp</span><span class="p">,</span> <span class="n">ServerIdleState</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">process_standard_messages</span><span class="p">(</span><span class="n">tcp</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;[TCP] Unknown message received in download state - &quot;</span> <span class="o">+</span> <span class="n">msg</span><span class="p">)</span>
+            <span class="n">tcp</span><span class="o">.</span><span class="n">do_send</span><span class="p">(</span><span class="n">validate_command</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">VALID_SERVER_COMMANDS</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot; DOWNLOAD&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span>
+
+
+<span class="k">class</span> <span class="nc">ServerClosedState</span><span class="p">(</span><span class="n">ServerBaseState</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">receive_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tcp</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;[TCP] Calling ServerClosedState.receive_message&quot;</span> <span class="o">+</span> <span class="n">msg</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">process_standard_messages</span><span class="p">(</span><span class="n">tcp</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;Attempted to receive message on closed server&quot;</span> <span class="o">+</span> <span class="n">msg</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">send_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tcp</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;[TCP] Calling ServerClosedState.send_message&quot;</span> <span class="o">+</span> <span class="n">msg</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;Attempted to send message on closed server&quot;</span> <span class="o">+</span> <span class="n">msg</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Blitz Logger Internal Documentation 0.1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, William Hart.
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.2.Theme by <a href="http://github.com/vkvn">vkvn</a>
+    </div>
+  </body>
+</html>

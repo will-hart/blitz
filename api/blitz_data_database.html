@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>database &mdash; Blitz Logger Internal Documentation 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/solar.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Blitz Logger Internal Documentation 0.1 documentation" href="index.html" />
+    <link rel="up" title="blitz.data" href="blitz_data.html" />
+    <link rel="next" title="models" href="blitz_data_models.html" />
+    <link rel="prev" title="blitz.data" href="blitz_data.html" /><link href='http://fonts.googleapis.com/css?family=Source+Code+Pro|Open+Sans:300italic,400italic,700italic,400,300,700' rel='stylesheet' type='text/css'>
+<link href="_static/solarized-dark.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="blitz_data_models.html" title="models"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="blitz_data.html" title="blitz.data"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Blitz Logger Internal Documentation 0.1 documentation</a> &raquo;</li>
+          <li><a href="blitz_data.html" accesskey="U">blitz.data</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">database</a><ul>
+<li><a class="reference internal" href="#databaseclient">DatabaseClient</a></li>
+<li><a class="reference internal" href="#databaseserver">DatabaseServer</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="blitz_data.html"
+                        title="previous chapter">blitz.data</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="blitz_data_models.html"
+                        title="next chapter">models</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/blitz_data_database.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-blitz.data.database">
+<span id="database"></span><h1>database<a class="headerlink" href="#module-blitz.data.database" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="databaseclient">
+<h2>DatabaseClient<a class="headerlink" href="#databaseclient" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="blitz.data.database.DatabaseClient">
+<em class="property">class </em><tt class="descclassname">blitz.data.database.</tt><tt class="descname">DatabaseClient</tt><big>(</big><em>verbose=False</em>, <em>path=':memory:'</em><big>)</big><a class="reference internal" href="_modules/blitz/data/database.html#DatabaseClient"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.database.DatabaseClient" title="Permalink to this definition">¶</a></dt>
+<dd><p>Provides database operations for the client using SqlAlchemy</p>
+<dl class="method">
+<dt id="blitz.data.database.DatabaseClient.add">
+<tt class="descname">add</tt><big>(</big><em>item</em><big>)</big><a class="reference internal" href="_modules/blitz/data/database.html#DatabaseClient.add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.database.DatabaseClient.add" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a single item to the database</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>item</strong> &#8211; The item to add to the database</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The item that was added</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.database.DatabaseClient.add_cache">
+<tt class="descname">add_cache</tt><big>(</big><em>time_logged</em>, <em>category_id</em>, <em>value</em><big>)</big><a class="reference internal" href="_modules/blitz/data/database.html#DatabaseClient.add_cache"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.database.DatabaseClient.add_cache" title="Permalink to this definition">¶</a></dt>
+<dd><p>Quick helper to add a cache record to the database</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>time_logged</strong> &#8211; the timestamp the reading was logged</li>
+<li><strong>category_id</strong> &#8211; the ID of the category this reading should be added to</li>
+<li><strong>value</strong> &#8211; the value of the reading</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the Reading that was generated</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.database.DatabaseClient.add_many">
+<tt class="descname">add_many</tt><big>(</big><em>items</em><big>)</big><a class="reference internal" href="_modules/blitz/data/database.html#DatabaseClient.add_many"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.database.DatabaseClient.add_many" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the given items to the database with the passed attributes</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>items</strong> &#8211; A list of Model instances to be added</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The list of items that was added (should now be populated with IDs)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.database.DatabaseClient.add_reading">
+<tt class="descname">add_reading</tt><big>(</big><em>session_id</em>, <em>time_logged</em>, <em>category_id</em>, <em>value</em><big>)</big><a class="reference internal" href="_modules/blitz/data/database.html#DatabaseClient.add_reading"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.database.DatabaseClient.add_reading" title="Permalink to this definition">¶</a></dt>
+<dd><p>Quick helper to add a reading record to the database</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>session_id</strong> &#8211; the ID of the session to create the reading for</li>
+<li><strong>time_logged</strong> &#8211; the timestamp the reading was logged</li>
+<li><strong>category_id</strong> &#8211; the ID of the category this reading should be added to</li>
+<li><strong>value</strong> &#8211; the value of the reading</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the Reading that was generated</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.database.DatabaseClient.all">
+<tt class="descname">all</tt><big>(</big><em>model</em><big>)</big><a class="reference internal" href="_modules/blitz/data/database.html#DatabaseClient.all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.database.DatabaseClient.all" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns all the records for a given model type</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>model</strong> &#8211; The model to return all records for</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A list of all records for a given model</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.database.DatabaseClient.clear_cache">
+<tt class="descname">clear_cache</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/blitz/data/database.html#DatabaseClient.clear_cache"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.database.DatabaseClient.clear_cache" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clears all variables from the cache</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the Reading that was generated</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.database.DatabaseClient.clear_errors">
+<tt class="descname">clear_errors</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/blitz/data/database.html#DatabaseClient.clear_errors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.database.DatabaseClient.clear_errors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes all errors from the database</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">nothing</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.database.DatabaseClient.clear_session_data">
+<tt class="descname">clear_session_data</tt><big>(</big><em>session_id</em><big>)</big><a class="reference internal" href="_modules/blitz/data/database.html#DatabaseClient.clear_session_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.database.DatabaseClient.clear_session_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clears historic session data for the given session (ref) id</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>session_id</strong> &#8211; the id of the session to clear data for</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the Reading that was generated</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.database.DatabaseClient.create_tables">
+<tt class="descname">create_tables</tt><big>(</big><em>force_drop=False</em><big>)</big><a class="reference internal" href="_modules/blitz/data/database.html#DatabaseClient.create_tables"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.database.DatabaseClient.create_tables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uses the supplied engine and models to create the required table structure</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>force_drop</strong> &#8211; forces the existing tables to be dropped and recreated if True (default False)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">nothing</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.database.DatabaseClient.find">
+<tt class="descname">find</tt><big>(</big><em>model</em>, <em>query</em><big>)</big><a class="reference internal" href="_modules/blitz/data/database.html#DatabaseClient.find"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.database.DatabaseClient.find" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns ALL items which match the given query</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>model</strong> &#8211; The model to query on</li>
+<li><strong>query</strong> &#8211; the dictionary of &#8220;field: value&#8221; pairs to filter on</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a list of all matching records</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.database.DatabaseClient.get">
+<tt class="descname">get</tt><big>(</big><em>model</em>, <em>query</em><big>)</big><a class="reference internal" href="_modules/blitz/data/database.html#DatabaseClient.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.database.DatabaseClient.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets a single item from the database (the first that matches the query dict)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>model</strong> &#8211; the model to query</li>
+<li><strong>query</strong> &#8211; the dict of &#8220;field: value&#8221; pairs to filter on</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A single model matching the query string</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.database.DatabaseClient.get_by_id">
+<tt class="descname">get_by_id</tt><big>(</big><em>model</em>, <em>model_id</em><big>)</big><a class="reference internal" href="_modules/blitz/data/database.html#DatabaseClient.get_by_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.database.DatabaseClient.get_by_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets an object by ID</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.database.DatabaseClient.get_cache">
+<tt class="descname">get_cache</tt><big>(</big><em>since=0</em><big>)</big><a class="reference internal" href="_modules/blitz/data/database.html#DatabaseClient.get_cache"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.database.DatabaseClient.get_cache" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets cached variables. If a &#8220;since&#8221; argument is applied, it only
+returns values that have been read since this time.  If no since
+value is applied then it returns the most recent.  All queries are
+limited to 50 values per variable</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>since</strong> &#8211; a UNIX timestamp to retrieve values since</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A list (variable) of lists (values)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.database.DatabaseClient.get_cache_variables">
+<tt class="descname">get_cache_variables</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/blitz/data/database.html#DatabaseClient.get_cache_variables"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.database.DatabaseClient.get_cache_variables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the variables associated with the cache</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a list of Cache objects</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.database.DatabaseClient.get_config">
+<tt class="descname">get_config</tt><big>(</big><em>key</em><big>)</big><a class="reference internal" href="_modules/blitz/data/database.html#DatabaseClient.get_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.database.DatabaseClient.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets a config value from the database from the given key</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>key</strong> &#8211; the config key to retrieve</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the Config item matching the given key</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.database.DatabaseClient.get_or_create_category">
+<tt class="descname">get_or_create_category</tt><big>(</big><em>key</em><big>)</big><a class="reference internal" href="_modules/blitz/data/database.html#DatabaseClient.get_or_create_category"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.database.DatabaseClient.get_or_create_category" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the id of a category, or if none is found, create it
+and return the ID of the created object</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>key</strong> &#8211; the category name to get or create</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the id of the Category that was retrieved or added</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.database.DatabaseClient.get_session_readings">
+<tt class="descname">get_session_readings</tt><big>(</big><em>session_id</em><big>)</big><a class="reference internal" href="_modules/blitz/data/database.html#DatabaseClient.get_session_readings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.database.DatabaseClient.get_session_readings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets a list of readings for a particular session</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>session_id</strong> &#8211; the ref_id of the session to get variables for.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a list of Reading objects for the session ID</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.database.DatabaseClient.get_session_variables">
+<tt class="descname">get_session_variables</tt><big>(</big><em>session_id</em><big>)</big><a class="reference internal" href="_modules/blitz/data/database.html#DatabaseClient.get_session_variables"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.database.DatabaseClient.get_session_variables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the variables associated with a given session
+:param session_id: the ref_id of the session to get variables for.
+:returns: a list of Reading objects</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.database.DatabaseClient.handle_error">
+<tt class="descname">handle_error</tt><big>(</big><em>err_id</em><big>)</big><a class="reference internal" href="_modules/blitz/data/database.html#DatabaseClient.handle_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.database.DatabaseClient.handle_error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes a single error from the database</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">nothing</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.database.DatabaseClient.load_fixtures">
+<tt class="descname">load_fixtures</tt><big>(</big><em>testing=False</em><big>)</big><a class="reference internal" href="_modules/blitz/data/database.html#DatabaseClient.load_fixtures"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.database.DatabaseClient.load_fixtures" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads fixtures from blitz.data.fixtures</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>testing</strong> &#8211; if True all fixtures are added, otherwise just configuration</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">nothing</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.database.DatabaseClient.log_error">
+<tt class="descname">log_error</tt><big>(</big><em>description</em>, <em>severity=1</em><big>)</big><a class="reference internal" href="_modules/blitz/data/database.html#DatabaseClient.log_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.database.DatabaseClient.log_error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Log an error to the database - this will be sent to the client</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>description</strong> &#8211; the description of the error</li>
+<li><strong>severity</strong> &#8211; the severity of the error (defaults to 1)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the Notification that was added</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.database.DatabaseClient.set_config">
+<tt class="descname">set_config</tt><big>(</big><em>key</em>, <em>value</em>, <em>do_update=True</em><big>)</big><a class="reference internal" href="_modules/blitz/data/database.html#DatabaseClient.set_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.database.DatabaseClient.set_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets a config value in the database, adding or updating as required</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>key</strong> &#8211; the config key to set</li>
+<li><strong>value</strong> &#8211; the config value to set for the given key</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">nothing</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.database.DatabaseClient.update_session_availability">
+<tt class="descname">update_session_availability</tt><big>(</big><em>session_id</em><big>)</big><a class="reference internal" href="_modules/blitz/data/database.html#DatabaseClient.update_session_availability"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.database.DatabaseClient.update_session_availability" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates a session information after a download to determine if it is available for viewing.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>session_id</strong> &#8211; the ref_id of the session being checked</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">nothing</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.database.DatabaseClient.update_session_list">
+<tt class="descname">update_session_list</tt><big>(</big><em>sessions_list</em><big>)</big><a class="reference internal" href="_modules/blitz/data/database.html#DatabaseClient.update_session_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.database.DatabaseClient.update_session_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Session list comes in [session_id, start_timestamp, end_timstamp] format
+This replaces the existing session list</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sessions_list</strong> &#8211; a list of lists of session information [id, timeStarted, timeStopped, numberOfReadings]</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">nothing</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="databaseserver">
+<h2>DatabaseServer<a class="headerlink" href="#databaseserver" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="blitz.data.database.DatabaseServer">
+<em class="property">class </em><tt class="descclassname">blitz.data.database.</tt><tt class="descname">DatabaseServer</tt><a class="reference internal" href="_modules/blitz/data/database.html#DatabaseServer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.database.DatabaseServer" title="Permalink to this definition">¶</a></dt>
+<dd><p>The redis database server - retains several documents:</p>
+<ul class="simple">
+<li><strong>session</strong>  the id of the current session</li>
+<li><strong>session_N_start</strong>  the timestamp when the logging session N began</li>
+<li><strong>session_N_end</strong>  the timestamp when logging session N ended</li>
+<li><strong>sessions</strong>  a list of session in the database</li>
+<li><strong>session_N</strong>  a queue of raw session data for session_id N</li>
+</ul>
+<dl class="method">
+<dt id="blitz.data.database.DatabaseServer.available_sessions">
+<tt class="descname">available_sessions</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/blitz/data/database.html#DatabaseServer.available_sessions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.database.DatabaseServer.available_sessions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets all the available session from the database as a list</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a list of available sessions or an empty list if there are none</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.database.DatabaseServer.build_client_session_list">
+<tt class="descname">build_client_session_list</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/blitz/data/database.html#DatabaseServer.build_client_session_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.database.DatabaseServer.build_client_session_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Builds a list of session information in the format:</p>
+<div class="highlight-python"><div class="highlight"><pre>[
+    [ID, start timestamp, end timestamp, number of readings]
+    ...
+]
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the list of sessions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.database.DatabaseServer.delete_session">
+<tt class="descname">delete_session</tt><big>(</big><em>session_id</em><big>)</big><a class="reference internal" href="_modules/blitz/data/database.html#DatabaseServer.delete_session"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.database.DatabaseServer.delete_session" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes a session and all associated data from the database. The session number
+will not be reused</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name" colspan="2">Parma session_id:</th></tr>
+<tr class="field-odd field"><td>&nbsp;</td><td class="field-body">the session ID to delete</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">nothing</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.database.DatabaseServer.flush">
+<tt class="descname">flush</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/blitz/data/database.html#DatabaseServer.flush"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.database.DatabaseServer.flush" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cleans out the database</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">USE WITH CAUTION - this will irrevocably destroy all logged session data</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">nothing</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.database.DatabaseServer.get_all_from_session">
+<tt class="descname">get_all_from_session</tt><big>(</big><em>session_id</em><big>)</big><a class="reference internal" href="_modules/blitz/data/database.html#DatabaseServer.get_all_from_session"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.database.DatabaseServer.get_all_from_session" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets all messages logged during the given session ID</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>session_id</strong> &#8211; the ID of the session to return information for</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the readings from the session</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.database.DatabaseServer.get_latest_from_session">
+<tt class="descname">get_latest_from_session</tt><big>(</big><em>session_id</em><big>)</big><a class="reference internal" href="_modules/blitz/data/database.html#DatabaseServer.get_latest_from_session"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.database.DatabaseServer.get_latest_from_session" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the most recent logged variable from the database and returns it as
+a raw message string.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>session_id</strong> &#8211; The id of the session to return the top variable from</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A string containing the last raw serial message received from a board in this session</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.database.DatabaseServer.get_ten_from_session">
+<tt class="descname">get_ten_from_session</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/blitz/data/database.html#DatabaseServer.get_ten_from_session"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.database.DatabaseServer.get_ten_from_session" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the last ten readings from the logging session</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the list of raw serial messages</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.database.DatabaseServer.queue">
+<tt class="descname">queue</tt><big>(</big><em>message</em><big>)</big><a class="reference internal" href="_modules/blitz/data/database.html#DatabaseServer.queue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.database.DatabaseServer.queue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Queues a new message against the current session. If no session is being run then it
+logs a warning and does nothing</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>message</strong> &#8211; the message to push onto the session data</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.database.DatabaseServer.start_session">
+<tt class="descname">start_session</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/blitz/data/database.html#DatabaseServer.start_session"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.database.DatabaseServer.start_session" title="Permalink to this definition">¶</a></dt>
+<dd><p>Starts a new session, creating the required session_N variables</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the ID of the newly created session</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.database.DatabaseServer.stop_session">
+<tt class="descname">stop_session</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/blitz/data/database.html#DatabaseServer.stop_session"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.database.DatabaseServer.stop_session" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stops the current session</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">nothing</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="blitz_data_models.html" title="models"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="blitz_data.html" title="blitz.data"
+             >previous</a> |</li>
+        <li><a href="index.html">Blitz Logger Internal Documentation 0.1 documentation</a> &raquo;</li>
+          <li><a href="blitz_data.html" >blitz.data</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, William Hart.
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.2.Theme by <a href="http://github.com/vkvn">vkvn</a>
+    </div>
+  </body>
+</html>

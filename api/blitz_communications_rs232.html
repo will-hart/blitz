@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>rs232 &mdash; Blitz Logger Internal Documentation 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/solar.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Blitz Logger Internal Documentation 0.1 documentation" href="index.html" />
+    <link rel="up" title="blitz.communications" href="blitz_communications.html" />
+    <link rel="next" title="server_states" href="blitz_communications_server_states.html" />
+    <link rel="prev" title="client_states" href="blitz_communications_client_states.html" /><link href='http://fonts.googleapis.com/css?family=Source+Code+Pro|Open+Sans:300italic,400italic,700italic,400,300,700' rel='stylesheet' type='text/css'>
+<link href="_static/solarized-dark.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="blitz_communications_server_states.html" title="server_states"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="blitz_communications_client_states.html" title="client_states"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Blitz Logger Internal Documentation 0.1 documentation</a> &raquo;</li>
+          <li><a href="blitz_communications.html" accesskey="U">blitz.communications</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">rs232</a><ul>
+<li><a class="reference internal" href="#serialmanager">SerialManager</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="blitz_communications_client_states.html"
+                        title="previous chapter">client_states</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="blitz_communications_server_states.html"
+                        title="next chapter">server_states</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/blitz_communications_rs232.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="rs232">
+<h1>rs232<a class="headerlink" href="#rs232" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="serialmanager">
+<h2>SerialManager<a class="headerlink" href="#serialmanager" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="blitz.communications.rs232.SerialManager">
+<em class="property">class </em><tt class="descclassname">blitz.communications.rs232.</tt><tt class="descname">SerialManager</tt><a class="reference internal" href="_modules/blitz/communications/rs232.html#SerialManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.rs232.SerialManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Manages serial (eventually RS232, SPI or I2C) communications with
+expansion boards.  It has both a monitoring loop and an &#8220;outbox&#8221;
+which it uses for sending information.</p>
+<dl class="classmethod">
+<dt id="blitz.communications.rs232.SerialManager.Instance">
+<em class="property">classmethod </em><tt class="descname">Instance</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/blitz/communications/rs232.html#SerialManager.Instance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.rs232.SerialManager.Instance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a reference to a single SerialManager instance</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name" colspan="2">Returns SerialManager:</th></tr>
+<tr class="field-odd field"><td>&nbsp;</td><td class="field-body">The SerialManager singleton instance</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.communications.rs232.SerialManager.get_available_ports">
+<tt class="descname">get_available_ports</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/blitz/communications/rs232.html#SerialManager.get_available_ports"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.rs232.SerialManager.get_available_ports" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates a list of available serial ports, mapping their ID to
+the COM* or /dev/tty* reference.  Adapted from <a class="reference external" href="http://stackoverflow.com/a/14224477/233608">http://stackoverflow.com/a/14224477/233608</a></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Nothing</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.communications.rs232.SerialManager.handle_board_command">
+<tt class="descname">handle_board_command</tt><big>(</big><em>signal_args</em><big>)</big><a class="reference internal" href="_modules/blitz/communications/rs232.html#SerialManager.handle_board_command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.rs232.SerialManager.handle_board_command" title="Permalink to this definition">¶</a></dt>
+<dd><p>Listens for board commands and distributes them to the correct board.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>signal_args</strong> &#8211; the arguments received from the blinker signal. In the form [&#8216;BOARD ID&#8217;, &#8216;ARGS&#8217;, ...]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="blitz.communications.rs232.SerialManager.open_serial_connection">
+<em class="property">static </em><tt class="descname">open_serial_connection</tt><big>(</big><em>port_name</em>, <em>baud_rate=57600</em>, <em>read_timeout=3</em><big>)</big><a class="reference internal" href="_modules/blitz/communications/rs232.html#SerialManager.open_serial_connection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.rs232.SerialManager.open_serial_connection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a serial port connection, opens it and returns it.  Note if you are using USB serial and
+an Arduino you may need to put a resistor between 5V or 3.3V and the RESET pin to prevent auto reset.
+This should only be required during development using a PC. Check the interwebs for the correct
+resistance value (this is a known issue)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>port_name</strong> &#8211; the name of the port to open (for instance COM3)</li>
+<li><strong>baud_rate</strong> &#8211; the baud rate of the serial connection (default 57600)</li>
+<li><strong>read_timeout</strong> &#8211; the timeout to use for reading from ports (default 3 seconds)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An open serial port object</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.communications.rs232.SerialManager.receive_serial_data">
+<tt class="descname">receive_serial_data</tt><big>(</big><em>board_id</em><big>)</big><a class="reference internal" href="_modules/blitz/communications/rs232.html#SerialManager.receive_serial_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.rs232.SerialManager.receive_serial_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Requests a transmission from the specified board and
+saves the returned data to the database</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>board_id</strong> &#8211; the ID of the board in hex form, (e.g. &#8220;08&#8221; for board with ID 8)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Nothing</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.communications.rs232.SerialManager.reset_expansion_board">
+<tt class="descname">reset_expansion_board</tt><big>(</big><em>board_id</em><big>)</big><a class="reference internal" href="_modules/blitz/communications/rs232.html#SerialManager.reset_expansion_board"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.rs232.SerialManager.reset_expansion_board" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resets the (Arduino Based) expansion board on the given port by toggling the DTR line.
+Only works for Arduino based expansion boards</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>board_id</strong> &#8211; the serial port to send the reset command to</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.communications.rs232.SerialManager.send_command_with_ack">
+<tt class="descname">send_command_with_ack</tt><big>(</big><em>command</em>, <em>board_id</em><big>)</big><a class="reference internal" href="_modules/blitz/communications/rs232.html#SerialManager.send_command_with_ack"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.rs232.SerialManager.send_command_with_ack" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sends the given command over the serial port and checks for
+an ACK response.  Returns None if the ACK was received, and the
+received message otherwise</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>command</strong> &#8211; the string command to send over the serial port, from the SerialCommands constant</li>
+<li><strong>board_id</strong> &#8211; the ID of the board in hex form, (e.g. &#8220;08&#8221; for board with ID 8)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Raises ExpansionBoardNotFound:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><p class="first">when a message is sent to an expansion board which doesn&#8217;t exist</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the board response if an error was received, or None if ACK was received</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.communications.rs232.SerialManager.send_id_request">
+<tt class="descname">send_id_request</tt><big>(</big><em>port</em><big>)</big><a class="reference internal" href="_modules/blitz/communications/rs232.html#SerialManager.send_id_request"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.rs232.SerialManager.send_id_request" title="Permalink to this definition">¶</a></dt>
+<dd><p>Requests an ID from the serial port name and returns it.
+If no ID is found, return None</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>port</strong> &#8211; the serial port handle to read/write from</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A two digit hex board ID, or None if no ID was found</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.communications.rs232.SerialManager.start">
+<tt class="descname">start</tt><big>(</big><em>tcp</em><big>)</big><a class="reference internal" href="_modules/blitz/communications/rs232.html#SerialManager.start"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.rs232.SerialManager.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Starts listening on the serial ports and polling for updates every SerialUpdatePeriod seconds</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tcp</strong> &#8211; the TCP connection to use for communications</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Nothing</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.communications.rs232.SerialManager.stop">
+<tt class="descname">stop</tt><big>(</big><em>signal_args</em><big>)</big><a class="reference internal" href="_modules/blitz/communications/rs232.html#SerialManager.stop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.rs232.SerialManager.stop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stops logging data and sends a STOP request to all boards</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>signal_args</strong> &#8211; the arguments provided by the blinker signal (unused)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Nothing</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="blitz_communications_server_states.html" title="server_states"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="blitz_communications_client_states.html" title="client_states"
+             >previous</a> |</li>
+        <li><a href="index.html">Blitz Logger Internal Documentation 0.1 documentation</a> &raquo;</li>
+          <li><a href="blitz_communications.html" >blitz.communications</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, William Hart.
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.2.Theme by <a href="http://github.com/vkvn">vkvn</a>
+    </div>
+  </body>
+</html>

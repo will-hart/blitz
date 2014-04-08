@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>blitz.constants &mdash; Blitz Logger Internal Documentation 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/solar.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="Blitz Logger Internal Documentation 0.1 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /><link href='http://fonts.googleapis.com/css?family=Source+Code+Pro|Open+Sans:300italic,400italic,700italic,400,300,700' rel='stylesheet' type='text/css'>
+<link href="../../_static/solarized-dark.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Blitz Logger Internal Documentation 0.1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for blitz.constants</h1><div class="highlight"><pre>
+<span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;Will Hart&#39;</span>
+
+<span class="n">COMMAND_MESSAGE_BYTES</span> <span class="o">=</span> <span class="mi">8</span>
+<span class="n">SHORT_COMMAND_MESSAGE_BYTES</span> <span class="o">=</span> <span class="mi">2</span>
+
+
+<div class="viewcode-block" id="CommunicationCodes"><a class="viewcode-back" href="../../blitz_constants.html#blitz.constants.CommunicationCodes">[docs]</a><span class="k">class</span> <span class="nc">CommunicationCodes</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Provides &quot;static&quot; communication codes for Tcp Communication.  Usage is::</span>
+
+<span class="sd">        from blitz.constants import CommunicationCodes</span>
+<span class="sd">        tcp.send(CommunicationCodes.Acknowledge)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">Acknowledge</span> <span class="o">=</span> <span class="s">&quot;ACK&quot;</span>
+    <span class="n">Negative</span> <span class="o">=</span> <span class="s">&quot;NACK&quot;</span>
+    <span class="n">Start</span> <span class="o">=</span> <span class="s">&quot;START&quot;</span>
+    <span class="n">Stop</span> <span class="o">=</span> <span class="s">&quot;STOP&quot;</span>
+    <span class="n">Update</span> <span class="o">=</span> <span class="s">&quot;UPDATE&quot;</span>
+    <span class="n">InSession</span> <span class="o">=</span> <span class="s">&quot;INSESSION&quot;</span>
+    <span class="n">NoSession</span> <span class="o">=</span> <span class="s">&quot;NOSESSION&quot;</span>
+    <span class="n">Download</span> <span class="o">=</span> <span class="s">&quot;DOWNLOAD&quot;</span>
+    <span class="n">Error</span> <span class="o">=</span> <span class="s">&quot;ERROR&quot;</span>
+    <span class="n">Board</span> <span class="o">=</span> <span class="s">&quot;BOARD&quot;</span>
+    <span class="n">Boards</span> <span class="o">=</span> <span class="s">&quot;BOARDS&quot;</span>
+    <span class="n">BoardError</span> <span class="o">=</span> <span class="s">&quot;BOARDERROR&quot;</span>
+    <span class="n">NoBoard</span> <span class="o">=</span> <span class="s">&quot;NOBOARD&quot;</span>
+    <span class="n">Ready</span> <span class="o">=</span> <span class="s">&quot;READY&quot;</span>
+    <span class="n">IsLogging</span> <span class="o">=</span> <span class="s">&quot;LOGGING&quot;</span>
+    <span class="n">GetSessions</span> <span class="o">=</span> <span class="s">&quot;SESSIONS&quot;</span>
+    <span class="n">Reset</span> <span class="o">=</span> <span class="s">&quot;RESET&quot;</span>
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="CommunicationCodes.composite"><a class="viewcode-back" href="../../blitz_constants.html#blitz.constants.CommunicationCodes.composite">[docs]</a>    <span class="k">def</span> <span class="nf">composite</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">base_code</span><span class="p">,</span> <span class="n">code_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A class method which builds a communication code of more than one part</span>
+<span class="sd">        such as a download or error command.</span>
+
+<span class="sd">        Usage:</span>
+
+<span class="sd">            &gt;&gt;&gt; CommunicationCodes.composite(CommunicationCodes.Download, 1)</span>
+<span class="sd">            &quot;DOWNLOAD 1&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">base_code</span> <span class="o">+</span> <span class="s">&quot; &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">code_id</span><span class="p">)</span>
+
+
+<span class="c"># commands that are valid to send TO the server</span>
+<span class="c"># note only the command up to the space (if there is one) is included</span></div></div>
+<span class="n">VALID_SERVER_COMMANDS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">Start</span><span class="p">,</span>
+    <span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">Stop</span><span class="p">,</span>
+    <span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">Update</span><span class="p">,</span>
+    <span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">Download</span><span class="p">,</span>
+    <span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">Board</span><span class="p">,</span>
+    <span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">IsLogging</span><span class="p">,</span>
+    <span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">GetSessions</span><span class="p">,</span>
+    <span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">Reset</span>
+<span class="p">]</span>
+
+<span class="c"># commands that are valid to send TO the client</span>
+<span class="c"># note only the command up to the space (if there is one) is included</span>
+<span class="n">VALID_CLIENT_COMMANDS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">Acknowledge</span><span class="p">,</span>
+    <span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">Negative</span><span class="p">,</span>
+    <span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">InSession</span><span class="p">,</span>
+    <span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">NoSession</span><span class="p">,</span>
+    <span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">BoardError</span><span class="p">,</span>
+    <span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">NoBoard</span><span class="p">,</span>
+    <span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">Error</span><span class="p">,</span>
+    <span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">Ready</span><span class="p">,</span>
+    <span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">Reset</span>
+<span class="p">]</span>
+
+<span class="n">MAX_MESSAGE_LENGTH</span> <span class="o">=</span> <span class="mi">112</span>  <span class="c"># max length of message in bits</span>
+<span class="n">PAYLOAD_LENGTH</span> <span class="o">=</span> <span class="mi">64</span>  <span class="c"># min length of payload in bits</span>
+<span class="n">MESSAGE_BYTE_LENGTH</span> <span class="o">=</span> <span class="mi">28</span>  <span class="c"># number of characters in a hex message string (0-f is 4 bytes)</span>
+<span class="n">PAYLOAD_OFFSET_BITS</span> <span class="o">=</span> <span class="mi">48</span>  <span class="c"># number of bits of meta data before the payload starts</span>
+
+<span class="n">BOARD_MESSAGE_MAPPING</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&quot;sender&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s">&quot;start&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&quot;end&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">},</span>
+    <span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s">&quot;start&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span> <span class="s">&quot;end&quot;</span><span class="p">:</span> <span class="mi">11</span><span class="p">},</span>
+    <span class="s">&quot;flag1&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s">&quot;start&quot;</span><span class="p">:</span> <span class="mi">11</span><span class="p">},</span>
+    <span class="s">&quot;flag2&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s">&quot;start&quot;</span><span class="p">:</span> <span class="mi">12</span><span class="p">},</span>
+    <span class="s">&quot;flag3&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s">&quot;start&quot;</span><span class="p">:</span> <span class="mi">13</span><span class="p">},</span>
+    <span class="s">&quot;flag4&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s">&quot;start&quot;</span><span class="p">:</span> <span class="mi">14</span><span class="p">},</span>
+    <span class="s">&quot;flag5&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s">&quot;start&quot;</span><span class="p">:</span> <span class="mi">15</span><span class="p">},</span>
+    <span class="s">&quot;timestamp&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s">&quot;start&quot;</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span> <span class="s">&quot;end&quot;</span><span class="p">:</span> <span class="mi">48</span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="n">SerialUpdatePeriod</span> <span class="o">=</span> <span class="mf">1.0</span>  <span class="c"># serial update period in seconds</span>
+
+<span class="n">SerialCommands</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;ACK&#39;</span><span class="p">:</span> <span class="s">&#39;40&#39;</span><span class="p">,</span>
+    <span class="s">&#39;TRANSMIT&#39;</span><span class="p">:</span> <span class="s">&#39;C0&#39;</span><span class="p">,</span>
+    <span class="s">&#39;ID&#39;</span><span class="p">:</span> <span class="s">&#39;81&#39;</span><span class="p">,</span>
+    <span class="s">&#39;START&#39;</span><span class="p">:</span> <span class="s">&#39;00&#39;</span><span class="p">,</span>
+    <span class="s">&#39;STOP&#39;</span><span class="p">:</span> <span class="s">&#39;20&#39;</span><span class="p">,</span>
+    <span class="s">&#39;SET_SPEED&#39;</span><span class="p">:</span> <span class="s">&#39;85&#39;</span><span class="p">,</span>
+    <span class="s">&#39;SET_ANGLE&#39;</span><span class="p">:</span> <span class="s">&#39;86&#39;</span><span class="p">,</span>
+    <span class="s">&#39;MOTOR_HOME&#39;</span><span class="p">:</span> <span class="s">&#39;87&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Blitz Logger Internal Documentation 0.1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, William Hart.
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.2.Theme by <a href="http://github.com/vkvn">vkvn</a>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>boards &mdash; Blitz Logger Internal Documentation 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/solar.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Blitz Logger Internal Documentation 0.1 documentation" href="index.html" />
+    <link rel="up" title="blitz.communications" href="blitz_communications.html" />
+    <link rel="next" title="client_states" href="blitz_communications_client_states.html" />
+    <link rel="prev" title="blitz.communications" href="blitz_communications.html" /><link href='http://fonts.googleapis.com/css?family=Source+Code+Pro|Open+Sans:300italic,400italic,700italic,400,300,700' rel='stylesheet' type='text/css'>
+<link href="_static/solarized-dark.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="blitz_communications_client_states.html" title="client_states"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="blitz_communications.html" title="blitz.communications"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Blitz Logger Internal Documentation 0.1 documentation</a> &raquo;</li>
+          <li><a href="blitz_communications.html" accesskey="U">blitz.communications</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">boards</a><ul>
+<li><a class="reference internal" href="#boardmanager">BoardManager</a></li>
+<li><a class="reference internal" href="#baseexpansionboard">BaseExpansionBoard</a></li>
+<li><a class="reference internal" href="#blitzbasicexpansionboard">BlitzBasicExpansionBoard</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="blitz_communications.html"
+                        title="previous chapter">blitz.communications</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="blitz_communications_client_states.html"
+                        title="next chapter">client_states</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/blitz_communications_boards.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="boards">
+<h1>boards<a class="headerlink" href="#boards" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="boardmanager">
+<h2>BoardManager<a class="headerlink" href="#boardmanager" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="blitz.communications.boards.BoardManager">
+<em class="property">class </em><tt class="descclassname">blitz.communications.boards.</tt><tt class="descname">BoardManager</tt><big>(</big><em>database</em><big>)</big><a class="reference internal" href="_modules/blitz/communications/boards.html#BoardManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.boards.BoardManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>A BoardManager registers expansion boards and handles parsing
+of raw messages and insertion into the database</p>
+<dl class="method">
+<dt id="blitz.communications.boards.BoardManager.get_board_descriptions">
+<tt class="descname">get_board_descriptions</tt><big>(</big><em>boards</em><big>)</big><a class="reference internal" href="_modules/blitz/communications/boards.html#BoardManager.get_board_descriptions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.boards.BoardManager.get_board_descriptions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the descriptions of the boards given in a list</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>boards</strong> &#8211; a list of board ID strings</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A list of tuples. each tuple containing <cite>(ID, DESCRIPTION)</cite></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.communications.boards.BoardManager.parse_message">
+<tt class="descname">parse_message</tt><big>(</big><em>message</em>, <em>session_id=None</em>, <em>board_id=None</em><big>)</big><a class="reference internal" href="_modules/blitz/communications/boards.html#BoardManager.parse_message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.boards.BoardManager.parse_message" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets a variable dictionary from a board and save to database
+:param message: The raw message to parse
+:param session_id: The session ID of the message (ignore if getting cached variables)
+:param board_id: The id of the board to parse the message
+:returns: a list of variables added to the cache or data store</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.communications.boards.BoardManager.parse_session_message">
+<tt class="descname">parse_session_message</tt><big>(</big><em>message_tuple</em><big>)</big><a class="reference internal" href="_modules/blitz/communications/boards.html#BoardManager.parse_session_message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.boards.BoardManager.parse_session_message" title="Permalink to this definition">¶</a></dt>
+<dd><p>Passes the received message to the board manager message parser with the appropriate session id</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.communications.boards.BoardManager.register_board">
+<tt class="descname">register_board</tt><big>(</big><em>board_id</em>, <em>board</em><big>)</big><a class="reference internal" href="_modules/blitz/communications/boards.html#BoardManager.register_board"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.boards.BoardManager.register_board" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register a board against the given ID, throwing an error if
+the board is already registered</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="baseexpansionboard">
+<h2>BaseExpansionBoard<a class="headerlink" href="#baseexpansionboard" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="blitz.communications.boards.BaseExpansionBoard">
+<em class="property">class </em><tt class="descclassname">blitz.communications.boards.</tt><tt class="descname">BaseExpansionBoard</tt><big>(</big><em>description='Base Expansion Board'</em><big>)</big><a class="reference internal" href="_modules/blitz/communications/boards.html#BaseExpansionBoard"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.boards.BaseExpansionBoard" title="Permalink to this definition">¶</a></dt>
+<dd><p>A class that all client side expansion boards MUST inherit.  In addition,
+boards which are derived from BaseExpansionBoard must call the constructor
+of this class in their derived class using &#8220;super&#8221;</p>
+<p>This provides basic functionality such as parsing of raw logger messages</p>
+<dl class="method">
+<dt id="blitz.communications.boards.BaseExpansionBoard.get_flag">
+<tt class="descname">get_flag</tt><big>(</big><em>flag_number</em><big>)</big><a class="reference internal" href="_modules/blitz/communications/boards.html#BaseExpansionBoard.get_flag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.boards.BaseExpansionBoard.get_flag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the flag defined at the given bit number.
+This method SHOULD NOT be overridden by derived classes</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.communications.boards.BaseExpansionBoard.get_number">
+<tt class="descname">get_number</tt><big>(</big><em>start_bit</em>, <em>length</em><big>)</big><a class="reference internal" href="_modules/blitz/communications/boards.html#BaseExpansionBoard.get_number"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.boards.BaseExpansionBoard.get_number" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a number from the payload, breaking out bits between &#8216;start_bit&#8217; and &#8216;length&#8217;.
+Note that the bits are 0 indexed - e.g. the first bit is bit #0, the second is #1, etc.
+This method SHOULD NOT be overridden by derived classes</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.communications.boards.BaseExpansionBoard.get_raw_payload">
+<tt class="descname">get_raw_payload</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/blitz/communications/boards.html#BaseExpansionBoard.get_raw_payload"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.boards.BaseExpansionBoard.get_raw_payload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the raw payload (an unsigned, big endian, 32 bit number)
+This method SHOULD NOT be overridden by derived classes</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.communications.boards.BaseExpansionBoard.get_variables">
+<tt class="descname">get_variables</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/blitz/communications/boards.html#BaseExpansionBoard.get_variables"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.boards.BaseExpansionBoard.get_variables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Queries the split up binary data generated by self.parse_message and
+creates a dictionary of &#8220;variable&#8221;: &#8220;value&#8221; pairs.
+This method MUST be overridden by derived classes</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.communications.boards.BaseExpansionBoard.parse_message">
+<tt class="descname">parse_message</tt><big>(</big><em>raw_message</em><big>)</big><a class="reference internal" href="_modules/blitz/communications/boards.html#BaseExpansionBoard.parse_message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.boards.BaseExpansionBoard.parse_message" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes a raw binary message received from an expansion board and breaks
+it up into parts as described in section 4 of TS0002.</p>
+<p>This method SHOULD NOT be overridden in derived classes.  Derived classes
+should implement the get_variables function</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.communications.boards.BaseExpansionBoard.register_board">
+<tt class="descname">register_board</tt><big>(</big><em>manager</em><big>)</big><a class="reference internal" href="_modules/blitz/communications/boards.html#BaseExpansionBoard.register_board"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.boards.BaseExpansionBoard.register_board" title="Permalink to this definition">¶</a></dt>
+<dd><p>Registers this board (by ID) with the board manager.  This method SHOULD NOT
+be overridden by derived classes</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.communications.boards.BaseExpansionBoard.send_command">
+<tt class="descname">send_command</tt><big>(</big><em>command</em><big>)</big><a class="reference internal" href="_modules/blitz/communications/boards.html#BaseExpansionBoard.send_command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.boards.BaseExpansionBoard.send_command" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sends a command using the preferred method of the board.  Can be overridden in inherited classes
+to provide behaviour other than the default RS232 transmission</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="blitzbasicexpansionboard">
+<h2>BlitzBasicExpansionBoard<a class="headerlink" href="#blitzbasicexpansionboard" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="blitz.communications.boards.BlitzBasicExpansionBoard">
+<em class="property">class </em><tt class="descclassname">blitz.communications.boards.</tt><tt class="descname">BlitzBasicExpansionBoard</tt><big>(</big><em>description='Blitz Basic Expansion Board'</em><big>)</big><a class="reference internal" href="_modules/blitz/communications/boards.html#BlitzBasicExpansionBoard"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.boards.BlitzBasicExpansionBoard" title="Permalink to this definition">¶</a></dt>
+<dd><p>A basic expansion board with three 10bit ADCs</p>
+<dl class="method">
+<dt id="blitz.communications.boards.BlitzBasicExpansionBoard.register_signals">
+<tt class="descname">register_signals</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/blitz/communications/boards.html#BlitzBasicExpansionBoard.register_signals"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.communications.boards.BlitzBasicExpansionBoard.register_signals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connect to the board loading signal</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="blitz_communications_client_states.html" title="client_states"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="blitz_communications.html" title="blitz.communications"
+             >previous</a> |</li>
+        <li><a href="index.html">Blitz Logger Internal Documentation 0.1 documentation</a> &raquo;</li>
+          <li><a href="blitz_communications.html" >blitz.communications</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, William Hart.
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.2.Theme by <a href="http://github.com/vkvn">vkvn</a>
+    </div>
+  </body>
+</html>

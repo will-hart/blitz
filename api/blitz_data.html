@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>blitz.data &mdash; Blitz Logger Internal Documentation 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/solar.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Blitz Logger Internal Documentation 0.1 documentation" href="index.html" />
+    <link rel="next" title="database" href="blitz_data_database.html" />
+    <link rel="prev" title="blitz.constants" href="blitz_constants.html" /><link href='http://fonts.googleapis.com/css?family=Source+Code+Pro|Open+Sans:300italic,400italic,700italic,400,300,700' rel='stylesheet' type='text/css'>
+<link href="_static/solarized-dark.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="blitz_data_database.html" title="database"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="blitz_constants.html" title="blitz.constants"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Blitz Logger Internal Documentation 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">blitz.data</a><ul>
+<li><a class="reference internal" href="#datacontainer">DataContainer</a></li>
+<li><a class="reference internal" href="#datatransform">DataTransform</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="blitz_constants.html"
+                        title="previous chapter">blitz.constants</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="blitz_data_database.html"
+                        title="next chapter">database</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/blitz_data.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-blitz.data">
+<span id="blitz-data"></span><h1>blitz.data<a class="headerlink" href="#module-blitz.data" title="Permalink to this headline">¶</a></h1>
+<p>The <a class="reference internal" href="#module-blitz.data" title="blitz.data"><tt class="xref py py-mod docutils literal"><span class="pre">blitz.data</span></tt></a> module provides database utilities and models for both the client and server</p>
+<ul class="simple">
+<li><a class="reference internal" href="blitz_data_database.html#module-blitz.data.database" title="blitz.data.database"><tt class="xref py py-mod docutils literal"><span class="pre">blitz.data.database</span></tt></a> - provides database abstraction layers for the server and client</li>
+<li><a class="reference internal" href="blitz_data_models.html#module-blitz.data.models" title="blitz.data.models"><tt class="xref py py-mod docutils literal"><span class="pre">blitz.data.models</span></tt></a> - provides database models for the <a class="reference internal" href="blitz_data_database.html#blitz.data.database.DatabaseClient" title="blitz.data.database.DatabaseClient"><tt class="xref py py-class docutils literal"><span class="pre">blitz.data.database.DatabaseClient</span></tt></a>.</li>
+</ul>
+<p>Additionally, it provides some classes for storing and manipulating data that are used by user interfaces.</p>
+<hr class="docutils" />
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="blitz_data_database.html">database</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="blitz_data_database.html#databaseclient">DatabaseClient</a></li>
+<li class="toctree-l2"><a class="reference internal" href="blitz_data_database.html#databaseserver">DatabaseServer</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="blitz_data_models.html">models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="blitz_data_transforms.html">transforms</a></li>
+</ul>
+</div>
+<hr class="docutils" />
+<div class="section" id="datacontainer">
+<h2>DataContainer<a class="headerlink" href="#datacontainer" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="blitz.data.DataContainer">
+<em class="property">class </em><tt class="descclassname">blitz.data.</tt><tt class="descname">DataContainer</tt><big>(</big><em>persistent=False</em><big>)</big><a class="reference internal" href="_modules/blitz/data.html#DataContainer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.DataContainer" title="Permalink to this definition">¶</a></dt>
+<dd><p>A class for saving and managing data that can be used in the interface.  It
+also provides an interface for adding DataTransform objects which can be used
+to apply filters (i.e. moving average, multiplication, etc) to the data</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>persistent</strong> &#8211; Indicates if all data is kept, (True) or only 200 values for each series (False, default)</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="blitz.data.DataContainer.add_transform">
+<tt class="descname">add_transform</tt><big>(</big><em>transform</em><big>)</big><a class="reference internal" href="_modules/blitz/data.html#DataContainer.add_transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.DataContainer.add_transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a data transform to the DataContainer</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.DataContainer.all_series">
+<tt class="descname">all_series</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/blitz/data.html#DataContainer.all_series"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.DataContainer.all_series" title="Permalink to this definition">¶</a></dt>
+<dd><p>A generator which yields the series x, y values
+:returns: generated [x, y] value lists</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.DataContainer.apply_transforms">
+<tt class="descname">apply_transforms</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/blitz/data.html#DataContainer.apply_transforms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.DataContainer.apply_transforms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applies the transformation chain</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.DataContainer.clear_data">
+<tt class="descname">clear_data</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/blitz/data.html#DataContainer.clear_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.DataContainer.clear_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clears all data from the data DataContainer
+:returns: Nothing</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.DataContainer.empty">
+<tt class="descname">empty</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/blitz/data.html#DataContainer.empty"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.DataContainer.empty" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if a DataContainer is empty.  An empty data container has no
+data series.  A container with data series but no data values is NOT empty</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True if there are no data series, False otherwise</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.DataContainer.get_latest">
+<tt class="descname">get_latest</tt><big>(</big><em>named=False</em><big>)</big><a class="reference internal" href="_modules/blitz/data.html#DataContainer.get_latest"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.DataContainer.get_latest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the latest readings for each variable type and returns them in a pair of variable name / value pairs</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>named</strong> &#8211; If False (default), the variables will be indexed by variable name, otherwise by series name</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A list of tuples.  Each tuple is in the form <cite>(variable_name, value)</cite></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.DataContainer.get_name">
+<tt class="descname">get_name</tt><big>(</big><em>series_id</em><big>)</big><a class="reference internal" href="_modules/blitz/data.html#DataContainer.get_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.DataContainer.get_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the name of a series in the DataContainer with the given series ID</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>series_id</strong> &#8211; the series name to return</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The name of the series if it is in the Container, otherwise the series ID</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.DataContainer.get_series">
+<tt class="descname">get_series</tt><big>(</big><em>series_id</em><big>)</big><a class="reference internal" href="_modules/blitz/data.html#DataContainer.get_series"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.DataContainer.get_series" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets a single series and returns a list of [x,y] values</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>series_id</strong> &#8211; The name of the series to return</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A list of [x,y] values for the given series, or empty lists if the series doesn&#8217;t exist</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.DataContainer.get_series_index">
+<tt class="descname">get_series_index</tt><big>(</big><em>series_id</em><big>)</big><a class="reference internal" href="_modules/blitz/data.html#DataContainer.get_series_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.DataContainer.get_series_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the index for a given series, or returns None if the series is not found</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>series_id</strong> &#8211; The name of the series to find the index for</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">An integer representing the 0 based index of this series name in the series dictionary</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.DataContainer.get_series_names">
+<tt class="descname">get_series_names</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/blitz/data.html#DataContainer.get_series_names"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.DataContainer.get_series_names" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of series names that are registered in this DataContainer</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A list of string series names registered to this DataContainer</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.DataContainer.get_transformed_series">
+<tt class="descname">get_transformed_series</tt><big>(</big><em>series_id</em><big>)</big><a class="reference internal" href="_modules/blitz/data.html#DataContainer.get_transformed_series"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.DataContainer.get_transformed_series" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets a single series and returns a list of [x,y] values from the transformed data</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>series_id</strong> &#8211; The name of the series to return</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A list of [x,y] values for the given series, or empty lists if the series doesn&#8217;t exist</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.DataContainer.get_transforms">
+<tt class="descname">get_transforms</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/blitz/data.html#DataContainer.get_transforms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.DataContainer.get_transforms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets all the current transforms applied</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A list of BaseDataTransform classes</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.DataContainer.get_x">
+<tt class="descname">get_x</tt><big>(</big><em>series_id</em><big>)</big><a class="reference internal" href="_modules/blitz/data.html#DataContainer.get_x"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.DataContainer.get_x" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets a list of x-values for a specified series_name</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>series_id</strong> &#8211; the string name of the series to retrieve</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a list of x values if the key is found, an empty list otherwise</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.DataContainer.get_y">
+<tt class="descname">get_y</tt><big>(</big><em>series_id</em><big>)</big><a class="reference internal" href="_modules/blitz/data.html#DataContainer.get_y"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.DataContainer.get_y" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets a list of y-values for a specified series_name</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>series_id</strong> &#8211; the string name of the series to retrieve</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a list of y values if the key is found, an empty list otherwise</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.DataContainer.has_series">
+<tt class="descname">has_series</tt><big>(</big><em>series_id</em><big>)</big><a class="reference internal" href="_modules/blitz/data.html#DataContainer.has_series"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.DataContainer.has_series" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks is the given series name is registered in the DataContainer</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>series_id</strong> &#8211; The name of the series to check (will be converted to string)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if the series exists, false otherwise</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.DataContainer.push">
+<tt class="descname">push</tt><big>(</big><em>series_id</em>, <em>series_name</em>, <em>x</em>, <em>y</em><big>)</big><a class="reference internal" href="_modules/blitz/data.html#DataContainer.push"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.DataContainer.push" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the passed X and Y values to the given series.  If the series has not been
+registered with the DataContainer it registers it</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>series_id</strong> &#8211; The ID of the series</li>
+<li><strong>series_name</strong> &#8211; The human readable name of the series</li>
+<li><strong>x</strong> &#8211; the list of x-values to add</li>
+<li><strong>y</strong> &#8211; the list of y-values to add</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Throws ValueError:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><p class="first">if the x and y lists are of different lengths</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns bool:</th><td class="field-body"><p class="first last">True if the series was created, false if data was appended</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="datatransform">
+<h2>DataTransform<a class="headerlink" href="#datatransform" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="blitz.data.BaseDataTransform">
+<em class="property">class </em><tt class="descclassname">blitz.data.</tt><tt class="descname">BaseDataTransform</tt><a class="reference internal" href="_modules/blitz/data.html#BaseDataTransform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.BaseDataTransform" title="Permalink to this definition">¶</a></dt>
+<dd><p>A base class which must be inherited by DataTransform classes.</p>
+<dl class="method">
+<dt id="blitz.data.BaseDataTransform.apply">
+<tt class="descname">apply</tt><big>(</big><em>container</em><big>)</big><a class="reference internal" href="_modules/blitz/data.html#BaseDataTransform.apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.BaseDataTransform.apply" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes a DataContainer object and applies a transformation to the X and Y data in the
+DataContainer.  This is a base class which should be inherited from.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">If no <cite>apply</cite> method is provided on the derived class then a <cite>NotImplementedError</cite> will be thrown</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body">NotImplementedError</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="blitz_data_database.html" title="database"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="blitz_constants.html" title="blitz.constants"
+             >previous</a> |</li>
+        <li><a href="index.html">Blitz Logger Internal Documentation 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, William Hart.
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.2.Theme by <a href="http://github.com/vkvn">vkvn</a>
+    </div>
+  </body>
+</html>

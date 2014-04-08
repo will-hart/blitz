@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="description" content="A manual page for the Blitz Data Acquisition System">
 
-        <title>The Data Acquisition Server | Blitz Manual</title>
+        <title>Running | Blitz Manual</title>
 
         <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.4.2/pure.css">
       
@@ -51,11 +51,34 @@
         <div class="pure-g-r top-pad">
             <div class="pure-u-3-24">&nbsp;</div>
             <div class="pure-u-18-24">
-                <h1>The Data Acquisition (DAQ) Server</h1>
+                <h1>Running Blitz</h1>
 
-<h1>RaspberryPi</h1>
+<p>To run the Blitz DAQ solution you will need to start the server and client software.</p>
 
-<p>The data acquisition server can be run on a RaspberryPi.  <a href="/server/raspberry-pi-setup.html">Detailed instructions are available</a> for configuring the RaspberryPi from a default installation. </p>
+<h2>Attended Mode</h2>
+
+<p>To run Blitz DAQ in <a href="attended.html">attended mode</a> you need to run the client and server on the same PC. The easiest way to do this on Windows is to open two command terminals. In the first one, nagivate to the directory where blitz is installed (e.g. <code>c:/code/blitz</code>) and type the following:</p>
+
+<pre><code>python start_server.py
+</code></pre>
+
+<p>In the second terminal window, type the following:</p>
+
+<pre><code>python start_desktop.py
+</code></pre>
+
+<blockquote>
+  <p><strong>NOTE</strong> ensure that you have Redis running on your PC before starting the server. Currently, the server does not accurately report database connection errors. See <a href="https://github.com/will-hart/blitz/issues/18">github issue #18</a>.</p>
+</blockquote>
+
+<hr />
+
+<blockquote>
+  <p><strong>What next?</strong> <br />
+  - <a href="requirements.html">Revisit the requirements</a> <br />
+  - <a href="running.html">Learn how to run Blitz</a>. <br />
+  - <a href="../server/raspberry-pi-setup.html">Learn about Raspberry Pi servers</a></p>
+</blockquote>
 
             </div>
             <div class="pure-u-3-24">&nbsp;</div>
