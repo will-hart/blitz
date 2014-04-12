@@ -292,6 +292,69 @@ class BaseExpansionBoard(Plugin):
         self.logger.warning("Board unable to process command (%s) received response (%s)" % (command, result))
 
 
+class RaspberryIoExpansionBoard(BaseExpansionBoard):
+    """
+    An expansion board which uses the digital GPIO on the Raspberry Pi
+    """
+
+    def __init__(self, description="Raspberry Pi GPIO Board"):
+        """load the correct description for the board"""
+        BaseExpansionBoard.__init__(self, description)
+        self.do_not_register = False
+        self.id = 3
+        self.description = description
+
+    def register_signals(self):
+        """Connect to the board loading signal"""
+        self.logger.debug(
+            "Board [%s:%s] now listening for registering_boards signal" % (self['id'], self['description']))
+        registering_boards.connect(self.register_board)
+
+    def get_variables(self):
+        return {
+            "digital_one": self.get_number(0, 1),
+            "digital_two": self.get_number(1, 1),
+            "digital_three": self.get_number(2, 1),
+            "digital_four": self.get_number(3, 1),
+            "digital_five": self.get_number(4, 1),
+            "digital_six": self.get_number(5, 1),
+            "digital_seven": self.get_number(6, 1),
+            "digital_eight": self.get_number(7, 1),
+        }
+
+
+class BlitzRaspberryExpansionBoard(BaseExpansionBoard):
+    """
+    An expansion board which uses the digital GPIO on the Raspberry Pi
+    """
+
+    def __init__(self, description="Blitz Raspberry GPIO Board"):
+        """load the correct description for the board"""
+        BaseExpansionBoard.__init__(self, description)
+        self.do_not_register = False
+        self.id = 4
+        self.description = description
+
+    def register_signals(self):
+        """Connect to the board loading signal"""
+        self.logger.debug(
+            "Board [%s:%s] now listening for registering_boards signal" % (self['id'], self['description']))
+        registering_boards.connect(self.register_board)
+
+    def get_variables(self):
+        return {
+            "digital_one": self.get_flag(1),
+            "digital_two": self.get_flag(2),
+            "digital_three": self.get_flag(3),
+            "digital_four": self.get_flag(4),
+            "digital_five": self.get_flag(5),
+            "channel_one": self.get_number(0, 16),
+            "channel_twp": self.get_number(16, 16),
+            "channel_three": self.get_number(32, 16),
+            "channel_four": self.get_number(48, 16)
+        }
+
+
 class BlitzBasicExpansionBoard(BaseExpansionBoard):
     """
     A basic expansion board with three 10bit ADCs
