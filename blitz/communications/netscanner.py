@@ -56,6 +56,7 @@ class NetScannerManager(ServerPluginBase):
         :param database: The database to use to save serial data
         """
         super(NetScannerManager, self).__init__(database)
+
         self.__host = host
         self.__port = port
         self.board_id = board_id

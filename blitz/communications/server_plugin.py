@@ -27,23 +27,23 @@ class ServerPluginBase(object):
         """
 
         self.__data = database
-        self.__stop_event = threading.Event()
-        self.__run_thread(self.run_client)
-        self.__thread = None
+        self.stop_event = threading.Event()
+        self.run_thread(self.run_client)
+        self.thread = None
 
         logging_started.connect(self.start_logging)
         logging_stopped.connect(self.stop_client)
 
-    def __run_thread(self, thread_target):
+    def run_thread(self, thread_target):
 
-        if self.__thread:
+        if self.thread:
             self.logger.debug("Closing existing Server thread")
-            self.__stop_event.set()
-            self.__thread.join()
+            self.stop_event.set()
+            self.thread.join()
 
-        self.__thread = threading.Thread(target=thread_target, args=[self.__stop_event])
-        self.__thread.daemon = True
-        self.__thread.start()
+        self.thread = threading.Thread(target=thread_target, args=[self.stop_event])
+        self.thread.daemon = True
+        self.thread.start()
 
     def run_client(self, stop_event):
         raise NotImplementedError("Base Server Plugin 'run_client' is not implemented")
@@ -52,12 +52,12 @@ class ServerPluginBase(object):
         """
         Stores the current time when data logging commences so the correct timestamp can be provided to messages
         """
-        self.__run_thread(self.run_client)
+        self.run_thread(self.run_client)
 
     def stop_client(self):
         """
         Stops a client from polling
         """
-        self.__stop_event.set()
-        self.__thread.join()
-        self.__thread = None
+        self.stop_event.set()
+        self.thread.join()
+        self.thread = None
