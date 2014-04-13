@@ -230,8 +230,6 @@
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>session_id</strong> &#8211; the id of the session to clear data for</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the Reading that was generated</td>
-</tr>
 </tbody>
 </table>
 </dd></dl>
@@ -247,6 +245,22 @@
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>force_drop</strong> &#8211; forces the existing tables to be dropped and recreated if True (default False)</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">nothing</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="blitz.data.database.DatabaseClient.delete_session">
+<tt class="descname">delete_session</tt><big>(</big><em>session_id</em><big>)</big><a class="reference internal" href="_modules/blitz/data/database.html#DatabaseClient.delete_session"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#blitz.data.database.DatabaseClient.delete_session" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clears all the data for a given sessio and removes it from the session list.
+This process must be mirrored on the server otherwise the session will be added
+back into the list when a &#8220;Session List&#8221; query is carried out</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>session_id</strong> &#8211; the id of the session to be deleted</td>
 </tr>
 </tbody>
 </table>

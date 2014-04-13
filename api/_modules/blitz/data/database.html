@@ -437,7 +437,6 @@
 <span class="sd">        Clears historic session data for the given session (ref) id</span>
 
 <span class="sd">        :param session_id: the id of the session to clear data for</span>
-<span class="sd">        :returns: the Reading that was generated</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">sess</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="p">()</span>
         <span class="n">sess</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Reading</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Reading</span><span class="o">.</span><span class="n">sessionId</span> <span class="o">==</span> <span class="n">session_id</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
@@ -445,6 +444,18 @@
 
         <span class="c"># now update the session availability to reflect the cleared data</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">update_session_availability</span><span class="p">(</span><span class="n">session_id</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="DatabaseClient.delete_session"><a class="viewcode-back" href="../../../blitz_data_database.html#blitz.data.database.DatabaseClient.delete_session">[docs]</a>    <span class="k">def</span> <span class="nf">delete_session</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Clears all the data for a given sessio and removes it from the session list.</span>
+<span class="sd">        This process must be mirrored on the server otherwise the session will be added</span>
+<span class="sd">        back into the list when a &quot;Session List&quot; query is carried out</span>
+
+<span class="sd">        :param session_id: the id of the session to be deleted</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clear_session_data</span><span class="p">(</span><span class="n">session_id</span><span class="p">)</span>
+        <span class="n">sess</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="p">()</span>
+        <span class="n">sess</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Session</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Session</span><span class="o">.</span><span class="n">ref_id</span> <span class="o">==</span> <span class="n">session_id</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
 
 </div></div>
 <div class="viewcode-block" id="DatabaseServer"><a class="viewcode-back" href="../../../blitz_data_database.html#blitz.data.database.DatabaseServer">[docs]</a><span class="k">class</span> <span class="nc">DatabaseServer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>

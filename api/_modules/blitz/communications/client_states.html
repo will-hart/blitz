@@ -111,7 +111,7 @@
         <span class="k">return</span> <span class="n">state</span><span class="p">()</span><span class="o">.</span><span class="n">enter_state</span><span class="p">(</span><span class="n">tcp</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
 </div>
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s">&quot;&lt;&quot;</span> <span class="o">+</span> <span class="n">__name__</span> <span class="o">+</span> <span class="s">&quot;&gt;&quot;</span>
+        <span class="k">return</span> <span class="s">&quot;&lt;&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">__name__</span> <span class="o">+</span> <span class="s">&quot;&gt;&quot;</span>
 
 </div>
 <div class="viewcode-block" id="ClientInitState"><a class="viewcode-back" href="../../../blitz_communications_client_states.html#blitz.communications.client_states.ClientInitState">[docs]</a><span class="k">class</span> <span class="nc">ClientInitState</span><span class="p">(</span><span class="n">BaseState</span><span class="p">):</span>
@@ -119,6 +119,8 @@
 <span class="sd">    Handles the client starting up - sends a &quot;logging&quot; query</span>
 <span class="sd">    to the logger and waits for the response</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">__name__</span> <span class="o">=</span> <span class="s">&quot;ClientInitState&quot;</span>
+
 <div class="viewcode-block" id="ClientInitState.enter_state"><a class="viewcode-back" href="../../../blitz_communications_client_states.html#blitz.communications.client_states.ClientInitState.enter_state">[docs]</a>    <span class="k">def</span> <span class="nf">enter_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tcp</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Send a logging query to the logger&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;[TCP] Calling init.enter_state&quot;</span><span class="p">)</span>
@@ -151,6 +153,8 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Handles the client idling, waiting for further commands</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">__name__</span> <span class="o">=</span> <span class="s">&quot;ClientIdleState&quot;</span>
+
     <span class="k">def</span> <span class="nf">receive_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tcp</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
         <span class="c"># only ACK is acceptable in this state</span>
         <span class="k">if</span> <span class="n">msg</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span> <span class="o">==</span> <span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">Boards</span><span class="p">:</span>
@@ -175,19 +179,23 @@
             <span class="k">return</span> <span class="n">new_state</span>
         <span class="k">elif</span> <span class="n">msg</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span> <span class="o">==</span> <span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">Board</span><span class="p">:</span>
             <span class="n">tcp</span><span class="o">.</span><span class="n">do_send</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
-            <span class="k">return</span> <span class="bp">self</span>
         <span class="k">if</span> <span class="n">msg</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span> <span class="o">==</span> <span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">Reset</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;[TCP] Forcing logger reset&quot;</span><span class="p">)</span>
             <span class="n">tcp</span><span class="o">.</span><span class="n">do_send</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">go_to_state</span><span class="p">(</span><span class="n">tcp</span><span class="p">,</span> <span class="n">ClientIdleState</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">msg</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span> <span class="o">==</span> <span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">Delete</span><span class="p">:</span>
+            <span class="n">tcp</span><span class="o">.</span><span class="n">do_send</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Attempted to send unknown message for IDLE state: {0}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">msg</span><span class="p">))</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;Unknown message for IDLE state - &quot;</span> <span class="o">+</span> <span class="n">msg</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span>
 
 </div>
 <span class="k">class</span> <span class="nc">ClientSessionListState</span><span class="p">(</span><span class="n">BaseState</span><span class="p">):</span>
 
     <span class="n">sessions</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">__name__</span> <span class="o">=</span> <span class="s">&quot;ClientSessionListState&quot;</span>
 
     <span class="k">def</span> <span class="nf">enter_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tcp</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Send a logging session list to the logger&quot;&quot;&quot;</span>
@@ -200,7 +208,7 @@
     <span class="k">def</span> <span class="nf">receive_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tcp</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
 
         <span class="n">parts</span> <span class="o">=</span> <span class="n">msg</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
-        <span class="n">delimiter</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">delimiter</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">parts</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">delimiter</span> <span class="o">!=</span> <span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">Negative</span><span class="p">:</span>
@@ -228,6 +236,8 @@
 
 <div class="viewcode-block" id="ClientStartingState"><a class="viewcode-back" href="../../../blitz_communications_client_states.html#blitz.communications.client_states.ClientStartingState">[docs]</a><span class="k">class</span> <span class="nc">ClientStartingState</span><span class="p">(</span><span class="n">BaseState</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Handles logging starting - waits for ACK from server&quot;&quot;&quot;</span>
+    <span class="n">__name__</span> <span class="o">=</span> <span class="s">&quot;ClientStartingState&quot;</span>
+
     <span class="k">def</span> <span class="nf">enter_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tcp</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;[TCP] Calling starting.enter_state: &quot;</span> <span class="o">+</span> <span class="n">state</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
         <span class="n">tcp</span><span class="o">.</span><span class="n">do_send</span><span class="p">(</span><span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">Start</span><span class="p">)</span>
@@ -249,6 +259,9 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Handles the client in logging state - sends periodic status updates</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">__name__</span> <span class="o">=</span> <span class="s">&quot;ClientLoggingState&quot;</span>
+
 <div class="viewcode-block" id="ClientLoggingState.enter_state"><a class="viewcode-back" href="../../../blitz_communications_client_states.html#blitz.communications.client_states.ClientLoggingState.enter_state">[docs]</a>    <span class="k">def</span> <span class="nf">enter_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tcp</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;sets up a timer which periodically polls the data logger for updates&quot;&quot;&quot;</span>
         <span class="n">sigs</span><span class="o">.</span><span class="n">logging_started</span><span class="o">.</span><span class="n">send</span><span class="p">()</span>
@@ -309,6 +322,9 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Handles waiting for acknowledgement from a client before entering IDLE state</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">__name__</span> <span class="o">=</span> <span class="s">&quot;ClientStoppingState&quot;</span>
+
     <span class="k">def</span> <span class="nf">enter_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tcp</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;[TCP] Calling stopping.enter_state: &quot;</span> <span class="o">+</span> <span class="n">state</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
         <span class="n">tcp</span><span class="o">.</span><span class="n">do_send</span><span class="p">(</span><span class="n">CommunicationCodes</span><span class="o">.</span><span class="n">Stop</span><span class="p">)</span>
@@ -328,6 +344,8 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Handles the client in logging state - sends periodic status updates</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">__name__</span> <span class="o">=</span> <span class="s">&quot;ClientDownloadingState&quot;</span>
 
     <span class="n">session_id</span> <span class="o">=</span> <span class="mi">0</span>
 

@@ -78,6 +78,14 @@
 <span class="kn">from</span> <span class="nn">blitz.utilities</span> <span class="kn">import</span> <span class="n">blitz_timestamp</span>
 
 
+<span class="k">class</span> <span class="nc">InvalidMessageException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An exception which is raised when an invalid message is received and the</span>
+<span class="sd">    board manager is unable to parse the variables</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span>
+
+
 <div class="viewcode-block" id="BoardManager"><a class="viewcode-back" href="../../../blitz_communications_boards.html#blitz.communications.boards.BoardManager">[docs]</a><span class="k">class</span> <span class="nc">BoardManager</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A BoardManager registers expansion boards and handles parsing</span>
@@ -156,7 +164,11 @@
             <span class="k">return</span> <span class="p">[]</span>
 
         <span class="c"># use the board to parse the message</span>
-        <span class="n">board</span><span class="o">.</span><span class="n">parse_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">board</span><span class="o">.</span><span class="n">parse_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">InvalidMessageException</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+
         <span class="n">result</span> <span class="o">=</span> <span class="n">board</span><span class="o">.</span><span class="n">get_variables</span><span class="p">()</span>
 
         <span class="c"># get session metadata</span>
@@ -254,10 +266,11 @@
 
         <span class="c"># parse the message</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">raw_message</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">MESSAGE_BYTE_LENGTH</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                 <span class="s">&quot;Unable to parse message [</span><span class="si">%s</span><span class="s">]- expected 28 bytes, found </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span>
                     <span class="n">raw_message</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">raw_message</span><span class="p">))</span>
             <span class="p">)</span>
+            <span class="k">raise</span> <span class="n">InvalidMessageException</span><span class="p">(</span><span class="s">&quot;Unable to parse message of unexpected length&quot;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__message</span> <span class="o">=</span> <span class="n">BitArray</span><span class="p">(</span><span class="nb">hex</span><span class="o">=</span><span class="n">raw_message</span><span class="p">)</span>
 
@@ -302,7 +315,11 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">start</span> <span class="o">=</span> <span class="n">start_bit</span>
         <span class="n">end</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="n">length</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span><span class="o">.</span><span class="n">uint</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span><span class="o">.</span><span class="n">uint</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span>
 </div>
 <div class="viewcode-block" id="BaseExpansionBoard.get_flag"><a class="viewcode-back" href="../../../blitz_communications_boards.html#blitz.communications.boards.BaseExpansionBoard.get_flag">[docs]</a>    <span class="k">def</span> <span class="nf">get_flag</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flag_number</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -341,6 +358,69 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;Board unable to process command (</span><span class="si">%s</span><span class="s">) received response (</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">result</span><span class="p">))</span>
 
 </div></div>
+<span class="k">class</span> <span class="nc">RaspberryIoExpansionBoard</span><span class="p">(</span><span class="n">BaseExpansionBoard</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An expansion board which uses the digital GPIO on the Raspberry Pi</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s">&quot;Raspberry Pi GPIO Board&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;load the correct description for the board&quot;&quot;&quot;</span>
+        <span class="n">BaseExpansionBoard</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">description</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">do_not_register</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">description</span>
+
+    <span class="k">def</span> <span class="nf">register_signals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Connect to the board loading signal&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="s">&quot;Board [</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">] now listening for registering_boards signal&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="p">[</span><span class="s">&#39;description&#39;</span><span class="p">]))</span>
+        <span class="n">registering_boards</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">register_board</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_variables</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">&quot;digital_one&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="s">&quot;digital_two&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="s">&quot;digital_three&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="s">&quot;digital_four&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="s">&quot;digital_five&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="s">&quot;digital_six&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="s">&quot;digital_seven&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="s">&quot;digital_eight&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+        <span class="p">}</span>
+
+
+<span class="k">class</span> <span class="nc">BlitzRaspberryExpansionBoard</span><span class="p">(</span><span class="n">BaseExpansionBoard</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An expansion board which uses the digital GPIO on the Raspberry Pi</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s">&quot;Blitz Raspberry GPIO Board&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;load the correct description for the board&quot;&quot;&quot;</span>
+        <span class="n">BaseExpansionBoard</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">description</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">do_not_register</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">description</span>
+
+    <span class="k">def</span> <span class="nf">register_signals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Connect to the board loading signal&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="s">&quot;Board [</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">] now listening for registering_boards signal&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="p">[</span><span class="s">&#39;description&#39;</span><span class="p">]))</span>
+        <span class="n">registering_boards</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">register_board</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_variables</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">&quot;digital_one&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_flag</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
+            <span class="s">&quot;digital_two&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_flag</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span>
+            <span class="s">&quot;digital_three&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_flag</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span>
+            <span class="s">&quot;digital_four&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_flag</span><span class="p">(</span><span class="mi">4</span><span class="p">),</span>
+            <span class="s">&quot;digital_five&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_flag</span><span class="p">(</span><span class="mi">5</span><span class="p">),</span>
+            <span class="s">&quot;channel_one&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">16</span><span class="p">),</span>
+            <span class="s">&quot;channel_two&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">),</span>
+            <span class="s">&quot;channel_three&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">16</span><span class="p">),</span>
+            <span class="s">&quot;channel_four&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number</span><span class="p">(</span><span class="mi">48</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span>
+        <span class="p">}</span>
+
+
 <div class="viewcode-block" id="BlitzBasicExpansionBoard"><a class="viewcode-back" href="../../../blitz_communications_boards.html#blitz.communications.boards.BlitzBasicExpansionBoard">[docs]</a><span class="k">class</span> <span class="nc">BlitzBasicExpansionBoard</span><span class="p">(</span><span class="n">BaseExpansionBoard</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A basic expansion board with three 10bit ADCs</span>
@@ -421,7 +501,7 @@
             <span class="s">&quot;Board [</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">] now listening for registering_boards signal&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="p">[</span><span class="s">&#39;description&#39;</span><span class="p">]))</span>
 
     <span class="k">def</span> <span class="nf">get_variables</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_min</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-        <span class="n">var_vals</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_number</span><span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">))</span> <span class="o">/</span> <span class="mf">1.0e6</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">16</span><span class="p">)]</span>
+        <span class="n">var_vals</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_number</span><span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span> <span class="o">-</span> <span class="mf">2e6</span><span class="p">)</span> <span class="o">/</span> <span class="mf">1.0e6</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">16</span><span class="p">)]</span>
         <span class="n">channels</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;Channel_{0}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">channel_offset</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">17</span><span class="p">)]</span>
         <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">channels</span><span class="p">,</span> <span class="n">var_vals</span><span class="p">))</span>
 

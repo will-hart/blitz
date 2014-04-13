@@ -268,6 +268,17 @@
 <span class="c">#: Sent by:</span>
 <span class="c">#:  - :mod:`TcpBase`.run_client</span>
 <span class="n">process_finished</span> <span class="o">=</span> <span class="n">signal</span><span class="p">(</span><span class="s">&#39;process_finished&#39;</span><span class="p">)</span>
+
+<span class="c">#: Fired when the client requests the server to delete a logging session from the database</span>
+<span class="c">#:</span>
+<span class="c">#: Subscribers (subscribed in &gt;&gt; subscribed to):</span>
+<span class="c">#:  - `ApplicationClient`.__init__ &gt;&gt; ApplicationClient.request_session_delete</span>
+<span class="c">#:  - `ApplicationServer`.__init__ &gt;&gt; ApplicationServer.delete_session_data</span>
+<span class="c">#:</span>
+<span class="c">#: Sent by:</span>
+<span class="c">#:  - :mod:`ServerIdleState`.receive_message</span>
+<span class="c">#:  - :mod:`BlitzSessionTabPane`.delete_session</span>
+<span class="n">delete_server_session</span> <span class="o">=</span> <span class="n">signal</span><span class="p">(</span><span class="s">&#39;delete_server_session&#39;</span><span class="p">)</span>
 </pre></div>
 
           </div>
