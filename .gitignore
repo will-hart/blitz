@@ -1,0 +1,7 @@
+.idea/*
+doc/*
+blitz/
+*.pyc
+
+client_log.txt
+server_log.txt
