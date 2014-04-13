@@ -1,6 +1,7 @@
 import PySide.QtGui as Qt
 import PySide.QtCore as QtCore
 import sys
+import time
 
 from blitz.client import ApplicationClient
 import blitz.communications.signals as sigs
@@ -367,6 +368,8 @@ class MainBlitzWindow(Qt.QMainWindow, BlitzGuiMixin):
         self.variable_widget.set_data(self.__container.get_latest(named=True))
 
     def update_session_list(self):
+
+        time.sleep(1)
         # first get the list of sessions
         raw_sessions = self.application.data.all(Session)
         sessions = []
