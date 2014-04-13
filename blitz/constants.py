@@ -29,6 +29,7 @@ class CommunicationCodes(object):
     IsLogging = "LOGGING"
     GetSessions = "SESSIONS"
     Reset = "RESET"
+    Delete = "DELETE"
 
     @classmethod
     def composite(cls, base_code, code_id):
@@ -54,7 +55,8 @@ VALID_SERVER_COMMANDS = [
     CommunicationCodes.Board,
     CommunicationCodes.IsLogging,
     CommunicationCodes.GetSessions,
-    CommunicationCodes.Reset
+    CommunicationCodes.Reset,
+    CommunicationCodes.Delete
 ]
 
 # commands that are valid to send TO the client

@@ -201,6 +201,7 @@ class BlitzSessionTabPane(BlitzTableView):
         # button for deleting sessions
         self.delete_session_button = Qt.QPushButton(Qt.QIcon('blitz/static/img/desktop_delete.png'),"Delete", self)
         self.delete_session_button.setFlat(True)
+        self.delete_session_button.clicked.connect(self.delete_session)
         self.delete_session_button.setEnabled(False)
 
     def set_connected(self, connected):
@@ -227,7 +228,7 @@ class BlitzSessionTabPane(BlitzTableView):
         self.save_button.setEnabled(self.__selected_id >= 0 and (items[0].text() == "X" or self.__connected))
         self.download_button.setEnabled(self.__selected_id >= 0 and self.__connected)
         # self.view_series_button.setEnabled(self.__selected_id >= 0)
-        # self.delete_session_button.setEnabled(self.__selected_id >= 0)
+        self.delete_session_button.setEnabled(self.__selected_id >= 0 and self.__connected)
 
     def download_session(self):
         if self.__selected_id < 0:
@@ -245,19 +246,42 @@ class BlitzSessionTabPane(BlitzTableView):
         sigs.process_started.send("Downloading data")
         sigs.client_requested_download.send(session_id)
 
+    def get_selected_item(self):
+        """
+        Determines the selected item from the session list and whether it is available
+
+        :returns: A tuple containing the selected item ID and T/F flag for if it is local. ID is -1 if nothing selected
+        """
+
+        selected_items = self.variable_table.selectedItems()
+
+        if len(selected_items) <= 0:
+            return (-1, False)
+
+        selected_idx = int(selected_items[1].text())
+        available = selected_items[0].text() == "X"
+
+        return (selected_idx, available)
+
+    def delete_session(self):
+        """
+        Requests the server to delete a session from the database
+        """
+        sess, _ = self.get_selected_item()
+
+        if sess < 0:
+            return
+
+        # send the message
+        sigs.delete_server_session.send(sess)
+        sigs.process_started.send("Requesting session to be deleted")
+
     def save_session(self):
         """
         Handles the 'download session' button being clicked on a session list item
         """
 
-        # get the session ID of the selected item
-        selected_items = self.variable_table.selectedItems()
-
-        if len(selected_items) <= 0:
-            return
-
-        selected_idx = int(selected_items[1].text())
-        available = selected_items[0].text() == "X"
+        selected_idx, available = self.get_selected_item()
 
         # get the file name
         file_path, _ = Qt.QFileDialog.getSaveFileName(self, 'Save session to file...', 'C:/', 'CSV Files (*.csv)')

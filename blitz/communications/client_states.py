@@ -113,14 +113,17 @@ class ClientIdleState(BaseState):
             return new_state
         elif msg[0:5] == CommunicationCodes.Board:
             tcp.do_send(msg)
-            return self
         if msg[0:5] == CommunicationCodes.Reset:
             self.logger.warning("[TCP] Forcing logger reset")
             tcp.do_send(msg)
             return self.go_to_state(tcp, ClientIdleState)
+        if msg[0:6] == CommunicationCodes.Delete:
+            tcp.do_send(msg)
         else:
             self.logger.error("Attempted to send unknown message for IDLE state: {0}".format(msg))
             raise Exception("Unknown message for IDLE state - " + msg)
+
+        return self
 
 
 class ClientSessionListState(BaseState):

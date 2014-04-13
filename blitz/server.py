@@ -153,6 +153,7 @@ class ApplicationServer(object):
         sigs.server_status_request.connect(self.serve_client_status)
         sigs.client_requested_download.connect(self.serve_client_download)
         sigs.board_list_requested.connect(self.send_connected_boards)
+        sigs.delete_server_session.connect(self.delete_session_data)
 
         # start the TCP server
         self.tcp = TcpBase(port=self.config["server_port"])
@@ -204,6 +205,12 @@ class ApplicationServer(object):
             boards += " " + " ".join([x.board_id for x in self.netscanner])
 
         self.tcp.send(boards)
+
+    def delete_session_data(self, session_id):
+        """
+        Deletes a single session from the database
+        """
+        self.serial_server.database.delete_session(session_id)
 
     def __del__(self):
         self.logger.warning("Shutting down server Application")

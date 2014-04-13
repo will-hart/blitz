@@ -63,9 +63,8 @@ class ServerIdleState(ServerBaseState):
             msg_parts = msg.split(" ")
             if len(msg_parts) != 2:
                 tcp.send(CommunicationCodes.Negative)
-                return self
-
-            return self.go_to_state(tcp, ServerDownloadingState, msg_parts[1])
+            else:
+                return self.go_to_state(tcp, ServerDownloadingState, msg_parts[1])
         elif msg[0:5] == CommunicationCodes.Reset:
             return self
         elif msg == CommunicationCodes.Stop or msg == CommunicationCodes.Update:
@@ -76,6 +75,10 @@ class ServerIdleState(ServerBaseState):
             tcp.do_send(CommunicationCodes.Negative)
         elif msg[0:6] == CommunicationCodes.Boards:
             sigs.board_list_requested.send()
+        elif msg[0:6] == CommunicationCodes.Delete:
+            self.logger.debug("Deleting session {0}".format(msg.replace(CommunicationCodes.Delete + " ", "")))
+            sigs.delete_server_session.send(msg.replace(CommunicationCodes.Delete + " ", ""))
+            tcp.do_send(CommunicationCodes.Acknowledge)
         elif not self.process_standard_messages(tcp, msg):
             tcp.do_send(validate_command(msg, VALID_SERVER_COMMANDS) + "IDLE")
 

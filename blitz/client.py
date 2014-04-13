@@ -62,6 +62,7 @@ class ApplicationClient(object):
         sigs.force_board_reset.connect(self.force_board_reset)
         sigs.board_list_requested.connect(self.send_boards_command)
         sigs.board_list_received.connect(self.process_boards_command)
+        sigs.delete_server_session.connect(self.request_session_delete)
 
     def run(self):
         """
@@ -153,6 +154,12 @@ class ApplicationClient(object):
         UI should prevent calling at other times
         """
         self.tcp.send(CommunicationCodes.GetSessions)
+
+    def request_session_delete(self, session_id):
+        """
+        Send a request for the server to delete a session ID from memory
+        """
+        self.tcp.send(CommunicationCodes.composite(CommunicationCodes.Delete, session_id))
 
     def update_interface(self, data, replace_existing=False):
         """

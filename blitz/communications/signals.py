@@ -202,3 +202,14 @@ process_started = signal('process_started')
 #: Sent by:
 #:  - :mod:`TcpBase`.run_client
 process_finished = signal('process_finished')
+
+#: Fired when the client requests the server to delete a logging session from the database
+#:
+#: Subscribers (subscribed in >> subscribed to):
+#:  - `ApplicationClient`.__init__ >> ApplicationClient.request_session_delete
+#:  - `ApplicationServer`.__init__ >> ApplicationServer.delete_session_data
+#:
+#: Sent by:
+#:  - :mod:`ServerIdleState`.receive_message
+#:  - :mod:`BlitzSessionTabPane`.delete_session
+delete_server_session = signal('delete_server_session')
