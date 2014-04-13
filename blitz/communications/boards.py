@@ -349,7 +349,7 @@ class BlitzRaspberryExpansionBoard(BaseExpansionBoard):
             "digital_four": self.get_flag(4),
             "digital_five": self.get_flag(5),
             "channel_one": self.get_number(0, 16),
-            "channel_twp": self.get_number(16, 16),
+            "channel_two": self.get_number(16, 16),
             "channel_three": self.get_number(32, 16),
             "channel_four": self.get_number(48, 16)
         }
