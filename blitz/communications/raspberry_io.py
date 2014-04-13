@@ -13,9 +13,10 @@ else:
     import time
 
     from blitz.communications.signals import logging_started, logging_stopped
+    from blitz.communications.server_plugin import ServerPluginBase
 
 
-    class RPIOManager(object):
+    class RPIOManager(ServerPluginBase):
         """
         Read from the Raspberry Pi IO pins
         """
@@ -31,26 +32,8 @@ else:
             :param database: The database to use to save serial data
             """
 
-            self.__data = database
-            self.board_id = 3
-            self.__stop_event = threading.Event()
-            self.__run_thread(self.run_client)
-            self.__thread = None
+            super(RPIOManager, self).__init__(database)
             self.__logging_start = datetime.datetime.now()
-
-            logging_started.connect(self.start_logging)
-            logging_stopped.connect(self.stop_client)
-
-        def __run_thread(self, thread_target):
-
-            if self.__thread:
-                self.logger.debug("Closing existing Raspberry Pi polling thread")
-                self.__stop_event.set()
-                self.__thread.join()
-
-            self.__thread = threading.Thread(target=thread_target, args=[self.__stop_event])
-            self.__thread.daemon = True
-            self.__thread.start()
 
         def run_client(self, stop_event):
 
@@ -108,22 +91,11 @@ else:
             Stores the current time when data logging commences so the correct timestamp can be provided to messages
             """
             self.__logging_start = datetime.datetime.now()
-            self.__run_thread(self.run_client)
-
-
-        def receive_message(self, channels):
-            """
-            Receives and handles data retrieved from the Raspberry Pi GPIO
-
-            :param message: the message that was received
-            """
-            pass
+            super(RPIOManager, self).start_logging(args)
 
         def stop_client(self):
             """
             Stops a client from polling
             """
-            self.__stop_event.set()
-            self.__thread.join()
-            self.__thread = None
+            super(RPIOManager, self).stop_client()
             self.logger.debug("Raspberry Pi GPIO thread stopped")

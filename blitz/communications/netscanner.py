@@ -16,9 +16,10 @@ import threading
 import time
 
 from blitz.communications.signals import logging_started, logging_stopped
+from blitz.communications.server_plugin import ServerPluginBase
 
 
-class NetScannerManager(object):
+class NetScannerManager(ServerPluginBase):
     """
     A class which handles decoding and interpretation of TCP messages received
     from a NetScanner 9116 or 8IFC device.
@@ -54,28 +55,16 @@ class NetScannerManager(object):
         :param port: The port of the NetScanner device
         :param database: The database to use to save serial data
         """
-
+        super(NetScannerManager, self).__init__(database)
         self.__host = host
         self.__port = port
-        self.__data = database
         self.board_id = board_id
         self.receive_queue = Queue.Queue()
-        self.__stop_event = threading.Event()
         self.__socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.__socket.settimeout(self.REQUEST_TIMEOUT)
-        self.__run_thread(self.run_client)
-        self.__thread = None
         self.__logging_start = datetime.datetime.now()
         self.__logging = False
         self.__logging_lock = threading.RLock()
-
-        logging_started.connect(self.start_logging)
-        logging_stopped.connect(self.stop_logging)
-
-    def __run_thread(self, thread_target):
-        self.__thread = threading.Thread(target=thread_target, args=[self.__stop_event])
-        self.__thread.daemon = True
-        self.__thread.start()
 
     def run_client(self, stop_event):
         try:
@@ -181,6 +170,5 @@ class NetScannerManager(object):
         """
         Stops a client from polling the NetScanner by setting the stop_event
         """
-        self.__stop_event.set()
-        self.__thread.join()
+        super(NetScannerManager, self).stop_client()
         self.logger.debug("NetScanner thread stopped")

@@ -37,7 +37,7 @@ class ServerPluginBase(object):
     def __run_thread(self, thread_target):
 
         if self.__thread:
-            self.logger.debug("Closing existing Raspberry Pi polling thread")
+            self.logger.debug("Closing existing Server thread")
             self.__stop_event.set()
             self.__thread.join()
 
