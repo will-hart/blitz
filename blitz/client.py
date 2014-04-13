@@ -159,6 +159,11 @@ class ApplicationClient(object):
         """
         Send a request for the server to delete a session ID from memory
         """
+
+        # start by deleting the session locally
+        self.data.delete_session(session_id)
+
+        # then request the delete on the serer
         self.tcp.send(CommunicationCodes.composite(CommunicationCodes.Delete, session_id))
 
     def update_interface(self, data, replace_existing=False):

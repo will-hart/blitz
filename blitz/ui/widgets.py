@@ -276,6 +276,9 @@ class BlitzSessionTabPane(BlitzTableView):
         sigs.delete_server_session.send(sess)
         sigs.process_started.send("Requesting session to be deleted")
 
+        # manually delete the session row from the table (i.e. assume success :/)
+        self.variable_table.removeRow(self.variable_table.currentRow())
+
     def save_session(self):
         """
         Handles the 'download session' button being clicked on a session list item

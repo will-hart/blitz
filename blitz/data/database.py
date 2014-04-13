@@ -370,7 +370,6 @@ class DatabaseClient(object):
         Clears historic session data for the given session (ref) id
 
         :param session_id: the id of the session to clear data for
-        :returns: the Reading that was generated
         """
         sess = self._session()
         sess.query(Reading).filter(Reading.sessionId == session_id).delete()
@@ -378,6 +377,18 @@ class DatabaseClient(object):
 
         # now update the session availability to reflect the cleared data
         self.update_session_availability(session_id)
+
+    def delete_session(self, session_id):
+        """
+        Clears all the data for a given sessio and removes it from the session list.
+        This process must be mirrored on the server otherwise the session will be added
+        back into the list when a "Session List" query is carried out
+
+        :param session_id: the id of the session to be deleted
+        """
+        self.clear_session_data(session_id)
+        sess = self._session()
+        sess.query(Session).filter(Session.ref_id == session_id).delete()
 
 
 class DatabaseServer(object):
