@@ -181,8 +181,8 @@ class TestBasicDatabaseOperations(unittest.TestCase):
         c = Cache(timeLogged=blitz_timestamp(), categoryId=1, value=3)
         res = self.db.add(c)
 
-        assert type(res) == Cache
-        assert res.id == 1
+        assert type(res) == Cache, "Expected Cache type, found %s" % type(res)
+        assert res.id == 1, "Expected ID 1, found ID %s" % res.id
 
     def test_find_all_readings(self):
         res = self.db.all(Reading)
