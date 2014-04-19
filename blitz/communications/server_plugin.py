@@ -28,7 +28,6 @@ class ServerPluginBase(object):
 
         self.__data = database
         self.stop_event = threading.Event()
-        self.run_thread(self.run_client)
         self.thread = None
 
         logging_started.connect(self.start_logging)

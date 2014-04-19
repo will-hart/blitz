@@ -67,6 +67,9 @@ class NetScannerManager(ServerPluginBase):
         self.__logging = False
         self.__logging_lock = threading.RLock()
 
+        # auto run the thread
+        self.run_thread(self.run_client)
+
     def run_client(self, stop_event):
         try:
             self.__socket.connect((self.__host, self.__port))
