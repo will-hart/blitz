@@ -1079,7 +1079,7 @@ class TestDataTransform(unittest.TestCase):
         start = [1, 2, 3, 4]
         expected = [2, 4, 6, 8]
         self.data.add_transform(data_transforms.MultiplierDataTransform(2))
-        self.data.push("1", start, start)
+        self.data.push("1", "Series 1", start, start)
 
         self.data.apply_transforms()
 
@@ -1096,7 +1096,7 @@ class TestDataTransform(unittest.TestCase):
         expected = [1, 3, 5, 7]
         self.data.add_transform(data_transforms.MultiplierDataTransform(2))
         self.data.add_transform(data_transforms.MovingAverageDataTransform(2))
-        self.data.push("1", start, start)
+        self.data.push("1", "Series 1", start, start)
 
         self.data.apply_transforms()
 
