@@ -787,7 +787,8 @@ class TestBoardManager(unittest.TestCase):
 
     def test_registering_boards(self):
         # the BlitzBasic board should be registered as ID 1, no other boards currently registered
-        assert len(self.bm.boards) == 1
+        assert len(self.bm.boards) == 6 # not sure if there is a better way to check this, currently have to
+                                        # update every time the expansion boards are changed :/
         assert type(self.bm.boards[8]) == BlitzBasicExpansionBoard
 
     @raises(Exception)
@@ -900,20 +901,27 @@ class TestDataContainer(unittest.TestCase):
 
     @raises(ValueError)
     def test_should_throw_value_error_on_mismatched_arrays(self):
-        self.data.push(1, [1, 2], [1])
+        self.data.push('1', "Series 1", [1, 2], [1])
 
     def test_number_of_series(self):
         assert self.data.number_of_series == 0, "Expected 0 series, found %s" % self.data.number_of_series
 
-        self.data.push(1, [1], [1])
+        self.data.push('1', "Series 1", [1], [1])
+        assert self.data.number_of_series == 1, "Expected 1 series, found %s" % self.data.number_of_series
+
+    def test_pushing_int_id_converts_to_str(self):
+        self.data.push(1, "Series 1", [1], [1])
+        assert self.data.number_of_series == 1, "Expected 1 series, found %s" % self.data.number_of_series
+
+        self.data.push("1", "Series 1", [2], [2])
         assert self.data.number_of_series == 1, "Expected 1 series, found %s" % self.data.number_of_series
 
     def test_push_data_series_doesnt_duplicate_series(self):
-        self.data.push("1", [1], [1])
-        self.data.push("2", [1], [1])
+        self.data.push("1", "Series 1", [1], [1])
+        self.data.push("2", "Series 2", [1], [1])
         assert self.data.number_of_series == 2, "Expected 2 series, found %s" % self.data.number_of_series
 
-        self.data.push("2", [1], [1])
+        self.data.push("2", "Series 2", [1], [1])
         assert self.data.number_of_series == 2, "Expected 2 series, found %s" % self.data.number_of_series
 
         assert len(self.data.x) == 2, "Expected 2 items, found %s" % len(self.data.x)
@@ -924,7 +932,7 @@ class TestDataContainer(unittest.TestCase):
         assert len(self.data.y[1]) == 2, "Expected 2 items, found %s" % len(self.data.y[1])
 
     def test_get_series(self):
-        self.data.push("1", [1], [1])
+        self.data.push("1", "Series 1", [1], [1])
 
         # check the series is correctly returned
         x, y = self.data.get_series("1")
@@ -939,11 +947,11 @@ class TestDataContainer(unittest.TestCase):
         assert len(y2) == 0
 
     def test_push_data_series_appends_to_existing_series(self):
-        self.data.push("1", [1], [1])
-        self.data.push("1", [1], [1])
-        self.data.push("1", [1], [1])
-        self.data.push("1", [1], [1])
-        self.data.push("1", [1], [1])
+        self.data.push("1", "Series 1", [1], [1])
+        self.data.push("1", "Series 1", [1], [1])
+        self.data.push("1", "Series 1", [1], [1])
+        self.data.push("1", "Series 1", [1], [1])
+        self.data.push("1", "Series 1", [1], [1])
 
         assert self.data.number_of_series == 1
 
@@ -954,8 +962,8 @@ class TestDataContainer(unittest.TestCase):
             assert x_val == 1
 
     def test_all_series(self):
-        self.data.push("1", [1, 2], [3, 4])
-        self.data.push("2", [5, 6], [7, 8])
+        self.data.push("1", "Series 1", [1, 2], [3, 4])
+        self.data.push("2", "Series 2", [5, 6], [7, 8])
         series_count = 0
         series_data = [
             [[1, 2], [3, 4]],
@@ -972,11 +980,11 @@ class TestDataContainer(unittest.TestCase):
         assert series_count == 2, "Expected 2 series, found %s" % series_count
 
     def test_get_series_keeps_series_order(self):
-        self.data.push("1", [1, 2], [3, 4])
-        self.data.push("2", [1, 2], [3, 4])
-        self.data.push("3", [1, 2], [3, 4])
-        self.data.push("2", [1, 2], [3, 4])
-        self.data.push("4", [1, 2], [3, 4])
+        self.data.push("1", "Series 1", [1, 2], [3, 4])
+        self.data.push("2", "Series 2", [1, 2], [3, 4])
+        self.data.push("3", "Series 3", [1, 2], [3, 4])
+        self.data.push("2", "Series 2", [1, 2], [3, 4])
+        self.data.push("4", "Series 4", [1, 2], [3, 4])
         series_names = ["1", "2", "3", "4"]
         series_count = 0
 
@@ -987,8 +995,8 @@ class TestDataContainer(unittest.TestCase):
             series_count += 1
 
     def test_clear_data(self):
-        self.data.push("1", [1], [1])
-        self.data.push("2", [1], [1])
+        self.data.push("1", "Series 1", [1], [1])
+        self.data.push("2", "Series 2", [1], [1])
         assert self.data.number_of_series == 2, "Expected 2 series, found %s" % self.data.number_of_series
 
         self.data.clear_data()
@@ -1006,27 +1014,19 @@ class TestDataContainer(unittest.TestCase):
         self.data.add_transform(3)
 
     def test_get_unknown_series(self):
-        self.data.push("1", [1], [1])
+        self.data.push("1", "Series 1", [1], [1])
         assert self.data.get_series("2") == [[], []], "Expected empty list"
 
-    def test_saves_min_and_max_limits(self):
-        self.data.push("1", [-50, -100, 50, 100], [-50, -100, 50, 100])
-
-        assert self.data.x_min == -100, "Expected -100, found %s" % self.data.x_min
-        assert self.data.x_max == 100, "Expected 100, found %s" % self.data.x_max
-        assert self.data.y_min == -100, "Expected -100, found %s" % self.data.y_min
-        assert self.data.y_max == 100, "Expected 100, found %s" % self.data.y_max
-
     def test_has_series(self):
-        self.data.push("1", [1], [1])
+        self.data.push("1", "Series 1", [1], [1])
 
         assert self.data.has_series("1") == True
         assert self.data.has_series(1) == True
         assert self.data.has_series("asdf") == False
 
     def test_get_series_names(self):
-        self.data.push("2", [1], [1])
-        self.data.push("1", [1], [1])
+        self.data.push("2", "Series 2", [1], [1])
+        self.data.push("1", "Series 1", [1], [1])
 
         series_names = self.data.get_series_names()
 
@@ -1034,13 +1034,13 @@ class TestDataContainer(unittest.TestCase):
         assert series_names[1] == "1"
 
     def test_push_return_values(self):
-        assert self.data.push("1", [1], [1]) == True
-        assert self.data.push("1", [1], [1]) == False
-        assert self.data.push("2", [1], [1]) == True
+        assert self.data.push("1", "Series 1", [1], [1]) == True
+        assert self.data.push("1", "Series 1", [1], [1]) == False
+        assert self.data.push("2", "Series 2", [1], [1]) == True
 
     def test_get_x_and_get_y(self):
-        self.data.push("1", [1], [2])
-        self.data.push("2", [3], [4])
+        self.data.push("1", "Series 1", [1], [2])
+        self.data.push("2", "Series 2", [3], [4])
 
         x = self.data.get_x("1")
         y = self.data.get_y("2")
@@ -1049,8 +1049,8 @@ class TestDataContainer(unittest.TestCase):
         assert y == [4]
 
     def test_get_x_and_get_y_unknown_series(self):
-        self.data.push("1", [1], [2])
-        self.data.push("2", [3], [4])
+        self.data.push("1", "Series 1", [1], [2])
+        self.data.push("2", "Series 2", [3], [4])
         x = self.data.get_x("3")
         y = self.data.get_y("3")
 
@@ -1058,16 +1058,16 @@ class TestDataContainer(unittest.TestCase):
         assert y == []
 
     def test_get_series_index(self):
-        self.data.push("1", [1], [1])
-        self.data.push("2", [1], [1])
-        self.data.push("1", [1], [1])
+        self.data.push("1", "Series 1", [1], [1])
+        self.data.push("2", "Series 2", [1], [1])
+        self.data.push("1", "Series 1", [1], [1])
 
         assert self.data.get_series_index("1") == 0
         assert self.data.get_series_index("2") == 1
 
     def test_container_empty(self):
         assert self.data.empty() == True
-        self.data.push("1", [1], [1])
+        self.data.push("1", "Series 1", [1], [1])
         assert self.data.empty() == False
 
 

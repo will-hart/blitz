@@ -61,6 +61,9 @@ class DataContainer(object):
 
         created = False
 
+        # force the series ID to string
+        series_id = str(series_id)
+
         if series_id not in self.__series.keys():
             self.__series[series_id] = self.number_of_series
             self.__series_names[series_id] = series_name
