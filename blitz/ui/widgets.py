@@ -298,7 +298,7 @@ class BlitzSessionTabPane(BlitzTableView):
 
         # get the data
         data = self.application.data.get_session_readings(selected_idx)
-        sess = self.application.data.get(Session, {"id": selected_idx})
+        sess = self.application.data.get(Session, {"ref_id": selected_idx})
         raw_sess_vars = self.application.data.get_session_variables(selected_idx)
         sess_vars = dict([(x.id, x.variableName) for x in raw_sess_vars])
 
