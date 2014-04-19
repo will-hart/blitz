@@ -41,8 +41,10 @@ class TestDatabaseClientSetup(unittest.TestCase):
         """
         Test that when we initialise the client a database connection is created
         """
-        assert type(self.db._database) is sqlalchemy.engine.base.Engine
-        assert type(self.db._session) is orm.session.sessionmaker
+        assert type(self.db._database) is sqlalchemy.engine.base.Engine, \
+            "Expected db_database to be an Engine, but it is a %s" % type(self.db._database)
+        assert type(self.db._session) is orm.scoped_session, \
+            "Expected db_database to be an scoped_session, but it is a %s" % type(self.db._session)
 
     def test_database_created(self):
         """
@@ -706,8 +708,6 @@ class TestExpansionBoardParsing(unittest.TestCase):
 
         result = board.get_variables()
 
-        assert result['full_payload'] == 6278148361660923904, "Expected 6278148361660923904, recieved %s" % result[
-            'full_payload']
         assert result['flag_one'] is False
         assert result['flag_two'] is True
         assert result['flag_three'] is False
