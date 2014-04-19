@@ -1,9 +1,10 @@
 __author__ = 'Will Hart'
 
+from contextlib import contextmanager
 import logging
 import sqlalchemy as sql
 from sqlalchemy import func as sql_func
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, scoped_session
 import redis
 
 from blitz.data.models import *
@@ -31,13 +32,32 @@ class DatabaseClient(object):
 
         # allow loading from memory for testing
         self._database = sql.create_engine('sqlite:///' + path, echo=verbose)
-        self._session = sessionmaker(bind=self._database)
+        self._session = scoped_session(sessionmaker(bind=self._database, expire_on_commit=False))
         self.logger.debug("DatabaseClient __init__")
         self.create_tables()
         self.logger.debug("DatabaseClient created tables")
 
         # connect up the session_list_update signal
         sigs.client_session_list_updated.connect(self.update_session_list)
+
+    @contextmanager
+    def get_session(self):
+        """
+        Creates a context specific session manager that can be used in a `with` statement. For instance:
+
+            with get_session as session:
+                # do stuff with session
+
+        Uses the `scoped_session` from SQLAlchemy to ensure it is thread safe
+        """
+        try:
+            yield self._session()
+            self._session.commit()
+        except Exception:
+            self._session.rollback()
+            raise Exception
+        finally:
+            self._session.close()
 
     def create_tables(self, force_drop=False):
         """
@@ -68,11 +88,10 @@ class DatabaseClient(object):
         :param items: A list of Model instances to be added
         :returns: The list of items that was added (should now be populated with IDs)
         """
-        sess = self._session()
-        for r in items:
-            sess.add(r)
-        sess.commit()
-        return items
+        with self.get_session() as sess:
+            for r in items:
+                sess.add(r)
+            return items
 
     def get(self, model, query):
         """
@@ -97,9 +116,8 @@ class DatabaseClient(object):
         :param model: The model to return all records for
         :return: A list of all records for a given model
         """
-
-        sess = self._session()
-        return sess.query(model).all()
+        with self.get_session() as sess:
+            return sess.query(model).all()
 
     def find(self, model, query):
         """
@@ -109,8 +127,8 @@ class DatabaseClient(object):
         :param query: the dictionary of "field: value" pairs to filter on
         :return: a list of all matching records
         """
-        sess = self._session()
-        return sess.query(model).filter_by(**query)
+        with self.get_session() as sess:
+            return sess.query(model).filter_by(**query)
 
     def update_session_availability(self, session_id):
         """
@@ -119,14 +137,13 @@ class DatabaseClient(object):
         :param session_id: the ref_id of the session being checked
         :returns: nothing
         """
-        sess = self._session()
-        session = sess.query(Session).filter_by(**{'ref_id': session_id}).first()
-        count = sess.query(sql_func.count(Reading.sessionId))\
-            .filter(Reading.sessionId == session_id).scalar()
+        with self.get_session() as sess:
+            session = sess.query(Session).filter_by(**{'ref_id': session_id}).first()
+            count = sess.query(sql_func.count(Reading.sessionId))\
+                .filter(Reading.sessionId == session_id).scalar()
 
-        # check all lines were received and set "available" accordingly
-        session.available = count > 0
-        sess.commit()
+            # check all lines were received and set "available" accordingly
+            session.available = count > 0
 
     def get_session_variables(self, session_id):
         """
@@ -134,16 +151,17 @@ class DatabaseClient(object):
         :param session_id: the ref_id of the session to get variables for.
         :returns: a list of Reading objects
         """
-        res = set()
-        qry = self._session().query(Category, Reading). \
-            filter(Category.id == Reading.categoryId). \
-            filter(Reading.sessionId == session_id). \
-            order_by(Reading.id). \
-            all()
-        for c, r in qry:
-            res.add(c)
+        with self.get_session() as sess:
+            res = set()
+            qry = sess.query(Category, Reading). \
+                filter(Category.id == Reading.categoryId). \
+                filter(Reading.sessionId == session_id). \
+                order_by(Reading.id). \
+                all()
+            for c, r in qry:
+                res.add(c)
 
-        return list(res)
+            return list(res)
 
     def get_cache_variables(self):
         """
@@ -151,11 +169,12 @@ class DatabaseClient(object):
 
         :returns: a list of Cache objects
         """
-        res = set()
-        qry = self._session().query(Category, Cache).filter(Category.id == Cache.categoryId).order_by(Cache.id).all()
-        for c, r in qry:
-            res.add(c)
-        return list(res)
+        with self.get_session() as sess:
+            res = set()
+            qry = sess.query(Category, Cache).filter(Category.id == Cache.categoryId).order_by(Cache.id).all()
+            for c, r in qry:
+                res.add(c)
+            return list(res)
 
     def get_session_readings(self, session_id):
         """
@@ -164,8 +183,8 @@ class DatabaseClient(object):
         :param session_id: the ref_id of the session to get variables for.
         :returns: a list of Reading objects for the session ID
         """
-        sess = self._session()
-        return sess.query(Reading).filter(Reading.sessionId == session_id).all()
+        with self.get_session() as sess:
+            return sess.query(Reading).filter(Reading.sessionId == session_id).all()
 
     def get_cache(self, since=0):
         """
@@ -177,24 +196,23 @@ class DatabaseClient(object):
         :param since: a UNIX timestamp to retrieve values since
         :returns: A list (variable) of lists (values)
         """
+        with self.get_session() as sess:
+            res = []
 
-        res = []
-        sess = self._session()
+            # get the categories in the cache
+            cache_vars = sess.query(Cache).group_by(Cache.categoryId).all()
 
-        # get the categories in the cache
-        cache_vars = sess.query(Cache).group_by(Cache.categoryId).all()
+            # loop and build the variables
+            for v in cache_vars:
+                if since > 0:
+                    qry = sess.query(Cache).filter(Cache.categoryId == v.categoryId).filter(
+                        Cache.timeLogged >= since).order_by(Cache.timeLogged.desc())
+                else:
+                    qry = sess.query(Cache).filter(Cache.categoryId == v.categoryId).order_by(Cache.timeLogged.desc())
 
-        # loop and build the variables
-        for v in cache_vars:
-            if since > 0:
-                qry = sess.query(Cache).filter(Cache.categoryId == v.categoryId).filter(
-                    Cache.timeLogged >= since).order_by(Cache.timeLogged.desc())
-            else:
-                qry = sess.query(Cache).filter(Cache.categoryId == v.categoryId).order_by(Cache.timeLogged.desc())
+                res += qry[:50]
 
-            res += qry[:50]
-
-        return res
+            return res
 
     def update_session_list(self, sessions_list):
         """
@@ -204,26 +222,24 @@ class DatabaseClient(object):
         :param sessions_list: a list of lists of session information [id, timeStarted, timeStopped, numberOfReadings]
         :returns: nothing
         """
-        self.logger.debug("Updating session list")
+        with self.get_session() as sess:
+            sess.query(Session).delete()
+            sess.commit()
 
-        sess = self._session()
-        sess.query(Session).delete()
-        sess.commit()
+            sessions = []
 
-        sessions = []
+            for session in sessions_list:
 
-        for session in sessions_list:
+                count = sess.query(sql.exists().where(Reading.sessionId == session[0])).scalar()
+                blitz_session = Session()
+                blitz_session.ref_id = session[0]
+                blitz_session.timeStarted = session[1]
+                blitz_session.timeStopped = session[2]
+                blitz_session.numberOfReadings = session[3]
+                blitz_session.available = count > 0
+                sessions.append(blitz_session)
 
-            count = self._session().query(sql.exists().where(Reading.sessionId == session[0])).scalar()
-            blitz_session = Session()
-            blitz_session.ref_id = session[0]
-            blitz_session.timeStarted = session[1]
-            blitz_session.timeStopped = session[2]
-            blitz_session.numberOfReadings = session[3]
-            blitz_session.available = count > 0
-            sessions.append(blitz_session)
-
-        self.add_many(sessions)
+            self.add_many(sessions)
 
     def load_fixtures(self, testing=False):
         """
@@ -252,7 +268,7 @@ class DatabaseClient(object):
 
     def set_config(self, key, value, do_update=True):
         """
-        Sets a config value in the database, adding or updating as required
+        Sets a config value in the database, adding or updating as required.
 
         :param key: the config key to set
         :param value: the config value to set for the given key
@@ -305,9 +321,8 @@ class DatabaseClient(object):
 
         :returns: nothing
         """
-        sess = self._session()
-        sess.query(Notification).delete()
-        sess.commit()
+        with self.get_session() as sess:
+            sess.query(Notification).delete()
 
     def handle_error(self, err_id):
         """
@@ -315,9 +330,8 @@ class DatabaseClient(object):
 
         :returns: nothing
         """
-        sess = self._session()
-        sess.query(Notification).filter(Notification.id == err_id).delete()
-        sess.commit()
+        with self.get_session() as sess:
+            sess.query(Notification).filter(Notification.id == err_id).delete()
 
     def add_reading(self, session_id, time_logged, category_id, value):
         """
@@ -361,9 +375,8 @@ class DatabaseClient(object):
 
         :returns: the Reading that was generated
         """
-        sess = self._session()
-        sess.query(Cache).delete()
-        sess.commit()
+        with self.get_session() as sess:
+            sess.query(Cache).delete()
 
     def clear_session_data(self, session_id):
         """
@@ -371,9 +384,8 @@ class DatabaseClient(object):
 
         :param session_id: the id of the session to clear data for
         """
-        sess = self._session()
-        sess.query(Reading).filter(Reading.sessionId == session_id).delete()
-        sess.commit()
+        with self.get_session() as sess:
+            sess.query(Reading).filter(Reading.sessionId == session_id).delete()
 
         # now update the session availability to reflect the cleared data
         self.update_session_availability(session_id)
@@ -387,8 +399,8 @@ class DatabaseClient(object):
         :param session_id: the id of the session to be deleted
         """
         self.clear_session_data(session_id)
-        sess = self._session()
-        sess.query(Session).filter(Session.ref_id == session_id).delete()
+        with self.get_session() as sess:
+            sess.query(Session).filter(Session.ref_id == session_id).delete()
 
 
 class DatabaseServer(object):
