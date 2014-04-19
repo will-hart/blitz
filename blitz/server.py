@@ -24,7 +24,7 @@ class Config(object):
         """
         Sets up default settings
         """
-        self.logger.info("Loading Server Configuration")
+        self.logger.info("Loading Configuration")
         self.settings = {
             #"template_path": os.path.join(os.path.dirname(__file__), "templates"),
             #"static_path": os.path.join(os.path.dirname(__file__), "static"),
