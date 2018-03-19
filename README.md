@@ -20,9 +20,7 @@ It is written mostly in Python, the programming language of the gods. Blitz is n
 What is the status
 ------------------
 
-Blitz has been under development for the better part of a year.  It is in a fully functional state and is frequently being improved and worked on. There are some known issues which are in the github issue tracker, as well as some others that are on the long term to-do list.  
-
-Blitz is the brainchild and sole work of [me](www.williamhart.info). 
+Blitz has been under development for the better part of a year.  It is in a fully functional state and is frequently being improved and worked on. There are some known issues which are in the github issue tracker, as well as some others that are on the long term to-do list.
 
 What is the short term roadmap
 ------------------------------
@@ -32,12 +30,14 @@ The short term focus is on getting stability and improving usability. A list of 
 What is the long term roadmap
 -----------------------------
 
-Eventually I would like to implement some of these features:
+EDIT: There isn't one :)
 
- - Build "frozen" (e.g. *.exe) versions of the applications for people who don't want to install Python
- - Implement an improved plugin system to make it easier to extend the supported data acquisition sources
- - Re-implement the web based GUI for control from mobile devices over wireless
- - Implement data "filters" for the desktop UI (such as FFT, moving averages, scale and offsets) that can be applied in various orders and combinations
+~~Eventually I would like to implement some of these features:~~
+
+ - ~~Build "frozen" (e.g. *.exe) versions of the applications for people who don't want to install Python~~
+ - ~~Implement an improved plugin system to make it easier to extend the supported data acquisition sources~~
+ - ~~Re-implement the web based GUI for control from mobile devices over wireless~~
+ - ~~Implement data "filters" for the desktop UI (such as FFT, moving averages, scale and offsets) that can be applied in various orders and combinations~~
 
 Feedback
 --------
